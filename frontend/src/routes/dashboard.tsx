@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar"
 import { isLoggedIn } from "@/hooks/useAuth"
 
-export const Route = createFileRoute("/_layout")({
+export const Route = createFileRoute("/dashboard")({
   component: Layout,
   beforeLoad: async () => {
     if (!isLoggedIn()) {
