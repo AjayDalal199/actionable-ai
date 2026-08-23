@@ -9,8 +9,11 @@ import {
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { LoginService } from "@/client"
-import { AuthLayout } from "@/components/Common/AuthLayout"
+import { LoginService } from "@/api"
+import { AuthLayout } from "@/features/auth/AuthLayout"
+import { isLoggedIn } from "@/features/auth/useAuth"
+import { useCustomToast } from "@/shared/hooks/useCustomToast"
+import { handleError } from "@/shared/lib/errors"
 import {
   Form,
   FormControl,
@@ -18,12 +21,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { LoadingButton } from "@/components/ui/loading-button"
-import { PasswordInput } from "@/components/ui/password-input"
-import { isLoggedIn } from "@/hooks/useAuth"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+} from "@/shared/ui/form"
+import { LoadingButton } from "@/shared/ui/loading-button"
+import { PasswordInput } from "@/shared/ui/password-input"
 
 const searchSchema = z.object({
   token: z.string().catch(""),
@@ -51,7 +51,7 @@ export const Route = createFileRoute("/reset-password")({
   validateSearch: searchSchema,
   beforeLoad: async ({ search }) => {
     if (isLoggedIn()) {
-      throw redirect({ to: "/" })
+      throw redirect({ to: "/dashboard" })
     }
     if (!search.token) {
       throw redirect({ to: "/login" })
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       {
-        title: "Reset Password - FastAPI Template",
+        title: "Reset Password — Actionable AI",
       },
     ],
   }),

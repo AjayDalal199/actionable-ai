@@ -7,8 +7,8 @@
       "!**/dist/**/*",
       "!**/node_modules/**/*",
       "!**/src/routeTree.gen.ts",
-      "!**/src/client/**/*",
-      "!**/src/components/ui/**/*",
+      "!**/src/api/**/*",
+      "!**/src/shared/ui/**/*",
       "!**/playwright-report",
       "!**/playwright.config.ts"
     ]

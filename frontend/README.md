@@ -85,11 +85,12 @@ The frontend code is structured as follows:
 
 * `frontend/src` - The main frontend code.
 * `frontend/public` - Static assets.
-* `frontend/src/client` - The generated OpenAPI client.
-* `frontend/src/components` - The components of the frontend, including the shadcn/ui components in `frontend/src/components/ui`.
-* `frontend/src/hooks` - Custom hooks.
-* `frontend/src/lib` - Shared frontend utilities.
-* `frontend/src/routes` - The frontend routes and pages.
+* `frontend/src/api` - The generated OpenAPI client.
+* `frontend/src/app` - App providers and the QueryClient.
+* `frontend/src/features` - Product slices (auth, dashboard, items, admin, settings).
+* `frontend/src/shared` - Shared UI (shadcn), components, hooks, and helpers.
+* `frontend/src/routes` - TanStack Router URL map (thin route files).
+* `frontend/src/styles` - Global CSS tokens.
 
 ## End-to-End Testing with Playwright
 

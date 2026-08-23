@@ -8,8 +8,11 @@ import {
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { LoginService } from "@/client"
-import { AuthLayout } from "@/components/Common/AuthLayout"
+import { LoginService } from "@/api"
+import { AuthLayout } from "@/features/auth/AuthLayout"
+import { isLoggedIn } from "@/features/auth/useAuth"
+import { useCustomToast } from "@/shared/hooks/useCustomToast"
+import { handleError } from "@/shared/lib/errors"
 import {
   Form,
   FormControl,
@@ -17,12 +20,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { LoadingButton } from "@/components/ui/loading-button"
-import { isLoggedIn } from "@/hooks/useAuth"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+} from "@/shared/ui/form"
+import { Input } from "@/shared/ui/input"
+import { LoadingButton } from "@/shared/ui/loading-button"
 
 const formSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
@@ -35,14 +35,14 @@ export const Route = createFileRoute("/recover-password")({
   beforeLoad: async () => {
     if (isLoggedIn()) {
       throw redirect({
-        to: "/",
+        to: "/dashboard",
       })
     }
   },
   head: () => ({
     meta: [
       {
-        title: "Recover Password - FastAPI Template",
+        title: "Recover Password — Actionable AI",
       },
     ],
   }),
