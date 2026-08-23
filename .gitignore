@@ -6,3 +6,18 @@ backend/app/frontend/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Security/Keys
+*.pem
+*.key
+*.cert
+
+# OS generated files
+.DS_Store
+Thumbs.db
