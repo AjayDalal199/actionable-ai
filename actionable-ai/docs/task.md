@@ -1,0 +1,21 @@
+# Chatbot Integration System Tasks
+
+- `[/]` Phase 1: Foundation & Auth
+  - `[x]` Scaffold FastAPI backend in `./backend`
+  - `[/]` Set up PostgreSQL + SQLModel + pgvector (Need to add pgvector)
+  - `[x]` Implement User Authentication (JWT)
+  - `[ ]` Implement Organization/Workspace data models
+  - `[ ]` Implement RBAC (Roles: Admin, Editor, Viewer)
+- `[ ]` Phase 2: Knowledge Base & Vector Search
+  - `[ ]` Configure OpenAI embeddings
+  - `[ ]` Implement document upload & chunking pipeline
+  - `[ ]` Implement RAG retrieval logic
+- `[/]` Phase 3: Code Repository Integration & Auto-Doc
+  - `[x]` Scaffold Vite (React) Dashboard in `./frontend`
+  - `[ ]` GitHub OAuth integration
+  - `[ ]` Webhook listener for push events
+  - `[ ]` Feature discovery & documentation generation pipeline
+- `[ ]` Phase 4: Chatbot Interfaces
+  - `[ ]` Build embeddable Vanilla JS / Preact widget
+  - `[ ]` Build Internal Chatbot UI in Dashboard
+  - `[ ]` Wire up Chatbot APIs (streaming responses)
