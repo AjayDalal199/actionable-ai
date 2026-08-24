@@ -13,7 +13,11 @@ export async function signUpNewUser(
   await page.getByTestId("password-input").fill(password)
   await page.getByTestId("confirm-password-input").fill(password)
   await page.getByRole("button", { name: "Sign Up" }).click()
-  await page.goto("/login")
+  await page.waitForURL("/dashboard")
+  await expect(
+    page.getByText("Welcome back, nice to see you again!"),
+  ).toBeVisible()
+  await logOutUser(page)
 }
 
 export async function logInUser(page: Page, email: string, password: string) {
