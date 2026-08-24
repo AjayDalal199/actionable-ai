@@ -2,9 +2,13 @@
 
 ## Document Metadata
 
-- **Status:** Approved
+- **Status:** Approved (high-level product architecture)
 - **Scope:** Forward-Looking (Supports MVP & V1)
-- **Last Updated:** 2026-08-23
+- **Last Updated:** 2026-08-25
+
+**Code layout:** Frontend is **Option A** — [05 Frontend Architecture](./05_Frontend_Architecture.md). Backend is **Option B** (modular monolith) — [06 Backend Architecture](./06_Backend_Architecture.md).
+
+The diagram below is the *product* split (dashboard, widget, APIs, Postgres, Redis). The backend in this repo is **one FastAPI app**. MVP/V1 stays a modular monolith (doc 06). Do not split into microservices unless we change that decision.
 
 ---
 
