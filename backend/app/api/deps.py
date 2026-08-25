@@ -11,7 +11,7 @@ from sqlmodel import Session
 from app.core import security
 from app.core.config import settings
 from app.core.db import engine
-from app.models import TokenPayload, User
+from app.models import TokenPayload, User, Workspace
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -47,6 +47,24 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_current_workspace(session: SessionDep, current_user: CurrentUser) -> Workspace:
+    if current_user.workspace_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not a member of a workspace",
+        )
+    workspace = session.get(Workspace, current_user.workspace_id)
+    if not workspace:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace not found",
+        )
+    return workspace
+
+
+CurrentWorkspace = Annotated[Workspace, Depends(get_current_workspace)]
 
 
 def get_current_active_superuser(current_user: CurrentUser) -> User:

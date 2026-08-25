@@ -3,6 +3,7 @@ from sqlmodel import Session, create_engine, select
 from app import crud
 from app.core.config import settings
 from app.models import User, UserCreate
+from app.services.workspaces import create_and_attach_workspace
 
 engine = create_engine(str(settings.DATABASE_URL))
 
@@ -30,4 +31,6 @@ def init_db(session: Session) -> None:
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
         )
-        user = crud.create_user(session=session, user_create=user_in)
+        user = crud.create_user(session=session, user_create=user_in, commit=False)
+    if user.workspace_id is None:
+        create_and_attach_workspace(session=session, user=user, exist_ok=True)

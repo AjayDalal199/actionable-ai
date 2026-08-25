@@ -1,13 +1,14 @@
 import uuid
 from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app import crud
 from app.core.config import settings
 from app.core.security import verify_password
-from app.models import User, UserCreate
+from app.models import User, UserCreate, Workspace, WorkspaceRole
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_email, random_lower_string
 
@@ -335,8 +336,87 @@ def test_register_user(client: TestClient, db: Session) -> None:
     assert user_db
     assert user_db.email == username
     assert user_db.full_name == full_name
+    assert user_db.workspace_id is None
+    assert user_db.role is None
     verified, _ = verify_password(password, user_db.hashed_password)
     assert verified
+
+
+def test_register_user_with_workspace_name(client: TestClient, db: Session) -> None:
+    username = random_email()
+    password = random_lower_string()
+    data = {
+        "email": username,
+        "password": password,
+        "full_name": "David",
+        "workspace_name": "Acme Corp",
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=data,
+    )
+    assert r.status_code == 200
+
+    user_db = db.exec(select(User).where(User.email == username)).first()
+    assert user_db
+    assert user_db.role == WorkspaceRole.ADMIN
+    workspace = db.get(Workspace, user_db.workspace_id)
+    assert workspace is not None
+    assert workspace.name == "Acme Corp"
+
+
+def test_register_user_with_workspace_name_strips(
+    client: TestClient, db: Session
+) -> None:
+    username = random_email()
+    data = {
+        "email": username,
+        "password": random_lower_string(),
+        "full_name": "David",
+        "workspace_name": "  Acme Corp  ",
+    }
+    r = client.post(f"{settings.API_V1_STR}/users/signup", json=data)
+    assert r.status_code == 200
+    user_db = db.exec(select(User).where(User.email == username)).first()
+    assert user_db
+    workspace = db.get(Workspace, user_db.workspace_id)
+    assert workspace is not None
+    assert workspace.name == "Acme Corp"
+
+
+def test_register_user_blank_workspace_name_is_422(client: TestClient) -> None:
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json={
+            "email": random_email(),
+            "password": random_lower_string(),
+            "full_name": "David",
+            "workspace_name": "   ",
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_register_user_with_workspace_rolls_back_if_attach_fails(
+    client: TestClient, db: Session
+) -> None:
+    username = random_email()
+    with patch(
+        "app.api.routes.users.create_and_attach_workspace",
+        side_effect=RuntimeError("workspace attach failed"),
+    ):
+        with pytest.raises(RuntimeError, match="workspace attach failed"):
+            client.post(
+                f"{settings.API_V1_STR}/users/signup",
+                json={
+                    "email": username,
+                    "password": random_lower_string(),
+                    "full_name": "David",
+                    "workspace_name": "Acme Corp",
+                },
+            )
+    db.expire_all()
+    assert db.exec(select(User).where(User.email == username)).first() is None
 
 
 def test_register_user_already_exists_error(client: TestClient) -> None:

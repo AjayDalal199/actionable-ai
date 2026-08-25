@@ -24,6 +24,7 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.services.workspaces import create_and_attach_workspace
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -155,7 +156,15 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
+    user = crud.create_user(
+        session=session,
+        user_create=user_create,
+        commit=not bool(user_in.workspace_name),
+    )
+    if user_in.workspace_name:
+        create_and_attach_workspace(
+            session=session, user=user, name=user_in.workspace_name
+        )
     return user
 
 

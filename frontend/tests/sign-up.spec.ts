@@ -32,6 +32,7 @@ test("Inputs are visible, empty and editable", async ({ page }) => {
   await verifyInput(page, "email-input")
   await verifyInput(page, "password-input")
   await verifyInput(page, "confirm-password-input")
+  await verifyInput(page, "workspace-name-input")
 })
 
 test("Sign Up button is visible", async ({ page }) => {

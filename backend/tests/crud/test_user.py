@@ -3,8 +3,9 @@ from pwdlib.hashers.bcrypt import BcryptHasher
 from sqlmodel import Session
 
 from app import crud
+from app.core.db import engine
 from app.core.security import verify_password
-from app.models import User, UserCreate, UserUpdate
+from app.models import User, UserCreate, UserUpdate, Workspace, WorkspaceRole
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -15,6 +16,40 @@ def test_create_user(db: Session) -> None:
     user = crud.create_user(session=db, user_create=user_in)
     assert user.email == email
     assert hasattr(user, "hashed_password")
+    assert user.workspace_id is None
+    assert user.role is None
+
+
+def test_create_user_without_commit_is_not_persisted(db: Session) -> None:
+    email = random_email()
+    crud.create_user(
+        session=db,
+        user_create=UserCreate(email=email, password=random_lower_string()),
+        commit=False,
+    )
+    with Session(engine) as other:
+        assert crud.get_user_by_email(session=other, email=email) is None
+    db.rollback()
+
+
+def test_user_can_store_workspace_and_role(db: Session) -> None:
+    workspace = Workspace(name="Acme")
+    db.add(workspace)
+    db.commit()
+    db.refresh(workspace)
+
+    user_in = UserCreate(email=random_email(), password=random_lower_string())
+    user = crud.create_user(session=db, user_create=user_in)
+    user.workspace_id = workspace.id
+    user.role = WorkspaceRole.ADMIN
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    stored = db.get(User, user.id)
+    assert stored is not None
+    assert stored.workspace_id == workspace.id
+    assert stored.role == WorkspaceRole.ADMIN
 
 
 def test_authenticate_user(db: Session) -> None:

@@ -11,6 +11,7 @@ import { isLoggedIn, useAuth } from "@/features/auth/useAuth"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,6 +32,7 @@ const formSchema = z
     confirm_password: z
       .string()
       .min(1, { message: "Password confirmation is required" }),
+    workspace_name: z.string().max(255).optional(),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "The passwords don't match",
@@ -68,15 +70,23 @@ function SignUp() {
       full_name: "",
       password: "",
       confirm_password: "",
+      workspace_name: "",
     },
   })
 
   const onSubmit = (data: FormData) => {
     if (signUpMutation.isPending) return
 
-    // exclude confirm_password from submission data
-    const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+    const {
+      confirm_password: _confirm_password,
+      workspace_name,
+      ...submitData
+    } = data
+    const trimmedName = workspace_name?.trim()
+    signUpMutation.mutate({
+      ...submitData,
+      ...(trimmedName ? { workspace_name: trimmedName } : {}),
+    })
   }
 
   return (
@@ -160,6 +170,29 @@ function SignUp() {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workspace_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workspace name (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="workspace-name-input"
+                      placeholder="Acme Corp"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Create your own workspace, or leave this blank if you will
+                    join one at work.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

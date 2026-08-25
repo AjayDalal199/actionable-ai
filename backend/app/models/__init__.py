@@ -20,6 +20,13 @@ from app.models.user import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.models.workspace import (
+    Workspace,
+    WorkspaceCreate,
+    WorkspacePublic,
+    WorkspaceRole,
+    WorkspaceUpdate,
+)
 
 __all__ = [
     "Item",
@@ -42,4 +49,9 @@ __all__ = [
     "UserUpdate",
     "UserUpdateMe",
     "UsersPublic",
+    "Workspace",
+    "WorkspaceCreate",
+    "WorkspacePublic",
+    "WorkspaceRole",
+    "WorkspaceUpdate",
 ]

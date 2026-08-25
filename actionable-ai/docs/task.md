@@ -12,16 +12,14 @@
 
 ## Next up (do this only)
 
-**Task:** Add `Workspace` SQLModel in `app/models/workspace.py` (`id`, `name`, `created_at`). Export it from `app/models/__init__.py`. Do not add a User FK, Alembic migration, or APIs in this slice.
+**Task:** Phase 1.3 dashboard shell. Do not start Knowledge APIs yet.
 
-- `[ ]` Add `app/models/workspace.py`
-- `[ ]` Re-export `Workspace` from `models/__init__.py` so Alembic metadata includes the table class
-- `[ ]` No migration yet (table exists in code only)
-- `[ ]` No `workspace_id` on User
+- `[ ]` Sidebar: Dashboard (Quick Start), Knowledge, Tools, Chat (internal), Settings — drop Items from nav
+- `[ ]` Empty-state home: “Name your workspace → upload a doc → ask a question” (create-workspace CTA if they have none)
 
-**Done when:** `from app.models import Workspace` works; pytest still passes; database schema unchanged.
+**Done when:** Logged-in product nav matches the real app, not the template Items dashboard.
 
-**After that (not now):** Alembic migration for `workspace`, then user attachment.
+**After that (not now):** Phase 1.2 invite/RBAC APIs, or Phase 2 data plane — follow the path-to-MVP order (RBAC remaining, then data plane).
 
 ---
 
@@ -110,7 +108,7 @@ Work in this order. Later phases depend on earlier ones. Dashboard UI can trail 
 
 **Layout (Option B):** `app/models/` for tables, `app/services/` for business rules, thin `app/api/routes/`. Do not add Workspace to the old single `models.py` file.
 
-**Done when:** A new user signs up, names a workspace, lands in that workspace, and cannot see another workspace’s data.
+**Done when:** A new user can sign up without a workspace (join via invite later), or create one and become its Admin, and cannot see another workspace’s data.
 
 ### 1.0 Models package
 
@@ -125,13 +123,13 @@ Mechanical split. No schema change.
 
 Do these **after** 1.0, one checkbox group per reviewable slice.
 
-- `[ ]` Add `app/models/workspace.py` — `Workspace` (`id`, `name`, `created_at`) only; no User FK yet
-- `[ ]` Alembic migration creating the `workspace` table (still no user columns)
-- `[ ]` Add `workspace_id` + `role` on `User`; Alembic migration; signup/service comes next
-- `[ ]` `CurrentWorkspace` dependency (from session user, not a client-supplied id)
-- `[ ]` `app/services/` — on **signup**, create a workspace and attach the user as **Admin** (optional name, or default from company/email)
-- `[ ]` `GET /api/v1/workspaces/me` — current workspace for the session
-- `[ ]` `PATCH /api/v1/workspaces/me` — rename (Admin only)
+- `[x]` Add `app/models/workspace.py` — `Workspace` (`id`, `name`, `created_at`) only; no User FK yet
+- `[x]` Alembic migration creating the `workspace` table (still no user columns)
+- `[x]` Add `workspace_id` + `role` on `User`; Alembic migration; signup/service comes next
+- `[x]` `CurrentWorkspace` dependency (from session user, not a client-supplied id)
+- `[x]` `app/services/` — signup does **not** auto-create a workspace (join-via-invite later). Optional `workspace_name` on signup, or `POST /workspaces/`, creates one and attaches the user as **Admin**
+- `[x]` `GET /api/v1/workspaces/me` — current workspace for the session
+- `[x]` `PATCH /api/v1/workspaces/me` — rename (Admin only)
 - `[ ]` All product queries filter by `workspace_id` from `CurrentWorkspace` (never trust a client-supplied workspace id without membership check)
 
 ### 1.2 Users inside a workspace (RBAC)
@@ -144,7 +142,7 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 | Editor | Upload/delete docs, register/edit tools, use internal chat, copy widget snippet |
 | Viewer | Read docs/tools, use internal chat, cannot mutate config |
 
-- `[ ]` Add `workspace_id` + `role` on `User` (or a `WorkspaceMembership` table if we want multi-workspace later; **MVP = one workspace per user**)
+- `[x]` Add `workspace_id` + `role` on `User` (or a `WorkspaceMembership` table if we want multi-workspace later; **MVP = one workspace per user**)
 - `[ ]` Replace template `is_superuser`-only gates for product routes with role checks
 - `[ ]` Keep platform `is_superuser` for *our* ops admin only (not client Admin)
 - `[ ]` Invite flow (MVP-simple): Admin adds a user by email + role; invited user sets password via existing email recovery/invite mail

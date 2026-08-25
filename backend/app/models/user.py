@@ -2,11 +2,12 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from pydantic import EmailStr
-from sqlalchemy import DateTime
+from pydantic import EmailStr, field_validator
+from sqlalchemy import DateTime, String
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.base import get_datetime_utc
+from app.models.workspace import Workspace, WorkspaceRole, normalize_workspace_name
 
 if TYPE_CHECKING:
     from app.models.item import Item
@@ -27,6 +28,14 @@ class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
+    workspace_name: str | None = Field(default=None, min_length=1, max_length=255)
+
+    @field_validator("workspace_name")
+    @classmethod
+    def workspace_name_not_blank(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return normalize_workspace_name(value)
 
 
 class UserUpdate(SQLModel):
@@ -54,6 +63,11 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+    workspace_id: uuid.UUID | None = Field(
+        default=None, foreign_key="workspace.id", ondelete="SET NULL", index=True
+    )
+    role: WorkspaceRole | None = Field(default=None, sa_type=String(32))  # type: ignore
+    workspace: Workspace | None = Relationship(back_populates="users")
     items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
 
 

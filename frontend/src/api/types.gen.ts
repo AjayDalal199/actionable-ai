@@ -258,6 +258,10 @@ export type UserRegister = {
      * Full Name
      */
     full_name?: string | null;
+    /**
+     * Workspace Name
+     */
+    workspace_name?: string | null;
 };
 
 /**
@@ -340,6 +344,44 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WorkspaceCreate
+ */
+export type WorkspaceCreate = {
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * WorkspacePublic
+ */
+export type WorkspacePublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+};
+
+/**
+ * WorkspaceUpdate
+ */
+export type WorkspaceUpdate = {
+    /**
+     * Name
+     */
+    name: string;
 };
 
 export type loginLoginAccessTokenData = {
@@ -945,3 +987,69 @@ export type privateCreateUserResponses = {
 };
 
 export type privateCreateUserResponse = privateCreateUserResponses[keyof privateCreateUserResponses];
+
+export type workspacesCreateWorkspaceData = {
+    body: WorkspaceCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/';
+};
+
+export type workspacesCreateWorkspaceErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesCreateWorkspaceError = workspacesCreateWorkspaceErrors[keyof workspacesCreateWorkspaceErrors];
+
+export type workspacesCreateWorkspaceResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspacePublic;
+};
+
+export type workspacesCreateWorkspaceResponse = workspacesCreateWorkspaceResponses[keyof workspacesCreateWorkspaceResponses];
+
+export type workspacesReadWorkspaceMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me';
+};
+
+export type workspacesReadWorkspaceMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspacePublic;
+};
+
+export type workspacesReadWorkspaceMeResponse = workspacesReadWorkspaceMeResponses[keyof workspacesReadWorkspaceMeResponses];
+
+export type workspacesUpdateWorkspaceMeData = {
+    body: WorkspaceUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me';
+};
+
+export type workspacesUpdateWorkspaceMeErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesUpdateWorkspaceMeError = workspacesUpdateWorkspaceMeErrors[keyof workspacesUpdateWorkspaceMeErrors];
+
+export type workspacesUpdateWorkspaceMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspacePublic;
+};
+
+export type workspacesUpdateWorkspaceMeResponse = workspacesUpdateWorkspaceMeResponses[keyof workspacesUpdateWorkspaceMeResponses];
