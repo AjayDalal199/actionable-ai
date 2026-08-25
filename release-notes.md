@@ -1,5 +1,7 @@
 # Release Notes
 
+Actionable AI is based on the [Full Stack FastAPI Template](https://github.com/fastapi/full-stack-fastapi-template). Version headings through **0.12.0** and the historical entries under **Latest Changes** below are upstream template history. Product releases keep this file’s format (`## X.Y.Z`) once we cut our first version.
+
 ## Latest Changes
 
 ### Fixes

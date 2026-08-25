@@ -1,21 +1,21 @@
-# FastAPI Project - Backend
+# Actionable AI — Backend
+
+FastAPI modular monolith: JWT auth today; workspaces, knowledge, tools, and chat next. Product layout: [06 Backend Architecture](../actionable-ai/docs/5_Development_and_Execution/06_Backend_Architecture.md). What to build: [task.md](../actionable-ai/docs/task.md).
 
 ## Requirements
 
-* [Docker](https://www.docker.com/).
-* [uv](https://docs.astral.sh/uv/) for Python package and environment management.
+* [Docker](https://www.docker.com/)
+* [uv](https://docs.astral.sh/uv/)
 
-## Local Development
+## Local development
 
-Run the backend locally and connect it to PostgreSQL in Docker Compose.
-
-From the project root, start PostgreSQL and Mailcatcher:
+From the repo root, start PostgreSQL and Mailcatcher:
 
 ```console
 $ docker compose up -d db mailcatcher
 ```
 
-Then, from `./backend/`, install the dependencies, prepare the database, and start the development server:
+From `./backend/`:
 
 ```console
 $ uv sync
@@ -23,122 +23,82 @@ $ uv run bash scripts/prestart.sh
 $ uv run fastapi dev
 ```
 
-The API is available at `http://localhost:8000`, with automatic interactive docs at `http://localhost:8000/docs`.
+API: `http://localhost:8000`. OpenAPI: `http://localhost:8000/docs`.
 
-## General Workflow
+Point your editor at the workspace venv: `.venv/bin/python` at the repo root (uv workspace). Run backend commands from `./backend/` with `uv run`.
 
-Run backend commands from `./backend/` with `uv run`. Make sure your editor uses the Python interpreter at `.venv/bin/python` in the project root.
+## Layout
 
-Modify or add SQLModel models for data and SQL tables in `./backend/app/models.py`, API endpoints in `./backend/app/api/`, CRUD (Create, Read, Update, Delete) utils in `./backend/app/crud.py`.
+| Path | Role |
+| --- | --- |
+| `app/models/` | SQLModel tables and HTTP schemas (package; Alembic imports `from app.models import SQLModel`) |
+| `app/api/routes/` | Thin HTTP handlers |
+| `app/services/` | Business logic (added as Workspace / Knowledge / Chat land) |
+| `app/core/` | Settings, DB engine, security |
+| `app/alembic/` | Migrations |
+| `app/crud.py` | User helpers (template; do not grow this into a god module) |
 
-## VS Code
+Do not add product tables to a single `models.py`. Demo **Items** routes stay until Knowledge replaces them.
 
-There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc.
+## VS Code / Cursor
 
-The setup is also already configured so you can run the tests through the VS Code Python tests tab.
+Launch configs exist for the debugger and for the Python test runner.
 
-## Full Stack with Docker Compose
-
-To run the backend and built frontend in Docker Compose:
+## Full stack with Docker Compose
 
 ```console
 $ docker compose run --rm backend bash scripts/prestart.sh
 $ docker compose watch
 ```
 
-The application is available at `http://localhost:8000`.
-
-### Docker Compose Override
-
-The `compose.override.yml` file contains local settings for published ports, source synchronization, automatic image rebuilds, and backend reloads. Docker Compose applies it automatically when you run `docker compose` without an explicit file list.
-
-To open a shell in the backend container:
+App: `http://localhost:8000`. `compose.override.yml` is applied automatically locally (ports, watch, Mailcatcher). Shell in the container:
 
 ```console
 $ docker compose exec backend bash
 ```
 
-## Backend Tests
+## Tests
 
-To test the backend from the `backend` directory, run:
+From `backend/`:
 
 ```console
 $ uv run bash scripts/test.sh
 ```
 
-The tests run with Pytest. Modify existing tests or add new ones in `./backend/tests/`.
-
-If you use GitHub Actions, the tests will run automatically.
-
-### Test a Running Stack
-
-If your stack is already up and you just want to run the tests, you can use:
+Against a running Compose stack:
 
 ```bash
 docker compose exec backend bash scripts/tests-start.sh
 ```
 
-The `/app/backend/scripts/tests-start.sh` script calls `pytest` after making sure that the rest of the stack is running. If you need to pass extra arguments to `pytest`, you can pass them to that command and they will be forwarded.
-
-For example, to stop on first error:
-
-```bash
-docker compose exec backend bash scripts/tests-start.sh -x
-```
-
-### Test Coverage
-
-When the tests run, they generate `htmlcov/index.html`. Open it in your browser to inspect the test coverage.
+Extra pytest flags are forwarded, for example `-x`. Coverage HTML is `htmlcov/index.html`.
 
 ## Migrations
 
-Make sure you create a revision of your models and upgrade the database with that revision every time you change them. From the `backend` directory, use `uv` to run Alembic against the PostgreSQL container:
-
-* Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
-
-* After changing a model (for example, adding a column), create a revision:
+After changing models, from `backend/`:
 
 ```console
-$ uv run alembic revision --autogenerate -m "Add column last_name to User model"
-```
-
-* Commit to the git repository the files generated in the alembic directory.
-
-* After creating the revision, run the migration in the database (this is what will actually change the database):
-
-```console
+$ uv run alembic revision --autogenerate -m "Add workspace table"
 $ uv run alembic upgrade head
 ```
 
-If you don't want to use migrations at all, uncomment the lines in the file at `./backend/app/core/db.py` that end in:
+Commit the new files under `app/alembic/versions/`.
 
-```python
-SQLModel.metadata.create_all(engine)
-```
+Do not uncomment `SQLModel.metadata.create_all` for anything we deploy. Staging and production run `alembic upgrade head` via `scripts/prestart.sh`.
 
-and comment the line in the file `scripts/prestart.sh` that contains:
+## Email templates
 
-```console
-$ alembic upgrade head
-```
+Source: [React Email](https://react.email) in `./packages/react-email/`. Rendered HTML in `./backend/app/email-templates/` is generated — do not edit it by hand.
 
-If you don't want to start with the default models and want to remove them / modify them, from the beginning, without having any previous revision, you can remove the revision files (`.py` Python files) under `./backend/app/alembic/versions/`. And then create a first migration as described above.
-
-## Email Templates
-
-The email templates are written with [React Email](https://react.email) in `./packages/react-email/`. The `emails` directory holds one component per email and the `ui` directory holds the shared components (layout, heading, button, link, callout).
-
-The rendered HTML in `./backend/app/email-templates/` is generated from those components. It is what the application sends and should not be edited by hand.
-
-To preview the emails while editing them, start the dev server from the root of the project:
+Preview from the repo root:
 
 ```console
 $ bun run email:dev
 ```
 
-Values coming from the backend are declared as Jinja placeholders in the component props, for example `username = "{{ username }}"`. The context for each email is built in `generate_*_email()` in `./backend/app/utils.py`, so a new placeholder needs to be added there too.
+Jinja placeholders in component props (for example `username = "{{ username }}"`) must match `generate_*_email()` in `app/utils.py`.
 
-Once you are done, regenerate the templates used by the application:
+Export:
 
 ```console
 $ bun run email:export

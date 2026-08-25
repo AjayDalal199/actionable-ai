@@ -5,7 +5,7 @@
 - **Product:** Actionable AI (A²I) Platform
 - **Status:** Decided — Option B (2026-08-25)
 - **Last Updated:** 2026-08-25
-- **Companion:** [05 Frontend Architecture](./05_Frontend_Architecture.md), [01 System Architecture](./01_System_Architecture.md), [02 Database Schema](./02_Database_Schema.md)
+- **Companion:** [05 Frontend Architecture](./05_Frontend_Architecture.md), [01 System Architecture](./01_System_Architecture.md), [02 Database Schema](./02_Database_Schema.md), [07 Deployment Strategy](./07_Deployment_Strategy.md)
 
 **Decision:** One FastAPI app (modular monolith). Models live in `app/models/` (package). Business logic lives in `app/services/`. Routes stay thin. Not microservices, not hexagonal, not a second chat process. Rules in §7 are in force.
 

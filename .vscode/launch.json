@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug FastAPI Project backend: Python Debugger",
+            "name": "Debug Actionable AI backend",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
@@ -20,7 +20,7 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Debug Frontend: Launch Chrome against http://localhost:5173",
+            "name": "Debug Actionable AI frontend (Vite)",
             "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}/frontend"
         },

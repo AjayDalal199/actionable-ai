@@ -1,43 +1,43 @@
-# FastAPI Project - Docker Compose Deployment
+# Actionable AI — Docker Compose deployment
 
-You can deploy the project to your own remote server with Docker Compose. The deployment configuration includes Traefik to handle HTTPS and route incoming traffic to the application.
+Deploy the app to a remote server with Docker Compose. Traefik terminates HTTPS and routes traffic to the backend.
+
+This is the **how**. For staging vs production, promotion, and secrets policy, read [07 Deployment Strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md) first. Staging and production must not share a VPS, a `SECRET_KEY`, or a Compose project.
 
 ## Preparation
 
-* Have a remote server ready and available.
-* Configure DNS records pointing to the server for the application domain and any supporting service subdomains you want to expose, such as `fastapi-project.example.com` and `adminer.fastapi-project.example.com`.
-* Install and configure [Docker](https://docs.docker.com/engine/install/) on the remote server (Docker Engine, not Docker Desktop).
+* A remote server with [Docker Engine](https://docs.docker.com/engine/install/) (not Docker Desktop).
+* DNS for the app hostname, for example `staging.actionable.ai` or `app.actionable.ai`.
+* Staging only: optional Adminer hostname such as `adminer.staging.actionable.ai`. Do not expose Adminer on production.
 
-## Copy the Code
+## Copy the code
 
 ```bash
 rsync -av --exclude=".git/" --filter=":- .gitignore" ./ root@your-server.example.com:/root/code/app/
 ```
 
-The `--filter=":- .gitignore"` option tells `rsync` to use the same ignore rules as Git, excluding files such as the Python virtual environment.
+The `--filter=":- .gitignore"` option uses the same ignore rules as Git (virtualenv, `node_modules`, local `.env`). Prefer GitHub Actions on a self-hosted runner over `rsync` as the happy path; `rsync` is break-glass.
 
-## Configure the Application
+## Configure the application
 
-### Environment Variables
-
-Set the application domain, project name, and first superuser email:
+### Environment variables
 
 ```bash
-export DOMAIN=fastapi-project.example.com
-export PROJECT_NAME="Full Stack FastAPI Project"
+export DOMAIN=staging.actionable.ai
+export PROJECT_NAME="Actionable AI"
 export FIRST_SUPERUSER=admin@example.com
 ```
 
-You can also configure these environment variables as needed:
+Optional:
 
-* `SMTP_HOST`: The SMTP server host from your email provider.
-* `SMTP_USER`: The SMTP server user.
-* `EMAILS_FROM_EMAIL`: The email account used to send emails.
-* `SENTRY_DSN`: The DSN for Sentry.
+* `SMTP_HOST`, `SMTP_USER`, `EMAILS_FROM_EMAIL` — transactional email
+* `SENTRY_DSN` — error reporting (on in staging and production)
+
+Do **not** set `FASTAPI_ENV=development` on a server. Default secrets (`changethis`) must fail boot.
 
 ### Secrets
 
-Generate and set secure values for the database password, token signing key, and first superuser password:
+Generate unique values per environment:
 
 ```bash
 export POSTGRES_PASSWORD="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
@@ -45,7 +45,9 @@ export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))
 export FIRST_SUPERUSER_PASSWORD="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
 ```
 
-To use an authenticated email provider, also set `SMTP_PASSWORD`.
+For an authenticated SMTP provider, also set `SMTP_PASSWORD`.
+
+Never reuse staging `SECRET_KEY` or database passwords in production.
 
 ## Deploy
 
@@ -56,43 +58,43 @@ docker compose -f compose.yml -f compose.deploy.yml run --rm backend bash script
 docker compose -f compose.yml -f compose.deploy.yml up -d
 ```
 
-The `compose.deploy.yml` file adds HTTPS and automatic certificate handling to the shared `compose.yml` configuration. Explicitly listing both files excludes the local settings from `compose.override.yml`.
+`compose.deploy.yml` adds HTTPS and Let's Encrypt on top of `compose.yml`. Listing both files **excludes** `compose.override.yml` (local ports, Mailcatcher, insecure Traefik API).
 
-The backend Docker image builds the frontend, so the server does not need Bun or prebuilt frontend files.
+The backend image builds the frontend. The server does not need Bun or a prebuilt SPA.
+
+`prestart.sh` waits for Postgres, runs `alembic upgrade head`, and creates the first superuser.
 
 ## Deploy with GitHub Actions
 
-The included `.github/workflows/deploy-docker-compose.yml` workflow runs the deployment commands on the server when manually triggered from GitHub Actions.
+`.github/workflows/deploy-docker-compose.yml` runs those commands on a self-hosted runner when you trigger **Deploy with Docker Compose**.
 
-Use a self-hosted runner only for a repository whose contributors and workflow code you trust. GitHub recommends using self-hosted runners with private repositories because workflows execute directly on the runner machine.
+The strategy target is two workflows and two GitHub Environments (`staging`, `production`). Until that split exists, treat this workflow as a single-stack deploy and keep secrets on the environment you actually intend to update.
 
-### Configure Repository Variables and Secrets
+Use a self-hosted runner only on a repository whose contributors and workflow code you trust. GitHub recommends self-hosted runners with **private** repositories because workflows run directly on the machine.
 
-In the repository, go to **Settings** > **Secrets and variables** > **Actions** and add these repository variables:
+### Configure repository variables and secrets
+
+**Settings** → **Secrets and variables** → **Actions**.
+
+Variables:
 
 * `DOMAIN`
 * `PROJECT_NAME`
 * `FIRST_SUPERUSER`
 
-To enable emails, add these optional repository variables:
+Optional variables: `SMTP_HOST`, `SMTP_USER`, `EMAILS_FROM_EMAIL`, `SENTRY_DSN`.
 
-* `SMTP_HOST`
-* `SMTP_USER`
-* `EMAILS_FROM_EMAIL`
-
-To enable Sentry, add the optional `SENTRY_DSN` repository variable.
-
-Add these repository secrets:
+Secrets:
 
 * `POSTGRES_PASSWORD`
 * `SECRET_KEY`
 * `FIRST_SUPERUSER_PASSWORD`
 
-To use an authenticated email provider, add the optional `SMTP_PASSWORD` repository secret.
+Optional secret: `SMTP_PASSWORD`.
 
-### Install a Self-Hosted Runner
+### Install a self-hosted runner
 
-On the server, create a dedicated user and grant it access to Docker:
+On the **environment's** VPS (staging runner on staging, production runner on production):
 
 ```bash
 sudo adduser github
@@ -100,30 +102,29 @@ sudo usermod -aG docker github
 sudo su - github
 ```
 
-In the GitHub repository, go to **Settings** > **Actions** > **Runners**, select **New self-hosted runner**, choose Linux, and follow the commands GitHub provides to download, configure, and register the runner. Install it in `/home/github/actions-runner`.
+In the GitHub repo: **Settings** → **Actions** → **Runners** → **New self-hosted runner** → Linux. Install under `/home/github/actions-runner`.
 
-After registering the runner, exit the `github` user session and install the runner as a system service:
+Then as root:
 
 ```bash
-exit
 cd /home/github/actions-runner
 sudo ./svc.sh install github
 sudo ./svc.sh start
 sudo ./svc.sh status
 ```
 
-See GitHub's guides for [adding a self-hosted runner](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners) and [configuring the runner as a service](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/configure-the-application?platform=linux).
+See GitHub's guides for [adding a self-hosted runner](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners) and [running it as a service](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/configure-the-application?platform=linux).
 
-### Run the Deployment
+### Run the deployment
 
-When the runner is online, open the repository's **Actions** tab, select **Deploy with Docker Compose**, and select **Run workflow**.
+When the runner is online: **Actions** → **Deploy with Docker Compose** → **Run workflow**.
 
 ## URLs
 
-Replace `fastapi-project.example.com` with your domain.
+Replace the hostname with `DOMAIN`.
 
-Application (frontend and API): `https://fastapi-project.example.com`
-
-Interactive API docs: `https://fastapi-project.example.com/docs`
-
-Adminer: `https://adminer.fastapi-project.example.com`
+| Surface | URL |
+| --- | --- |
+| App (frontend and API) | `https://staging.actionable.ai` |
+| OpenAPI | `https://staging.actionable.ai/docs` (keep on staging; gate or disable in production) |
+| Adminer | `https://adminer.staging.actionable.ai` (staging only) |
