@@ -12,7 +12,7 @@ from app.core import security
 from app.core.config import settings
 from app.core.db import engine
 from app.models import TokenPayload, User, Workspace, WorkspaceMembership, WorkspaceRole
-from app.services.workspaces import get_membership
+from app.services.workspaces import get_membership, is_joined_member
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -63,7 +63,7 @@ def get_current_membership(
         user_id=current_user.id,
         workspace_id=current_user.workspace_id,
     )
-    if membership is None or not membership.is_active:
+    if membership is None or not is_joined_member(membership):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User is not a member of a workspace",

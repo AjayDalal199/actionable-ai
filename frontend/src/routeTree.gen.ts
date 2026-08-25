@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as JoinWorkspaceRouteImport } from './routes/join-workspace'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
@@ -22,6 +23,7 @@ import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as DashboardChatRouteImport } from './routes/dashboard/chat'
 import { Route as DashboardItemsRouteImport } from './routes/dashboard/items'
 import { Route as DashboardKnowledgeRouteImport } from './routes/dashboard/knowledge'
+import { Route as DashboardMembersRouteImport } from './routes/dashboard/members'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardToolsRouteImport } from './routes/dashboard/tools'
 
@@ -33,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinWorkspaceRoute = JoinWorkspaceRouteImport.update({
+  id: '/join-workspace',
+  path: '/join-workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -90,6 +97,11 @@ const DashboardKnowledgeRoute = DashboardKnowledgeRouteImport.update({
   path: '/knowledge',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardMembersRoute = DashboardMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -104,6 +116,7 @@ const DashboardToolsRoute = DashboardToolsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/join-workspace': typeof JoinWorkspaceRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
@@ -114,12 +127,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/items': typeof DashboardItemsRoute
   '/dashboard/knowledge': typeof DashboardKnowledgeRoute
+  '/dashboard/members': typeof DashboardMembersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/tools': typeof DashboardToolsRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/join-workspace': typeof JoinWorkspaceRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
@@ -130,6 +145,7 @@ export interface FileRoutesByTo {
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/items': typeof DashboardItemsRoute
   '/dashboard/knowledge': typeof DashboardKnowledgeRoute
+  '/dashboard/members': typeof DashboardMembersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/tools': typeof DashboardToolsRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -138,6 +154,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/join-workspace': typeof JoinWorkspaceRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
@@ -148,6 +165,7 @@ export interface FileRoutesById {
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/items': typeof DashboardItemsRoute
   '/dashboard/knowledge': typeof DashboardKnowledgeRoute
+  '/dashboard/members': typeof DashboardMembersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/tools': typeof DashboardToolsRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -157,6 +175,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/join-workspace'
     | '/login'
     | '/privacy'
     | '/recover-password'
@@ -167,12 +186,14 @@ export interface FileRouteTypes {
     | '/dashboard/chat'
     | '/dashboard/items'
     | '/dashboard/knowledge'
+    | '/dashboard/members'
     | '/dashboard/settings'
     | '/dashboard/tools'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/join-workspace'
     | '/login'
     | '/privacy'
     | '/recover-password'
@@ -183,6 +204,7 @@ export interface FileRouteTypes {
     | '/dashboard/chat'
     | '/dashboard/items'
     | '/dashboard/knowledge'
+    | '/dashboard/members'
     | '/dashboard/settings'
     | '/dashboard/tools'
     | '/dashboard'
@@ -190,6 +212,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/join-workspace'
     | '/login'
     | '/privacy'
     | '/recover-password'
@@ -200,6 +223,7 @@ export interface FileRouteTypes {
     | '/dashboard/chat'
     | '/dashboard/items'
     | '/dashboard/knowledge'
+    | '/dashboard/members'
     | '/dashboard/settings'
     | '/dashboard/tools'
     | '/dashboard/'
@@ -208,6 +232,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  JoinWorkspaceRoute: typeof JoinWorkspaceRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
@@ -230,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join-workspace': {
+      id: '/join-workspace'
+      path: '/join-workspace'
+      fullPath: '/join-workspace'
+      preLoaderRoute: typeof JoinWorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -309,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardKnowledgeRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/members': {
+      id: '/dashboard/members'
+      path: '/members'
+      fullPath: '/dashboard/members'
+      preLoaderRoute: typeof DashboardMembersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/settings': {
       id: '/dashboard/settings'
       path: '/settings'
@@ -331,6 +370,7 @@ interface DashboardRouteChildren {
   DashboardChatRoute: typeof DashboardChatRoute
   DashboardItemsRoute: typeof DashboardItemsRoute
   DashboardKnowledgeRoute: typeof DashboardKnowledgeRoute
+  DashboardMembersRoute: typeof DashboardMembersRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardToolsRoute: typeof DashboardToolsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -341,6 +381,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardChatRoute: DashboardChatRoute,
   DashboardItemsRoute: DashboardItemsRoute,
   DashboardKnowledgeRoute: DashboardKnowledgeRoute,
+  DashboardMembersRoute: DashboardMembersRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardToolsRoute: DashboardToolsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -353,6 +394,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  JoinWorkspaceRoute: JoinWorkspaceRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,

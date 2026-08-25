@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import Any
 
@@ -13,6 +14,8 @@ from app.core.config import settings
 from app.models import (
     WorkspaceCreate,
     WorkspaceInvite,
+    WorkspaceInviteAction,
+    WorkspaceInvitePreview,
     WorkspaceMemberPublic,
     WorkspaceMembersPublic,
     WorkspaceMemberUpdate,
@@ -23,27 +26,33 @@ from app.models import (
 )
 from app.services.workspaces import (
     CannotModifyLastAdminError,
+    InviteAlreadyAcceptedError,
+    InvitePasswordRequiredError,
+    InviteTokenInvalidError,
     MemberNotFoundError,
     UserAlreadyCreatedWorkspaceError,
     UserAlreadyMemberError,
     WorkspaceNotMemberError,
+    accept_invite,
     create_and_attach_workspace,
+    decline_invite,
     invite_member,
     list_members,
     list_user_workspaces,
     member_public,
+    preview_invite,
     rename_workspace,
     set_current_workspace,
     update_member,
 )
 from app.utils import (
-    generate_password_reset_token,
-    generate_reset_password_email,
     generate_workspace_invite_email,
+    generate_workspace_invite_token,
     send_email,
 )
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=WorkspacePublic)
@@ -136,6 +145,35 @@ def read_workspace_members(session: SessionDep, workspace: CurrentWorkspace) -> 
     return WorkspaceMembersPublic(data=members, count=count)
 
 
+def _send_member_invite_email(
+    *, member_email: str, workspace_name: str, workspace_id: uuid.UUID, role: str
+) -> None:
+    token = generate_workspace_invite_token(
+        email=member_email, workspace_id=workspace_id
+    )
+    email_data = generate_workspace_invite_email(
+        email_to=member_email,
+        email=member_email,
+        workspace_name=workspace_name,
+        role=str(role).capitalize(),
+        token=token,
+    )
+    if not settings.emails_enabled:
+        logger.warning(
+            "Skipping workspace invite email to %s; SMTP is not configured",
+            member_email,
+        )
+        return
+    try:
+        send_email(
+            email_to=member_email,
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
+    except Exception:
+        logger.exception("Failed to send workspace invite email to %s", member_email)
+
+
 @router.post("/me/members", response_model=WorkspaceMemberPublic, status_code=201)
 def invite_workspace_member(
     *,
@@ -146,11 +184,10 @@ def invite_workspace_member(
 ) -> Any:
     """
     Invite a user by email and role. Admin only.
-    New users set a password via the existing recovery mail.
-    Existing users may already belong to other workspaces.
+    The invite stays pending until they accept or decline from the email.
     """
     try:
-        member, membership, created = invite_member(
+        member, membership, _created = invite_member(
             session=session,
             admin=current_user,
             workspace=workspace,
@@ -163,23 +200,60 @@ def invite_workspace_member(
             status_code=409, detail="User is already a member of this workspace"
         )
 
-    if settings.emails_enabled:
-        if created:
-            token = generate_password_reset_token(email=member.email)
-            email_data = generate_reset_password_email(
-                email_to=member.email, email=member.email, token=token
-            )
-        else:
-            email_data = generate_workspace_invite_email(
-                email_to=member.email,
-                email=member.email,
-                workspace_name=workspace.name,
-                role=membership.role,
-            )
-        send_email(
-            email_to=member.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
+    _send_member_invite_email(
+        member_email=member.email,
+        workspace_name=workspace.name,
+        workspace_id=workspace.id,
+        role=membership.role,
+    )
+    return member_public(member, membership)
+
+
+@router.get("/invites", response_model=WorkspaceInvitePreview)
+def read_workspace_invite(session: SessionDep, token: str) -> Any:
+    """
+    Preview a workspace invite from the emailed token.
+    """
+    try:
+        return preview_invite(session=session, token=token)
+    except InviteTokenInvalidError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+
+
+@router.post("/invites/accept", response_model=WorkspaceMemberPublic)
+def accept_workspace_invite(*, session: SessionDep, body: WorkspaceInviteAction) -> Any:
+    """
+    Accept a workspace invite. New accounts must include a password.
+    """
+    try:
+        member, membership = accept_invite(
+            session=session, token=body.token, password=body.password
+        )
+    except InviteTokenInvalidError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    except InvitePasswordRequiredError:
+        raise HTTPException(
+            status_code=422,
+            detail="Password is required to accept this invite",
+        )
+    return member_public(member, membership)
+
+
+@router.post("/invites/decline", response_model=WorkspaceMemberPublic)
+def decline_workspace_invite(
+    *, session: SessionDep, body: WorkspaceInviteAction
+) -> Any:
+    """
+    Decline a workspace invite.
+    """
+    try:
+        member, membership = decline_invite(session=session, token=body.token)
+    except InviteTokenInvalidError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    except InviteAlreadyAcceptedError:
+        raise HTTPException(
+            status_code=409,
+            detail="Invite was already accepted",
         )
     return member_public(member, membership)
 

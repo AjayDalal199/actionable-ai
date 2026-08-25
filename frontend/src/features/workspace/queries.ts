@@ -9,6 +9,7 @@ import { getHttpErrorDetail, getHttpErrorStatus } from "@/shared/lib/errors"
 export const workspaceKeys = {
   current: ["workspace", "me"] as const,
   list: ["workspaces"] as const,
+  members: ["workspace", "members"] as const,
 }
 
 export function isMissingWorkspaceError(error: unknown): boolean {
@@ -58,10 +59,26 @@ export function useWorkspaces() {
   })
 }
 
+export function membersQueryOptions(workspaceId: string) {
+  return queryOptions({
+    queryKey: [...workspaceKeys.members, workspaceId] as const,
+    queryFn: async () => (await WorkspacesService.readWorkspaceMembers()).data,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+}
+
+export function useWorkspaceMembers(workspaceId: string | undefined) {
+  return useQuery({
+    ...membersQueryOptions(workspaceId ?? ""),
+    enabled: isLoggedIn() && Boolean(workspaceId),
+  })
+}
+
 export function invalidateWorkspaceSession(queryClient: QueryClient) {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: workspaceKeys.current }),
     queryClient.invalidateQueries({ queryKey: workspaceKeys.list }),
+    queryClient.invalidateQueries({ queryKey: workspaceKeys.members }),
     queryClient.invalidateQueries({ queryKey: authKeys.currentUser }),
     queryClient.invalidateQueries({ queryKey: itemKeys.all }),
   ])

@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMeResponses, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMeResponses, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMeResponses, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMeResponses, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -466,13 +466,60 @@ export class WorkspacesService {
      * Invite Workspace Member
      *
      * Invite a user by email and role. Admin only.
-     * New users set a password via the existing recovery mail.
+     * The invite stays pending until they accept or decline from the email.
      */
     public static inviteWorkspaceMember<ThrowOnError extends boolean = true>(options: Options<workspacesInviteWorkspaceMemberData, ThrowOnError>) {
         return (options.client ?? client).post<workspacesInviteWorkspaceMemberResponses, workspacesInviteWorkspaceMemberErrors, ThrowOnError>({
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/workspaces/me/members',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Read Workspace Invite
+     *
+     * Preview a workspace invite from the emailed token.
+     */
+    public static readWorkspaceInvite<ThrowOnError extends boolean = true>(options: Options<workspacesReadWorkspaceInviteData, ThrowOnError>) {
+        return (options.client ?? client).get<workspacesReadWorkspaceInviteResponses, workspacesReadWorkspaceInviteErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/workspaces/invites',
+            ...options
+        });
+    }
+    
+    /**
+     * Accept Workspace Invite
+     *
+     * Accept a workspace invite. New accounts must include a password.
+     */
+    public static acceptWorkspaceInvite<ThrowOnError extends boolean = true>(options: Options<workspacesAcceptWorkspaceInviteData, ThrowOnError>) {
+        return (options.client ?? client).post<workspacesAcceptWorkspaceInviteResponses, workspacesAcceptWorkspaceInviteErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/workspaces/invites/accept',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Decline Workspace Invite
+     *
+     * Decline a workspace invite.
+     */
+    public static declineWorkspaceInvite<ThrowOnError extends boolean = true>(options: Options<workspacesDeclineWorkspaceInviteData, ThrowOnError>) {
+        return (options.client ?? client).post<workspacesDeclineWorkspaceInviteResponses, workspacesDeclineWorkspaceInviteErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/workspaces/invites/decline',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

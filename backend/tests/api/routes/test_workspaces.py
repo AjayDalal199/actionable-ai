@@ -6,12 +6,13 @@ from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
-from app.models import UserCreate, WorkspaceRole
+from app.models import InvitationStatus, UserCreate, WorkspaceRole
 from app.services.workspaces import get_membership
-from app.utils import generate_password_reset_token
+from app.utils import generate_workspace_invite_token
 from tests.utils.user import user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
 from tests.utils.workspace import (
+    accept_invite,
     auth_headers_for_new_user,
     auth_headers_for_role,
     create_workspace,
@@ -44,6 +45,7 @@ def test_create_workspace(client: TestClient, db: Session) -> None:
     )
     assert membership is not None
     assert membership.role == WorkspaceRole.ADMIN
+    assert membership.invitation_status == InvitationStatus.ACCEPTED
 
 
 def test_create_workspace_strips_name(client: TestClient, db: Session) -> None:
@@ -235,7 +237,7 @@ def test_list_workspace_members_is_tenant_scoped(
     assert emails_b == {email_b}
 
 
-def test_invite_new_user_sets_password_via_reset(
+def test_invite_new_user_is_pending_until_accepted(
     client: TestClient, db: Session
 ) -> None:
     headers, _email, workspace_id = create_workspace(client, db)
@@ -256,24 +258,29 @@ def test_invite_new_user_sets_password_via_reset(
     assert content["role"] == WorkspaceRole.EDITOR
     assert content["full_name"] == "Sam Editor"
     assert content["is_active"] is True
+    assert content["invitation_status"] == InvitationStatus.PENDING
 
     user = crud.get_user_by_email(session=db, email=invited_email)
     assert user is not None
-    assert str(user.workspace_id) == workspace_id
+    assert user.workspace_id is None
     membership = get_membership(
         session=db, user_id=user.id, workspace_id=uuid.UUID(workspace_id)
     )
     assert membership is not None
     assert membership.role == WorkspaceRole.EDITOR
+    assert membership.invitation_status == InvitationStatus.PENDING
     assert user.is_superuser is False
+    assert user.must_set_password is True
 
     new_password = random_lower_string()
-    token = generate_password_reset_token(email=invited_email)
-    reset = client.post(
-        f"{settings.API_V1_STR}/reset-password/",
-        json={"token": token, "new_password": new_password},
-    )
-    assert reset.status_code == 200
+    accept_invite(client, invited_email, workspace_id, password=new_password)
+    db.refresh(user)
+    db.refresh(membership)
+    assert user.workspace_id is not None
+    assert str(user.workspace_id) == workspace_id
+    assert membership.invitation_status == InvitationStatus.ACCEPTED
+    assert user.must_set_password is False
+
     invited_headers = user_authentication_headers(
         client=client, email=invited_email, password=new_password
     )
@@ -282,7 +289,7 @@ def test_invite_new_user_sets_password_via_reset(
     assert me.json()["id"] == workspace_id
 
 
-def test_invite_sends_recovery_email_when_enabled(
+def test_invite_sends_invite_email_when_enabled(
     client: TestClient, db: Session
 ) -> None:
     headers, _email, _workspace_id = create_workspace(client, db)
@@ -300,6 +307,8 @@ def test_invite_sends_recovery_email_when_enabled(
         assert r.status_code == 201
         mock_send.assert_called_once()
         assert mock_send.call_args.kwargs["email_to"] == invited_email
+        assert "invited to" in mock_send.call_args.kwargs["subject"]
+        assert "join-workspace?token=" in mock_send.call_args.kwargs["html_content"]
 
 
 def test_invite_existing_user_sends_invite_email(
@@ -324,7 +333,7 @@ def test_invite_existing_user_sends_invite_email(
         assert r.status_code == 201
         mock_send.assert_called_once()
         assert mock_send.call_args.kwargs["email_to"] == existing_email
-        assert "added to" in mock_send.call_args.kwargs["subject"]
+        assert "invited to" in mock_send.call_args.kwargs["subject"]
 
 
 def test_invite_existing_user_without_workspace(
@@ -344,10 +353,15 @@ def test_invite_existing_user_without_workspace(
         )
     assert r.status_code == 201
     assert r.json()["role"] == WorkspaceRole.VIEWER
+    assert r.json()["invitation_status"] == InvitationStatus.PENDING
 
     invited_headers = user_authentication_headers(
         client=client, email=existing_email, password=password
     )
+    me = client.get(f"{settings.API_V1_STR}/workspaces/me", headers=invited_headers)
+    assert me.status_code == 403
+
+    accept_invite(client, existing_email, workspace_id)
     me = client.get(f"{settings.API_V1_STR}/workspaces/me", headers=invited_headers)
     assert me.json()["id"] == workspace_id
 
@@ -379,15 +393,25 @@ def test_invite_user_who_already_has_a_workspace(
         )
     assert r.status_code == 201
     assert r.json()["role"] == WorkspaceRole.EDITOR
+    assert r.json()["invitation_status"] == InvitationStatus.PENDING
 
     me_b = client.get(f"{settings.API_V1_STR}/workspaces/me", headers=headers_b)
     assert me_b.json()["id"] == workspace_b
+
+    listed_before = client.get(f"{settings.API_V1_STR}/workspaces/", headers=headers_b)
+    assert listed_before.json()["count"] == 1
+
+    accept_invite(client, email_b, workspace_a)
 
     list_a = client.get(
         f"{settings.API_V1_STR}/workspaces/me/members", headers=headers_a
     )
     emails_a = {member["email"] for member in list_a.json()["data"]}
     assert emails_a == {email_a, email_b}
+    member_b = next(
+        member for member in list_a.json()["data"] if member["email"] == email_b
+    )
+    assert member_b["invitation_status"] == InvitationStatus.ACCEPTED
 
     listed = client.get(f"{settings.API_V1_STR}/workspaces/", headers=headers_b)
     assert listed.status_code == 200
@@ -614,7 +638,7 @@ def test_invited_user_can_create_own_workspace(client: TestClient, db: Session) 
 
     listed = client.get(f"{settings.API_V1_STR}/workspaces/", headers=headers)
     assert listed.json()["can_create"] is True
-    assert listed.json()["count"] == 1
+    assert listed.json()["count"] == 0
 
     created = client.post(
         f"{settings.API_V1_STR}/workspaces/",
@@ -629,8 +653,58 @@ def test_invited_user_can_create_own_workspace(client: TestClient, db: Session) 
     assert me.json()["id"] == own_id
 
     listed_after = client.get(f"{settings.API_V1_STR}/workspaces/", headers=headers)
-    assert listed_after.json()["count"] == 2
+    assert listed_after.json()["count"] == 1
     assert listed_after.json()["can_create"] is False
+
+
+def test_decline_invite_and_reinvite(client: TestClient, db: Session) -> None:
+    headers, _email, workspace_id = create_workspace(client, db)
+    existing_email = random_email()
+    password = random_lower_string()
+    crud.create_user(
+        session=db, user_create=UserCreate(email=existing_email, password=password)
+    )
+    with patch("app.api.routes.workspaces.send_email"):
+        invited = client.post(
+            f"{settings.API_V1_STR}/workspaces/me/members",
+            headers=headers,
+            json={"email": existing_email, "role": "viewer"},
+        )
+    assert invited.status_code == 201
+
+    invite_token = generate_workspace_invite_token(
+        email=existing_email, workspace_id=uuid.UUID(workspace_id)
+    )
+    preview = client.get(
+        f"{settings.API_V1_STR}/workspaces/invites",
+        params={"token": invite_token},
+    )
+    assert preview.status_code == 200
+    assert preview.json()["status"] == InvitationStatus.PENDING
+    assert preview.json()["needs_password"] is False
+
+    declined = client.post(
+        f"{settings.API_V1_STR}/workspaces/invites/decline",
+        json={"token": invite_token},
+    )
+    assert declined.status_code == 200
+    assert declined.json()["invitation_status"] == InvitationStatus.DECLINED
+
+    listed = client.get(f"{settings.API_V1_STR}/workspaces/me/members", headers=headers)
+    member = next(
+        item for item in listed.json()["data"] if item["email"] == existing_email
+    )
+    assert member["invitation_status"] == InvitationStatus.DECLINED
+
+    with patch("app.api.routes.workspaces.send_email"):
+        reinvite = client.post(
+            f"{settings.API_V1_STR}/workspaces/me/members",
+            headers=headers,
+            json={"email": existing_email, "role": "editor"},
+        )
+    assert reinvite.status_code == 201
+    assert reinvite.json()["invitation_status"] == InvitationStatus.PENDING
+    assert reinvite.json()["role"] == WorkspaceRole.EDITOR
 
 
 def test_select_current_workspace_rejects_non_member(

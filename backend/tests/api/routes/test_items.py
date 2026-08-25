@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.models import WorkspaceRole
 from tests.utils.item import create_random_item
 from tests.utils.workspace import (
+    accept_invite,
     auth_headers_for_new_user,
     auth_headers_for_role,
     create_workspace,
@@ -137,6 +138,7 @@ def test_read_item_hidden_across_workspaces_even_if_owner_is_a_member(
             json={"email": email_b, "role": "editor"},
         )
     assert invite.status_code == 201
+    accept_invite(client, email_b, workspace_a)
 
     list_a = client.get(f"{settings.API_V1_STR}/items/", headers=headers_a)
     titles_a = {item["title"] for item in list_a.json()["data"]}

@@ -1,4 +1,11 @@
-import { BookOpen, Home, MessageSquare, Users, Wrench } from "lucide-react"
+import {
+  BookOpen,
+  Home,
+  MessageSquare,
+  UserCog,
+  Users,
+  Wrench,
+} from "lucide-react"
 
 import { useAuth } from "@/features/auth/useAuth"
 import { WorkspaceSwitcher } from "@/features/workspace/WorkspaceSwitcher"
@@ -18,13 +25,17 @@ const baseItems: Item[] = [
   { icon: BookOpen, title: "Knowledge", path: "/dashboard/knowledge" },
   { icon: Wrench, title: "Tools", path: "/dashboard/tools" },
   { icon: MessageSquare, title: "Chat", path: "/dashboard/chat" },
+  { icon: Users, title: "Members", path: "/dashboard/members" },
 ]
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
 
   const items: Item[] = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/dashboard/admin" }]
+    ? [
+        ...baseItems,
+        { icon: UserCog, title: "Admin", path: "/dashboard/admin" },
+      ]
     : baseItems
 
   return (

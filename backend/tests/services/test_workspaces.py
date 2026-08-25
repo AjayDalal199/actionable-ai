@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate, Workspace, WorkspaceRole
+from app.models import InvitationStatus, User, UserCreate, Workspace, WorkspaceRole
 from app.services.workspaces import (
     CannotDeleteLastAdminError,
     CannotModifyLastAdminError,
@@ -167,10 +167,12 @@ def test_invite_member_creates_user(db: Session) -> None:
     )
     assert created is True
     assert member.email == invited_email
-    assert member.workspace_id == workspace.id
+    assert member.workspace_id is None
     assert membership.role == WorkspaceRole.EDITOR
+    assert membership.invitation_status == InvitationStatus.PENDING
     assert member.full_name == "Sam"
     assert member.is_superuser is False
+    assert member.must_set_password is True
 
 
 def test_invite_member_attaches_existing_user(db: Session) -> None:
@@ -192,8 +194,9 @@ def test_invite_member_attaches_existing_user(db: Session) -> None:
     )
     assert created is False
     assert member.id == existing.id
-    assert member.workspace_id == workspace.id
+    assert member.workspace_id is None
     assert membership.role == WorkspaceRole.VIEWER
+    assert membership.invitation_status == InvitationStatus.PENDING
 
 
 def test_invite_member_does_not_overwrite_existing_full_name(db: Session) -> None:
@@ -250,6 +253,7 @@ def test_invite_member_reactivates_deactivated_membership(db: Session) -> None:
     assert created is False
     assert membership.is_active is True
     assert membership.role == WorkspaceRole.VIEWER
+    assert membership.invitation_status == InvitationStatus.ACCEPTED
     assert member.workspace_id == workspace.id
 
 
@@ -291,6 +295,7 @@ def test_invite_member_can_join_another_workspace(db: Session) -> None:
     assert member.id == admin_b.id
     assert membership.workspace_id == workspace_a.id
     assert membership.role == WorkspaceRole.EDITOR
+    assert membership.invitation_status == InvitationStatus.PENDING
     assert admin_b.workspace_id == workspace_b.id
     assert (
         get_membership(session=db, user_id=admin_b.id, workspace_id=workspace_b.id)

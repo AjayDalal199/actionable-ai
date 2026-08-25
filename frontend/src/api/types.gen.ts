@@ -50,6 +50,11 @@ export type HTTPValidationError = {
 export type WorkspaceRole = 'admin' | 'editor' | 'viewer';
 
 /**
+ * InvitationStatus
+ */
+export type InvitationStatus = 'pending' | 'accepted' | 'declined';
+
+/**
  * ItemCreate
  */
 export type ItemCreate = {
@@ -385,6 +390,40 @@ export type WorkspaceInvite = {
 };
 
 /**
+ * WorkspaceInviteAction
+ */
+export type WorkspaceInviteAction = {
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Password
+     */
+    password?: string | null;
+};
+
+/**
+ * WorkspaceInvitePreview
+ */
+export type WorkspaceInvitePreview = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Workspace Name
+     */
+    workspace_name: string;
+    role: WorkspaceRole;
+    status: InvitationStatus;
+    /**
+     * Needs Password
+     */
+    needs_password: boolean;
+};
+
+/**
  * WorkspaceMemberPublic
  */
 export type WorkspaceMemberPublic = {
@@ -401,6 +440,7 @@ export type WorkspaceMemberPublic = {
      */
     full_name?: string | null;
     role: WorkspaceRole;
+    invitation_status: InvitationStatus;
     /**
      * Is Active
      */
@@ -1254,6 +1294,86 @@ export type workspacesInviteWorkspaceMemberResponses = {
 };
 
 export type workspacesInviteWorkspaceMemberResponse = workspacesInviteWorkspaceMemberResponses[keyof workspacesInviteWorkspaceMemberResponses];
+
+export type workspacesReadWorkspaceInviteData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    url: '/api/v1/workspaces/invites';
+};
+
+export type workspacesReadWorkspaceInviteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesReadWorkspaceInviteError = workspacesReadWorkspaceInviteErrors[keyof workspacesReadWorkspaceInviteErrors];
+
+export type workspacesReadWorkspaceInviteResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspaceInvitePreview;
+};
+
+export type workspacesReadWorkspaceInviteResponse = workspacesReadWorkspaceInviteResponses[keyof workspacesReadWorkspaceInviteResponses];
+
+export type workspacesAcceptWorkspaceInviteData = {
+    body: WorkspaceInviteAction;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/invites/accept';
+};
+
+export type workspacesAcceptWorkspaceInviteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesAcceptWorkspaceInviteError = workspacesAcceptWorkspaceInviteErrors[keyof workspacesAcceptWorkspaceInviteErrors];
+
+export type workspacesAcceptWorkspaceInviteResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspaceMemberPublic;
+};
+
+export type workspacesAcceptWorkspaceInviteResponse = workspacesAcceptWorkspaceInviteResponses[keyof workspacesAcceptWorkspaceInviteResponses];
+
+export type workspacesDeclineWorkspaceInviteData = {
+    body: WorkspaceInviteAction;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/invites/decline';
+};
+
+export type workspacesDeclineWorkspaceInviteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesDeclineWorkspaceInviteError = workspacesDeclineWorkspaceInviteErrors[keyof workspacesDeclineWorkspaceInviteErrors];
+
+export type workspacesDeclineWorkspaceInviteResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspaceMemberPublic;
+};
+
+export type workspacesDeclineWorkspaceInviteResponse = workspacesDeclineWorkspaceInviteResponses[keyof workspacesDeclineWorkspaceInviteResponses];
 
 export type workspacesUpdateWorkspaceMemberData = {
     body: WorkspaceMemberUpdate;

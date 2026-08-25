@@ -6,6 +6,7 @@ from sqlmodel import Session
 from app import crud
 from app.core.config import settings
 from app.models import User, UserCreate, WorkspaceMembership, WorkspaceRole
+from app.utils import generate_workspace_invite_token
 from tests.utils.user import user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
 
@@ -56,6 +57,22 @@ def add_membership(
     db.commit()
     db.refresh(membership)
     return membership
+
+
+def accept_invite(
+    client: TestClient,
+    email: str,
+    workspace_id: str | uuid.UUID,
+    password: str | None = None,
+) -> None:
+    token = generate_workspace_invite_token(
+        email=email, workspace_id=uuid.UUID(str(workspace_id))
+    )
+    body: dict[str, str] = {"token": token}
+    if password:
+        body["password"] = password
+    r = client.post(f"{settings.API_V1_STR}/workspaces/invites/accept", json=body)
+    assert r.status_code == 200, r.text
 
 
 def auth_headers_for_role(

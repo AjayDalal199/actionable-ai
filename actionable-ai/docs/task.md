@@ -168,7 +168,7 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 - `[x]` `WorkspaceMembership` (`user_id`, `workspace_id`, `role`, `is_active`); `User.workspace_id` is current workspace only. Create at most one (`Workspace.created_by_id` unique); join many via invite. `GET /workspaces/` lists memberships; `PUT /workspaces/current` switches.
 - `[x]` Replace template `is_superuser`-only gates for product routes with role checks
 - `[x]` Keep platform `is_superuser` for *our* ops admin only (not client Admin)
-- `[x]` Invite flow (MVP-simple): Admin adds a user by email + role; invited user sets password via existing email recovery/invite mail
+- `[x]` Invite flow: Admin invites by email + role (pending until accepted or declined); invite email includes accept/decline links; new accounts set a password on the join page
 - `[x]` List workspace members; Admin can change role or deactivate
 - `[x]` Tests: cross-tenant isolation on members and items (knowledge/tools/chat inherit `CurrentWorkspace` when those APIs exist)
 
@@ -176,7 +176,7 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 ### 1.3 Dashboard shell for a real product
 
-- `[x]` Sidebar: Dashboard (Quick Start), Knowledge, Tools, Chat (internal), Settings i— drop Items from nav
+- `[x]` Sidebar: Dashboard (Quick Start), Knowledge, Tools, Chat (internal), Members — drop Items from nav
 - `[x]` Empty-state home: “Name your workspace → upload a doc → ask a question”
 
 ---

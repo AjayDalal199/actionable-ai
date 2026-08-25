@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 import emails
 import jwt
@@ -102,10 +103,19 @@ def generate_new_account_email(
 
 
 def generate_workspace_invite_email(
-    *, email_to: str, email: str, workspace_name: str, role: str
+    *,
+    email_to: str,
+    email: str,
+    workspace_name: str,
+    role: str,
+    token: str,
 ) -> EmailData:
     project_name = settings.PROJECT_NAME
-    subject = f"{project_name} - You've been added to {workspace_name}"
+    subject = f"{project_name} - You've been invited to {workspace_name}"
+    accept_link = f"{settings.FRONTEND_HOST}/join-workspace?token={token}"
+    decline_link = (
+        f"{settings.FRONTEND_HOST}/join-workspace?token={token}&decision=decline"
+    )
     html_content = render_email_template(
         template_name="workspace_invite.html",
         context={
@@ -114,7 +124,9 @@ def generate_workspace_invite_email(
             "email": email_to,
             "workspace_name": workspace_name,
             "role": role,
-            "link": f"{settings.FRONTEND_HOST}/login",
+            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            "link": accept_link,
+            "decline_link": decline_link,
         },
     )
     return EmailData(html_content=html_content, subject=subject)
@@ -140,4 +152,54 @@ def verify_password_reset_token(token: str) -> str | None:
         )
         return str(decoded_token["sub"])
     except InvalidTokenError:
+        return None
+
+
+WORKSPACE_INVITE_TOKEN_TYPE = "workspace_invite"
+
+
+@dataclass
+class WorkspaceInviteTokenData:
+    email: str
+    workspace_id: UUID
+
+
+def generate_workspace_invite_token(*, email: str, workspace_id: UUID) -> str:
+    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+    now = datetime.now(UTC)
+    expires = now + delta
+    encoded_jwt = jwt.encode(
+        {
+            "exp": expires.timestamp(),
+            "nbf": now,
+            "sub": email,
+            "workspace_id": str(workspace_id),
+            "type": WORKSPACE_INVITE_TOKEN_TYPE,
+        },
+        settings.SECRET_KEY,
+        algorithm=security.ALGORITHM,
+    )
+    return encoded_jwt
+
+
+def verify_workspace_invite_token(token: str) -> WorkspaceInviteTokenData | None:
+    try:
+        decoded_token = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+    except InvalidTokenError:
+        return None
+    email = decoded_token.get("sub")
+    workspace_id = decoded_token.get("workspace_id")
+    if (
+        not email
+        or not workspace_id
+        or decoded_token.get("type") != WORKSPACE_INVITE_TOKEN_TYPE
+    ):
+        return None
+    try:
+        return WorkspaceInviteTokenData(
+            email=str(email), workspace_id=UUID(str(workspace_id))
+        )
+    except ValueError:
         return None

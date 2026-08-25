@@ -8,7 +8,7 @@ import {
 } from "./utils/random"
 import { logInUser } from "./utils/user"
 
-const productNav = ["Dashboard", "Knowledge", "Tools", "Chat"]
+const productNav = ["Dashboard", "Knowledge", "Tools", "Chat", "Members"]
 
 test("Product nav replaces the template Items dashboard", async ({ page }) => {
   await page.goto("/dashboard")
@@ -29,14 +29,17 @@ test("Product nav replaces the template Items dashboard", async ({ page }) => {
   await expect(
     page.getByRole("menuitem", { name: "User Settings" }),
   ).toBeVisible()
+  await expect(page.getByRole("menuitem", { name: "Members" })).toHaveCount(0)
   await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
   await expect(
     page.getByText("Name your workspace → upload a doc → ask a question"),
   ).toBeVisible()
   await expect(page.getByTestId("workspace-switcher")).toBeVisible()
+  await page.getByTestId("workspace-switcher").click()
+  await expect(page.getByRole("menuitem", { name: "Members" })).toHaveCount(0)
 })
 
-test("Knowledge, Tools, and Chat shells are reachable from the sidebar", async ({
+test("Knowledge, Tools, Chat, and Members are reachable from the sidebar", async ({
   page,
 }) => {
   await page.goto("/dashboard")
@@ -58,6 +61,12 @@ test("Knowledge, Tools, and Chat shells are reachable from the sidebar", async (
   await expect(page).toHaveURL(/\/dashboard\/chat/)
   await expect(
     page.getByRole("heading", { name: "Chat", exact: true }),
+  ).toBeVisible()
+
+  await page.getByRole("link", { name: "Members", exact: true }).click()
+  await expect(page).toHaveURL(/\/dashboard\/members/)
+  await expect(
+    page.getByRole("heading", { name: "Members", exact: true }),
   ).toBeVisible()
 
   await page.getByTestId("user-menu").click()
@@ -106,7 +115,7 @@ test.describe("Workspace empty state", () => {
     await expect(page.getByText("Your AI has no knowledge yet")).toBeVisible()
   })
 
-  test("Knowledge, Tools, and Chat ask for a workspace first", async ({
+  test("Knowledge, Tools, Chat, and Members ask for a workspace first", async ({
     page,
   }) => {
     const email = randomEmail()
@@ -136,6 +145,13 @@ test.describe("Workspace empty state", () => {
     await expect(
       page.getByText(
         "Name a workspace on Quick Start before you can use Chat.",
+      ),
+    ).toBeVisible()
+
+    await page.getByRole("link", { name: "Members", exact: true }).click()
+    await expect(
+      page.getByText(
+        "Name a workspace on Quick Start before you can use Members.",
       ),
     ).toBeVisible()
 

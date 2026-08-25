@@ -5,10 +5,13 @@ from sqlmodel import Session, col, func, select
 
 from app import crud
 from app.models import (
+    InvitationStatus,
     User,
     UserCreate,
     UserPublic,
+    UserUpdate,
     Workspace,
+    WorkspaceInvitePreview,
     WorkspaceListItem,
     WorkspaceMemberPublic,
     WorkspaceMembership,
@@ -43,6 +46,32 @@ class CannotDeleteLastAdminError(Exception):
 
 class WorkspaceNotMemberError(Exception):
     """The user is not an active member of the given workspace."""
+
+
+class InviteTokenInvalidError(Exception):
+    """The invite token is missing, expired, or does not match a membership."""
+
+
+class InvitePasswordRequiredError(Exception):
+    """A new invited account must choose a password before accepting."""
+
+
+class InviteAlreadyAcceptedError(Exception):
+    """The invite was already accepted, so it cannot be declined."""
+
+
+def is_joined_member(membership: WorkspaceMembership) -> bool:
+    return (
+        membership.is_active
+        and membership.invitation_status == InvitationStatus.ACCEPTED
+    )
+
+
+def _joined_membership_filters() -> tuple:
+    return (
+        col(WorkspaceMembership.is_active).is_(True),
+        WorkspaceMembership.invitation_status == InvitationStatus.ACCEPTED,
+    )
 
 
 def name_for_new_workspace(*, email: str, name: str | None = None) -> str:
@@ -86,7 +115,7 @@ def to_user_public(*, session: Session, user: User) -> UserPublic:
         membership = get_membership(
             session=session, user_id=user.id, workspace_id=user.workspace_id
         )
-        if membership is not None and membership.is_active:
+        if membership is not None and is_joined_member(membership):
             role = membership.role
     return UserPublic(
         id=user.id,
@@ -106,6 +135,7 @@ def member_public(user: User, membership: WorkspaceMembership) -> WorkspaceMembe
         email=user.email,
         full_name=user.full_name,
         role=membership.role,
+        invitation_status=membership.invitation_status,
         is_active=membership.is_active,
         created_at=membership.created_at,
     )
@@ -118,15 +148,19 @@ def _add_membership(
     workspace: Workspace,
     role: WorkspaceRole,
     set_current: bool = False,
+    invitation_status: InvitationStatus = InvitationStatus.ACCEPTED,
 ) -> WorkspaceMembership:
     membership = WorkspaceMembership(
         user_id=user.id,
         workspace_id=workspace.id,
         role=role,
         is_active=True,
+        invitation_status=invitation_status,
     )
     session.add(membership)
-    if set_current or user.workspace_id is None:
+    if invitation_status == InvitationStatus.ACCEPTED and (
+        set_current or user.workspace_id is None
+    ):
         user.workspace_id = workspace.id
         session.add(user)
     return membership
@@ -195,7 +229,7 @@ def _require_admin(*, session: Session, user: User, workspace: Workspace) -> Non
     )
     if (
         membership is None
-        or not membership.is_active
+        or not is_joined_member(membership)
         or membership.role != WorkspaceRole.ADMIN
     ):
         raise WorkspaceNotAdminError
@@ -209,7 +243,7 @@ def _active_admin_count(session: Session, workspace_id: uuid.UUID) -> int:
         .where(
             WorkspaceMembership.workspace_id == workspace_id,
             WorkspaceMembership.role == WorkspaceRole.ADMIN,
-            col(WorkspaceMembership.is_active).is_(True),
+            *_joined_membership_filters(),
             col(User.is_active).is_(True),
         )
     ).one()
@@ -224,7 +258,7 @@ def list_user_workspaces(*, session: Session, user: User) -> WorkspacesPublic:
         )
         .where(
             WorkspaceMembership.user_id == user.id,
-            col(WorkspaceMembership.is_active).is_(True),
+            *_joined_membership_filters(),
         )
         .order_by(col(Workspace.created_at).desc())
     ).all()
@@ -251,7 +285,7 @@ def set_current_workspace(
     membership = get_membership(
         session=session, user_id=user.id, workspace_id=workspace_id
     )
-    if membership is None or not membership.is_active:
+    if membership is None or not is_joined_member(membership):
         raise WorkspaceNotMemberError
     workspace = session.get(Workspace, workspace_id)
     if workspace is None:
@@ -295,7 +329,7 @@ def invite_member(
         membership = get_membership(
             session=session, user_id=existing.id, workspace_id=workspace.id
         )
-        if membership is not None and membership.is_active:
+        if membership is not None and is_joined_member(membership):
             raise UserAlreadyMemberError
         if membership is None:
             membership = _add_membership(
@@ -303,13 +337,22 @@ def invite_member(
                 user=existing,
                 workspace=workspace,
                 role=role,
+                invitation_status=InvitationStatus.PENDING,
             )
-        else:
+        elif (
+            not membership.is_active
+            and membership.invitation_status == InvitationStatus.ACCEPTED
+        ):
             membership.role = role
             membership.is_active = True
             if existing.workspace_id is None:
                 existing.workspace_id = workspace.id
                 session.add(existing)
+            session.add(membership)
+        else:
+            membership.role = role
+            membership.is_active = True
+            membership.invitation_status = InvitationStatus.PENDING
             session.add(membership)
         session.commit()
         session.refresh(existing)
@@ -322,17 +365,96 @@ def invite_member(
         full_name=full_name,
     )
     user = crud.create_user(session=session, user_create=user_create, commit=False)
+    user.must_set_password = True
+    session.add(user)
     membership = _add_membership(
         session=session,
         user=user,
         workspace=workspace,
         role=role,
-        set_current=True,
+        invitation_status=InvitationStatus.PENDING,
     )
     session.commit()
     session.refresh(user)
     session.refresh(membership)
     return user, membership, True
+
+
+def _membership_from_invite_token(
+    *, session: Session, token: str
+) -> tuple[User, Workspace, WorkspaceMembership]:
+    from app.utils import verify_workspace_invite_token
+
+    token_data = verify_workspace_invite_token(token)
+    if token_data is None:
+        raise InviteTokenInvalidError
+    user = crud.get_user_by_email(session=session, email=token_data.email)
+    workspace = session.get(Workspace, token_data.workspace_id)
+    if user is None or workspace is None:
+        raise InviteTokenInvalidError
+    membership = get_membership(
+        session=session, user_id=user.id, workspace_id=workspace.id
+    )
+    if membership is None:
+        raise InviteTokenInvalidError
+    return user, workspace, membership
+
+
+def preview_invite(*, session: Session, token: str) -> WorkspaceInvitePreview:
+    user, workspace, membership = _membership_from_invite_token(
+        session=session, token=token
+    )
+    return WorkspaceInvitePreview(
+        email=user.email,
+        workspace_name=workspace.name,
+        role=membership.role,
+        status=membership.invitation_status,
+        needs_password=user.must_set_password,
+    )
+
+
+def accept_invite(
+    *, session: Session, token: str, password: str | None = None
+) -> tuple[User, WorkspaceMembership]:
+    user, _workspace, membership = _membership_from_invite_token(
+        session=session, token=token
+    )
+    if is_joined_member(membership):
+        return user, membership
+    if user.must_set_password and not password:
+        raise InvitePasswordRequiredError
+    membership.invitation_status = InvitationStatus.ACCEPTED
+    membership.is_active = True
+    session.add(membership)
+    if user.workspace_id is None:
+        user.workspace_id = membership.workspace_id
+        session.add(user)
+    if password:
+        crud.update_user(
+            session=session,
+            db_user=user,
+            user_in=UserUpdate(password=password),
+        )
+        session.refresh(membership)
+    else:
+        session.commit()
+        session.refresh(user)
+        session.refresh(membership)
+    return user, membership
+
+
+def decline_invite(*, session: Session, token: str) -> tuple[User, WorkspaceMembership]:
+    user, _workspace, membership = _membership_from_invite_token(
+        session=session, token=token
+    )
+    if is_joined_member(membership):
+        raise InviteAlreadyAcceptedError
+    membership.invitation_status = InvitationStatus.DECLINED
+    session.add(membership)
+    session.commit()
+    session.refresh(user)
+    session.refresh(membership)
+    return user, membership
 
 
 def _other_active_workspace_id(
@@ -342,7 +464,7 @@ def _other_active_workspace_id(
         select(WorkspaceMembership).where(
             WorkspaceMembership.user_id == user_id,
             WorkspaceMembership.workspace_id != exclude_workspace_id,
-            col(WorkspaceMembership.is_active).is_(True),
+            *_joined_membership_filters(),
         )
     ).first()
     return membership.workspace_id if membership else None
@@ -369,7 +491,7 @@ def update_member(
     new_active = is_active if is_active is not None else membership.is_active
     is_last_active_admin = (
         membership.role == WorkspaceRole.ADMIN
-        and membership.is_active
+        and is_joined_member(membership)
         and member.is_active
         and _active_admin_count(session, workspace.id) == 1
     )
@@ -405,7 +527,7 @@ def _other_active_member_count(
         .where(
             WorkspaceMembership.workspace_id == workspace_id,
             WorkspaceMembership.user_id != user_id,
-            col(WorkspaceMembership.is_active).is_(True),
+            *_joined_membership_filters(),
             col(User.is_active).is_(True),
         )
     ).one()
@@ -418,7 +540,7 @@ def assert_can_delete_user(*, session: Session, user: User) -> None:
         select(WorkspaceMembership).where(
             WorkspaceMembership.user_id == user.id,
             WorkspaceMembership.role == WorkspaceRole.ADMIN,
-            col(WorkspaceMembership.is_active).is_(True),
+            *_joined_membership_filters(),
         )
     ).all()
     for membership in admin_memberships:

@@ -21,9 +21,12 @@ from app.models.user import (
     UserUpdateMe,
 )
 from app.models.workspace import (
+    InvitationStatus,
     Workspace,
     WorkspaceCreate,
     WorkspaceInvite,
+    WorkspaceInviteAction,
+    WorkspaceInvitePreview,
     WorkspaceListItem,
     WorkspaceMemberPublic,
     WorkspaceMembership,
@@ -37,6 +40,7 @@ from app.models.workspace import (
 )
 
 __all__ = [
+    "InvitationStatus",
     "Item",
     "ItemBase",
     "ItemCreate",
@@ -60,6 +64,8 @@ __all__ = [
     "Workspace",
     "WorkspaceCreate",
     "WorkspaceInvite",
+    "WorkspaceInviteAction",
+    "WorkspaceInvitePreview",
     "WorkspaceListItem",
     "WorkspaceMemberPublic",
     "WorkspaceMembersPublic",

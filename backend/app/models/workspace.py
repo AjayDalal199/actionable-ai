@@ -19,6 +19,12 @@ class WorkspaceRole(StrEnum):
     VIEWER = "viewer"
 
 
+class InvitationStatus(StrEnum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+
+
 def normalize_workspace_name(value: str) -> str:
     stripped = value.strip()
     if not stripped:
@@ -36,6 +42,10 @@ class WorkspaceMembership(SQLModel, table=True):
         foreign_key="workspace.id", primary_key=True, ondelete="CASCADE", index=True
     )
     role: WorkspaceRole = Field(sa_type=String(32))  # type: ignore
+    invitation_status: InvitationStatus = Field(
+        default=InvitationStatus.ACCEPTED,
+        sa_type=String(32),  # type: ignore
+    )
     is_active: bool = True
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
@@ -113,8 +123,22 @@ class WorkspaceMemberPublic(SQLModel):
     email: EmailStr
     full_name: str | None = None
     role: WorkspaceRole
+    invitation_status: InvitationStatus
     is_active: bool
     created_at: datetime | None = None
+
+
+class WorkspaceInvitePreview(SQLModel):
+    email: EmailStr
+    workspace_name: str
+    role: WorkspaceRole
+    status: InvitationStatus
+    needs_password: bool
+
+
+class WorkspaceInviteAction(SQLModel):
+    token: str
+    password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class WorkspaceMembersPublic(SQLModel):
