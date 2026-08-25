@@ -10,18 +10,22 @@
 
 ---
 
+
 ## Next up (do this only)
 
-**Task:** Phase 1.3 dashboard shell. Do not start Knowledge APIs yet.
+**Task:** Phase 1.2 remaining RBAC, or start Phase 2 data plane. Do not start Knowledge APIs yet.
 
-- `[ ]` Sidebar: Dashboard (Quick Start), Knowledge, Tools, Chat (internal), Settings — drop Items from nav
-- `[ ]` Empty-state home: “Name your workspace → upload a doc → ask a question” (create-workspace CTA if they have none)
+- `[ ]` Replace template `is_superuser`-only gates for product routes with role checks
+- `[ ]` Invite flow (MVP-simple): Admin adds a user by email + role
+- `[ ]` Then Phase 2: pgvector, Redis, Document / ToolRegistry tables
 
-**Done when:** Logged-in product nav matches the real app, not the template Items dashboard.
+**Done when:** Follow the path-to-MVP order (RBAC remaining, then data plane). Dashboard UI can trail matching APIs.
 
-**After that (not now):** Phase 1.2 invite/RBAC APIs, or Phase 2 data plane — follow the path-to-MVP order (RBAC remaining, then data plane).
+**After that (not now):** Phase 3 knowledge ingestion.
 
 ---
+
+
 
 ## What MVP must prove
 
@@ -37,26 +41,32 @@ If those five are true, we have an MVP. Everything else is V1+.
 
 ---
 
+
+
 ## Explicitly out of scope for MVP
 
 Do not start these until MVP ships. They are documented so they do not leak into this list.
 
-| Deferred | When | Why it is not MVP |
-| --- | --- | --- |
-| GitHub / GitLab OAuth, webhooks, auto-doc from PRs | V1 | Manual upload is the 5-minute path |
-| `GithubRepository` sync workers, diff-based reindex | V1 | Schema only in MVP |
-| Semantic caching, LLM abstraction (LiteLLM) | V1 / V2 | Cost control beyond a basic cap |
-| Re-ranking (Cohere), LlamaGuard, PII scrubbing | V2 | Quality / compliance polish |
-| Zendesk / Intercom native tickets | V2 | Email + generic webhook is enough |
-| “Show me how” overlays, proactive chat, multi-step autonomous workflows | V2 / V3 | Extra agent UX |
-| Notion / Confluence / Drive, multi-lingual embeddings | V3 | Extra ingestion |
-| Pricing page, blog, changelog, SSO | later | Not required to prove the agent |
+
+| Deferred                                                                | When    | Why it is not MVP                  |
+| ----------------------------------------------------------------------- | ------- | ---------------------------------- |
+| GitHub / GitLab OAuth, webhooks, auto-doc from PRs                      | V1      | Manual upload is the 5-minute path |
+| `GithubRepository` sync workers, diff-based reindex                     | V1      | Schema only in MVP                 |
+| Semantic caching, LLM abstraction (LiteLLM)                             | V1 / V2 | Cost control beyond a basic cap    |
+| Re-ranking (Cohere), LlamaGuard, PII scrubbing                          | V2      | Quality / compliance polish        |
+| Zendesk / Intercom native tickets                                       | V2      | Email + generic webhook is enough  |
+| “Show me how” overlays, proactive chat, multi-step autonomous workflows | V2 / V3 | Extra agent UX                     |
+| Notion / Confluence / Drive, multi-lingual embeddings                   | V3      | Extra ingestion                    |
+| Pricing page, blog, changelog, SSO                                      | later   | Not required to prove the agent    |
+
 
 ---
 
+
+
 ## Current state (as of 2026-08-25)
 
-We are still on the Full Stack FastAPI template plus a public marketing site. Auth works. Architecture is decided. The product domain (workspaces, knowledge, tools, chat, widget) is not built.
+Auth, workspaces, and the dashboard shell are in place. Knowledge, tools, chat, and the widget are not built yet.
 
 **Already in place**
 
@@ -73,10 +83,12 @@ We are still on the Full Stack FastAPI template plus a public marketing site. Au
 **Still template leftovers (must be replaced, not shipped as product)**
 
 - `[ ]` Remove demo **Items** CRUD from dashboard and API (or hide it) once Knowledge / Tools exist
-- `[ ]` Replace template dashboard home with the Quick Start / sandbox flow
-- `[ ]` Hide Items from the sidebar when the dashboard shell is updated (Phase 1.3) — do not delete the API in the models-package slice
+- `[x]` Replace template dashboard home with the Quick Start empty state (sandbox chat still Phase 7)
+- `[x]` Hide Items from the sidebar (Phase 1.3) — Items API and `/dashboard/items` remain until Knowledge exists
 
 ---
+
+
 
 ## Path to MVP
 
@@ -102,6 +114,8 @@ Work in this order. Later phases depend on earlier ones. Dashboard UI can trail 
 
 ---
 
+
+
 ## Phase 1 — Multi-tenant foundation (Workspace + RBAC)
 
 **Why first:** Every later table is scoped by `workspace_id`. Chat, uploads, and tools are unsafe without tenant isolation.
@@ -119,6 +133,8 @@ Mechanical split. No schema change.
 - `[x]` Alembic still uses `from app.models import SQLModel`
 - `[x]` No schema change, no Alembic revision; pytest 60 passed
 
+
+
 ### 1.1 Workspace model and APIs
 
 Do these **after** 1.0, one checkbox group per reviewable slice.
@@ -132,15 +148,19 @@ Do these **after** 1.0, one checkbox group per reviewable slice.
 - `[x]` `PATCH /api/v1/workspaces/me` — rename (Admin only)
 - `[ ]` All product queries filter by `workspace_id` from `CurrentWorkspace` (never trust a client-supplied workspace id without membership check)
 
+
+
 ### 1.2 Users inside a workspace (RBAC)
 
 MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
-| Role | Can do |
-| --- | --- |
-| Admin | Billing-level: invite, change roles, workspace settings, all Editor powers |
+
+| Role   | Can do                                                                          |
+| ------ | ------------------------------------------------------------------------------- |
+| Admin  | Billing-level: invite, change roles, workspace settings, all Editor powers      |
 | Editor | Upload/delete docs, register/edit tools, use internal chat, copy widget snippet |
-| Viewer | Read docs/tools, use internal chat, cannot mutate config |
+| Viewer | Read docs/tools, use internal chat, cannot mutate config                        |
+
 
 - `[x]` Add `workspace_id` + `role` on `User` (or a `WorkspaceMembership` table if we want multi-workspace later; **MVP = one workspace per user**)
 - `[ ]` Replace template `is_superuser`-only gates for product routes with role checks
@@ -149,12 +169,16 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 - `[ ]` List workspace members; Admin can change role or deactivate
 - `[ ]` Tests: cross-tenant isolation (user A cannot read user B’s documents/tools/chat)
 
+
+
 ### 1.3 Dashboard shell for a real product
 
-- `[ ]` Sidebar: Dashboard (Quick Start), Knowledge, Tools, Chat (internal), Settings — drop Items from nav
-- `[ ]` Empty-state home: “Name your workspace → upload a doc → ask a question”
+- `[x]` Sidebar: Dashboard (Quick Start), Knowledge, Tools, Chat (internal), Settings i— drop Items from nav
+- `[x]` Empty-state home: “Name your workspace → upload a doc → ask a question”
 
 ---
+
+
 
 ## Phase 2 — Data plane for RAG and HITL
 
@@ -173,12 +197,16 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 - `[ ]` Add `GithubRepository` **table only** (`workspace_id`, `url`, `target_branch`, `last_sync`) — no OAuth, no workers
 - `[ ]` Alembic migrations + model tests
 
+
+
 ### 2.2 Redis
 
 - `[ ]` Add Redis service to `compose.yml` / deploy compose
 - `[ ]` App settings: `REDIS_URL`
 - `[ ]` Use Redis for: HITL pending-action state, SSE/pubsub if needed, and a **basic** rate-limit counter (Phase 8)
 - `[ ]` Health check includes Redis
+
+
 
 ### 2.3 Object / file storage for uploads
 
@@ -187,6 +215,8 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 - `[ ]` Max size **10MB** to match the Knowledge UI spec (API contract said 50MB — **implement 10MB** and update the API contract)
 
 ---
+
+
 
 ## Phase 3 — Knowledge ingestion (RAG write path)
 
@@ -205,6 +235,8 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 - `[ ]` Duplicate filenames: auto-append timestamp (UI spec decision)
 - `[ ]` Input token / file safety: skip empty files; cap pages/chars so one upload cannot melt the worker
 
+
+
 ### 3.2 Knowledge APIs (dashboard)
 
 Align with `03_MVP_API_Contracts.md`, plus list/status that the UI needs.
@@ -216,6 +248,8 @@ Align with `03_MVP_API_Contracts.md`, plus list/status that the UI needs.
 - `[ ]` AuthZ: Editor+ to mutate; Viewer can list
 - `[ ]` Reject non-pdf / non-md / non-txt; reject > 10MB
 - `[ ]` Tests: upload happy path, isolation, invalid type, failed parse sets `failed`
+
+
 
 ### 3.3 Knowledge Base UI (dashboard)
 
@@ -232,6 +266,8 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.
 - `[ ]` Keyboard + `sr-only` status text (spec §11)
 
 ---
+
+
 
 ## Phase 4 — Tool registry (give the agent hands)
 
@@ -253,6 +289,8 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.
   - **JS:** name + schema only (execution happens in the host page; we emit a tool-call event to the widget)
 - `[ ]` Tests: HITL hard-lock, 409 duplicate, Viewer cannot register
 
+
+
 ### 4.2 API Request Engine (server-side tools)
 
 MVP needs real HTTP calls. Full SSRF hardening is V1; **do the minimum now** so we do not fetch metadata IPs.
@@ -263,6 +301,8 @@ MVP needs real HTTP calls. Full SSRF hardening is V1; **do the minimum now** so 
 - `[ ]` Pass through the **end-user JWT** (Phase 6) as `Authorization: Bearer` (or a documented header) to the client API — we do not invent permissions
 - `[ ]` Map non-2xx to a structured error the LLM can explain (no fake success)
 - `[ ]` Simple retry: once on 502/503; no infinite loops
+
+
 
 ### 4.3 Tools & Actions UI (dashboard)
 
@@ -277,6 +317,8 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/02_Tool_Registration_Flow.md`
 - `[ ]` Duplicate-name inline error from 409
 
 ---
+
+
 
 ## Phase 5 — Chat orchestrator (the product brain)
 
@@ -299,6 +341,8 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 - `[ ]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
 - `[ ]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
 
+
+
 ### 5.2 RAG retrieval (read path)
 
 - `[ ]` Embed the query with the same model as ingestion
@@ -307,6 +351,8 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 - `[ ]` Wrap retrieved text in delimiters; system prompt: retrieved text is data, never instructions (cheap anti-injection for MVP)
 - `[ ]` If similarity is below a threshold, prefer “I don’t know” / handoff rather than guessing
 - `[ ]` Input token truncation of the *context pack* so the prompt cannot blow the model window
+
+
 
 ### 5.3 LangGraph agent
 
@@ -320,6 +366,8 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 - `[ ]` System prompt from `04_MVP_LLM_Prompts.md` (tune voice: customer widget vs internal dashboard)
 - `[ ]` Graceful LLM/provider errors → stable `error` SSE event
 
+
+
 ### 5.4 Client-side (JS) tools
 
 - `[ ]` Registry entry has no URL; widget is told `{ name, arguments }`
@@ -327,6 +375,8 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 - `[ ]` Writes still go through HITL **before** the widget invokes the JS function
 
 ---
+
+
 
 ## Phase 6 — Embeddable customer widget
 
@@ -338,11 +388,13 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 
 ### 6.1 Package and isolation
 
-- `[ ]` New package **`packages/widget`** (Option A) — Vanilla JS or Preact, **not** the full dashboard React app; no import from `frontend/src` or `@/shared/ui`
+- `[ ]` New package `packages/widget` (Option A) — Vanilla JS or Preact, **not** the full dashboard React app; no import from `frontend/src` or `@/shared/ui`
 - `[ ]` Web Component + **Shadow DOM** (host `button { }` must not restyle us)
 - `[ ]` Sanitize rendered Markdown (`marked` + **DOMPurify**)
 - `[ ]` Async loader / small bundle; document a target size and fail CI if we explode it
 - `[ ]` Public script URL (CDN or `/widget.js` from our origin) + snippet with `data-workspace` / public key
+
+
 
 ### 6.2 Secure agent authorization
 
@@ -351,6 +403,8 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 - `[ ]` No JWT → chat may answer RAG **read-only** or show “sign in” — **no write tools**
 - `[ ]` Expired/invalid JWT → refuse tools; explain in the widget
 - `[ ]` Never accept the integrator dashboard token as end-user identity
+
+
 
 ### 6.3 Chat UX
 
@@ -364,10 +418,14 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 - `[ ]` `role="log"` / `aria-live` for messages; HITL `assertive`
 - `[ ]` Connection loss copy from spec; timeouts do not freeze the composer forever
 
+
+
 ### 6.4 JS tool bridge + failure
 
 - `[ ]` `A2I.registerTool(name, fn)` (or equivalent) on the host
 - `[ ]` Catch throws / missing fn → user-visible fallback, widget stays up
+
+
 
 ### 6.5 Dashboard: snippet export
 
@@ -375,6 +433,8 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 - `[ ]` Show workspace public id and how to mint the end-user JWT (short integration guide)
 
 ---
+
+
 
 ## Phase 7 — Dashboard product complete (Quick Start loop)
 
@@ -391,6 +451,8 @@ Journey 1 in `User_Journeys.md`.
 - `[ ]` Redirect/focus sandbox when the first document becomes Active (target: usable within ~60s of upload)
 - `[ ]` Sandbox may use the dashboard user as identity; label it clearly as a test surface
 
+
+
 ### 7.2 Internal chatbot
 
 PRD: internal chatbot is MVP (Marcus / sales-support).
@@ -399,11 +461,15 @@ PRD: internal chatbot is MVP (Marcus / sales-support).
 - `[ ]` Default to read-heavy behavior; still HITL if someone tests a write tool
 - `[ ]` Empty state if no documents: point to Knowledge upload
 
+
+
 ### 7.3 Widget preview (optional but useful)
 
 - `[ ]` Dashboard page that mounts the real widget against the current workspace (staging key) so David does not need a second app on day one
 
 ---
+
+
 
 ## Phase 8 — Handoff, launch safety, and compliance-minimum
 
@@ -423,6 +489,8 @@ Journey 4. Native Zendesk is V2.
 - `[ ]` POST JSON to the webhook (timeout, sign with a shared secret header)
 - `[ ]` Log handoff events for us (no PII scrubbing until V2 — minimize what we store; do not log passwords if we can detect them naively)
 
+
+
 ### 8.2 Launch safety (subset of P0/P1 — not the full V1 platform)
 
 Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP still needs a floor:
@@ -435,6 +503,8 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 - `[ ]` Max graph iterations (Phase 5.1)
 - `[ ]` Do **not** claim SOC2/GDPR/LlamaGuard on the marketing site (already specified)
 
+
+
 ### 8.3 Observability (enough to debug beta)
 
 - `[ ]` Structured logs: workspace_id, session_id, document_id, tool_name (not raw user PII in log aggregators if avoidable)
@@ -442,6 +512,8 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 - `[ ]` Metrics: chat requests, HITL shown/confirmed/rejected, handoffs, ingestion failures (even if only logs + a simple admin query)
 
 ---
+
+
 
 ## Phase 9 — Integration experience and public docs
 
@@ -454,6 +526,8 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 
 ---
 
+
+
 ## Phase 10 — Quality, polish, ship
 
 **Done when:** The checklist below is true and we can onboard a beta client on staging.
@@ -465,6 +539,8 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 - `[ ]` Dashboard: upload validation, tool form lock, sandbox send
 - `[ ]` Load-ish: one scripted flood against rate limit to prove it trips
 
+
+
 ### 10.2 Product cleanup
 
 - `[ ]` Remove or fully hide template Items feature
@@ -472,6 +548,8 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 - `[ ]` Env sample: OpenAI, Redis, widget JWT secret, file storage
 - `[ ]` Deploy: Redis + pgvector on compose/cloud; document operator steps
 - `[ ]` Brand: Actionable AI everywhere (emails, titles, `PROJECT_NAME`)
+
+
 
 ### 10.3 MVP acceptance (end-to-end)
 
@@ -490,20 +568,26 @@ A stranger (or us pretending to be David) can:
 
 ---
 
+
+
 ## Suggested build order (sprints)
 
 Use this if you want a calendar-shaped path. Durations assume a small team; adjust, do not skip dependencies.
 
-| Sprint | Focus | Exit |
-| --- | --- | --- |
-| **A0** | Phase 1.0: `app/models/` package split | **Done** — imports and tests green; DB schema unchanged |
-| **A** | Phase 1–2: workspace, RBAC, pgvector, Redis, schema | Isolated tenants, empty product tables |
-| **B** | Phase 3: ingestion API + Knowledge UI | Upload → Active chunks |
-| **C** | Phase 4 + 5 without widget: tools API/UI + orchestrator + sandbox | Sandbox Q&A + HITL against a mock HTTP tool |
-| **D** | Phase 6–7: `packages/widget`, JWT, snippet, internal chat | Script tag on example host |
-| **E** | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run | MVP acceptance checklist all green |
+
+| Sprint | Focus                                                             | Exit                                                    |
+| ------ | ----------------------------------------------------------------- | ------------------------------------------------------- |
+| **A0** | Phase 1.0: `app/models/` package split                            | **Done** — imports and tests green; DB schema unchanged |
+| **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema               | Isolated tenants, empty product tables                  |
+| **B**  | Phase 3: ingestion API + Knowledge UI                             | Upload → Active chunks                                  |
+| **C**  | Phase 4 + 5 without widget: tools API/UI + orchestrator + sandbox | Sandbox Q&A + HITL against a mock HTTP tool             |
+| **D**  | Phase 6–7: `packages/widget`, JWT, snippet, internal chat         | Script tag on example host                              |
+| **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run      | MVP acceptance checklist all green                      |
+
 
 ---
+
+
 
 ## Definition of done — MVP
 

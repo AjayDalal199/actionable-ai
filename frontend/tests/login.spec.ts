@@ -45,9 +45,7 @@ test("Log in with valid email and password ", async ({ page }) => {
 
   await page.waitForURL("/dashboard")
 
-  await expect(
-    page.getByText("Welcome back, nice to see you again!"),
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
 })
 
 test("Log in with invalid email", async ({ page }) => {
@@ -77,9 +75,7 @@ test("Successful log out", async ({ page }) => {
 
   await page.waitForURL("/dashboard")
 
-  await expect(
-    page.getByText("Welcome back, nice to see you again!"),
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
 
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()
@@ -94,24 +90,22 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
 
   await page.waitForURL("/dashboard")
 
-  await expect(
-    page.getByText("Welcome back, nice to see you again!"),
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
 
   await page.getByTestId("user-menu").click()
   await page.getByRole("menuitem", { name: "Log out" }).click()
   await page.waitForURL("/login")
 
-  await page.goto("/settings")
+  await page.goto("/dashboard/settings")
   await page.waitForURL("/login")
 })
 
 test("Redirects to /login when token is wrong", async ({ page }) => {
-  await page.goto("/settings")
+  await page.goto("/dashboard/settings")
   await page.evaluate(() => {
     localStorage.setItem("access_token", "invalid_token")
   })
-  await page.goto("/settings")
+  await page.goto("/dashboard/settings")
   await page.waitForURL("/login")
   await expect(page).toHaveURL("/login")
 })

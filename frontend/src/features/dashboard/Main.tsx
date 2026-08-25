@@ -13,7 +13,12 @@ import {
 export type Item = {
   icon: LucideIcon
   title: string
-  path: string
+  path:
+    | "/dashboard"
+    | "/dashboard/knowledge"
+    | "/dashboard/tools"
+    | "/dashboard/chat"
+    | "/dashboard/admin"
 }
 
 interface MainProps {
@@ -36,7 +41,7 @@ export function Main({ items }: MainProps) {
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isActive = currentPath === item.path
+            const isActive = isNavActive(currentPath, item.path)
 
             return (
               <SidebarMenuItem key={item.title}>
@@ -57,4 +62,11 @@ export function Main({ items }: MainProps) {
       </SidebarGroupContent>
     </SidebarGroup>
   )
+}
+
+function isNavActive(currentPath: string, itemPath: Item["path"]) {
+  if (itemPath === "/dashboard") {
+    return currentPath === "/dashboard" || currentPath === "/dashboard/"
+  }
+  return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`)
 }

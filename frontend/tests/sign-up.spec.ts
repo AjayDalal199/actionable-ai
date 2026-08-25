@@ -56,8 +56,9 @@ test("Sign up with valid name, email, and password", async ({ page }) => {
   await fillForm(page, full_name, email, password, password)
   await page.getByRole("button", { name: "Sign Up" }).click()
   await page.waitForURL("/dashboard")
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
   await expect(
-    page.getByText("Welcome back, nice to see you again!"),
+    page.getByText("Name your workspace → upload a doc → ask a question"),
   ).toBeVisible()
 })
 
@@ -86,9 +87,7 @@ test("Sign up with existing email", async ({ page }) => {
   await fillForm(page, fullName, email, password, password)
   await page.getByRole("button", { name: "Sign Up" }).click()
   await page.waitForURL("/dashboard")
-  await expect(
-    page.getByText("Welcome back, nice to see you again!"),
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
   await logOutUser(page)
 
   await page.goto("/signup")

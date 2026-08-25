@@ -14,6 +14,7 @@ import {
   isLoggedIn,
   setAccessToken,
 } from "@/features/auth/session"
+import { workspaceKeys } from "@/features/workspace/queries"
 import { useCustomToast } from "@/shared/hooks/useCustomToast"
 import { handleError } from "@/shared/lib/errors"
 
@@ -64,6 +65,7 @@ export const useAuth = () => {
   const logout = () => {
     clearAccessToken()
     queryClient.removeQueries({ queryKey: authKeys.currentUser })
+    queryClient.removeQueries({ queryKey: workspaceKeys.current })
     navigate({ to: "/login" })
   }
 

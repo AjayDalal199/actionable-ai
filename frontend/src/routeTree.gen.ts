@@ -19,8 +19,11 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
+import { Route as DashboardChatRouteImport } from './routes/dashboard/chat'
 import { Route as DashboardItemsRouteImport } from './routes/dashboard/items'
+import { Route as DashboardKnowledgeRouteImport } from './routes/dashboard/knowledge'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardToolsRouteImport } from './routes/dashboard/tools'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -72,14 +75,29 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardChatRoute = DashboardChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardItemsRoute = DashboardItemsRouteImport.update({
   id: '/items',
   path: '/items',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardKnowledgeRoute = DashboardKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardToolsRoute = DashboardToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
   getParentRoute: () => DashboardRoute,
 } as any)
 
@@ -93,8 +111,11 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/items': typeof DashboardItemsRoute
+  '/dashboard/knowledge': typeof DashboardKnowledgeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tools': typeof DashboardToolsRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -106,8 +127,11 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/items': typeof DashboardItemsRoute
+  '/dashboard/knowledge': typeof DashboardKnowledgeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tools': typeof DashboardToolsRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -121,8 +145,11 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/items': typeof DashboardItemsRoute
+  '/dashboard/knowledge': typeof DashboardKnowledgeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tools': typeof DashboardToolsRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -137,8 +164,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/dashboard/admin'
+    | '/dashboard/chat'
     | '/dashboard/items'
+    | '/dashboard/knowledge'
     | '/dashboard/settings'
+    | '/dashboard/tools'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -150,8 +180,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/dashboard/admin'
+    | '/dashboard/chat'
     | '/dashboard/items'
+    | '/dashboard/knowledge'
     | '/dashboard/settings'
+    | '/dashboard/tools'
     | '/dashboard'
   id:
     | '__root__'
@@ -164,8 +197,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/dashboard/admin'
+    | '/dashboard/chat'
     | '/dashboard/items'
+    | '/dashboard/knowledge'
     | '/dashboard/settings'
+    | '/dashboard/tools'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -252,11 +288,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/chat': {
+      id: '/dashboard/chat'
+      path: '/chat'
+      fullPath: '/dashboard/chat'
+      preLoaderRoute: typeof DashboardChatRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/items': {
       id: '/dashboard/items'
       path: '/items'
       fullPath: '/dashboard/items'
       preLoaderRoute: typeof DashboardItemsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/knowledge': {
+      id: '/dashboard/knowledge'
+      path: '/knowledge'
+      fullPath: '/dashboard/knowledge'
+      preLoaderRoute: typeof DashboardKnowledgeRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/settings': {
@@ -266,20 +316,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/tools': {
+      id: '/dashboard/tools'
+      path: '/tools'
+      fullPath: '/dashboard/tools'
+      preLoaderRoute: typeof DashboardToolsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
   DashboardAdminRoute: typeof DashboardAdminRoute
+  DashboardChatRoute: typeof DashboardChatRoute
   DashboardItemsRoute: typeof DashboardItemsRoute
+  DashboardKnowledgeRoute: typeof DashboardKnowledgeRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardToolsRoute: typeof DashboardToolsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminRoute: DashboardAdminRoute,
+  DashboardChatRoute: DashboardChatRoute,
   DashboardItemsRoute: DashboardItemsRoute,
+  DashboardKnowledgeRoute: DashboardKnowledgeRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardToolsRoute: DashboardToolsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 

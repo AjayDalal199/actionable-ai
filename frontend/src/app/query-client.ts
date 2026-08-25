@@ -1,13 +1,21 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
-import { AxiosError } from "axios"
 
 import { clearAccessToken } from "@/features/auth/session"
+import { getHttpErrorDetail, getHttpErrorStatus } from "@/shared/lib/errors"
+
+function isCredentialAuthError(error: unknown): boolean {
+  const status = getHttpErrorStatus(error)
+  if (status === 401) {
+    return true
+  }
+  return (
+    status === 403 &&
+    getHttpErrorDetail(error) === "Could not validate credentials"
+  )
+}
 
 function handleApiError(error: Error) {
-  if (
-    error instanceof AxiosError &&
-    [401, 403].includes(error.response?.status ?? 0)
-  ) {
+  if (isCredentialAuthError(error)) {
     clearAccessToken()
     window.location.href = "/login"
   }

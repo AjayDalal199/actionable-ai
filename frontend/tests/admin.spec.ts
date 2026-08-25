@@ -5,7 +5,7 @@ import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
 test("Admin page is accessible and shows correct title", async ({ page }) => {
-  await page.goto("/admin")
+  await page.goto("/dashboard/admin")
   await expect(page.getByRole("heading", { name: "Users" })).toBeVisible()
   await expect(
     page.getByText("Manage user accounts and permissions"),
@@ -13,13 +13,13 @@ test("Admin page is accessible and shows correct title", async ({ page }) => {
 })
 
 test("Add User button is visible", async ({ page }) => {
-  await page.goto("/admin")
+  await page.goto("/dashboard/admin")
   await expect(page.getByRole("button", { name: "Add User" })).toBeVisible()
 })
 
 test.describe("Admin user management", () => {
   test("Create a new user successfully", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -43,7 +43,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Create a superuser", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -67,7 +67,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Edit a user successfully", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -97,7 +97,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Delete a user successfully", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     const email = randomEmail()
     const password = randomPassword()
@@ -129,7 +129,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Cancel user creation", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     await page.getByRole("button", { name: "Add User" }).click()
     await page.getByPlaceholder("Email").fill("test@example.com")
@@ -140,7 +140,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Email is required and must be valid", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     await page.getByRole("button", { name: "Add User" }).click()
 
@@ -151,7 +151,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Password must be at least 8 characters", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     await page.getByRole("button", { name: "Add User" }).click()
 
@@ -166,7 +166,7 @@ test.describe("Admin user management", () => {
   })
 
   test("Passwords must match", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     await page.getByRole("button", { name: "Add User" }).click()
 
@@ -189,16 +189,16 @@ test.describe("Admin page access control", () => {
     await createUser({ email, password })
     await logInUser(page, email, password)
 
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     await expect(page.getByRole("heading", { name: "Users" })).not.toBeVisible()
-    await expect(page).not.toHaveURL(/\/admin/)
+    await expect(page).not.toHaveURL(/\/dashboard\/admin/)
   })
 
   test("Superuser can access admin page", async ({ page }) => {
     await logInUser(page, firstSuperuser, firstSuperuserPassword)
 
-    await page.goto("/admin")
+    await page.goto("/dashboard/admin")
 
     await expect(page.getByRole("heading", { name: "Users" })).toBeVisible()
   })

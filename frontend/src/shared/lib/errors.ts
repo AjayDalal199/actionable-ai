@@ -1,5 +1,29 @@
 import { AxiosError } from "axios"
 
+type HttpErrorShape = {
+  response?: {
+    status?: number
+    data?: {
+      detail?: unknown
+    }
+  }
+}
+
+export function getHttpErrorStatus(error: unknown): number | undefined {
+  if (typeof error !== "object" || error === null) {
+    return undefined
+  }
+  const status = (error as HttpErrorShape).response?.status
+  return typeof status === "number" ? status : undefined
+}
+
+export function getHttpErrorDetail(error: unknown): unknown {
+  if (typeof error !== "object" || error === null) {
+    return undefined
+  }
+  return (error as HttpErrorShape).response?.data?.detail
+}
+
 function extractErrorMessage(err: Error): string {
   if (err instanceof AxiosError) {
     const errDetail = (err.response?.data as any)?.detail
