@@ -4,7 +4,10 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { WorkspacesService } from "@/api"
-import { workspaceKeys } from "@/features/workspace/queries"
+import {
+  invalidateWorkspaceSession,
+  workspaceKeys,
+} from "@/features/workspace/queries"
 import { useCustomToast } from "@/shared/hooks/useCustomToast"
 import { handleError } from "@/shared/lib/errors"
 import {
@@ -28,7 +31,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-export function CreateWorkspaceForm() {
+export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
@@ -48,10 +51,11 @@ export function CreateWorkspaceForm() {
       queryClient.setQueryData(workspaceKeys.current, response.data)
       showSuccessToast("Workspace created")
       form.reset()
+      onCreated?.()
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: workspaceKeys.current })
+      void invalidateWorkspaceSession(queryClient)
     },
   })
 

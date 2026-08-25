@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ project_name }} - Workspace invite</title>
+  </head>
+  <body
+    style="background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1e293b;max-width:560px;margin:0 auto;padding:48px 24px"
+  >
+    <hr style="width:32px;border:none;border-top:2px solid #009688;margin:0" />
+    <p style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;margin:16px 0 36px">
+      {{ project_name }}
+    </p>
+    <h1 style="font-size:24px;font-weight:600;letter-spacing:-0.02em;margin:0 0 20px">
+      You've been added to a workspace
+    </h1>
+    <p style="font-size:15px;line-height:1.75">Hi {{ username }},</p>
+    <p style="font-size:15px;line-height:1.75">
+      You now have access to {{ workspace_name }} on {{ project_name }}. Sign in
+      to switch to it from the dashboard.
+    </p>
+    <p style="border-left:2px solid #009688;padding-left:20px;margin:28px 0">
+      <span style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#64748b">Workspace</span>
+      <span style="display:block;font-weight:600;margin-top:4px">{{ workspace_name }}</span>
+      <span style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;margin-top:12px">Role</span>
+      <span style="display:block;font-weight:600;margin-top:4px">{{ role }}</span>
+    </p>
+    <p>
+      <a
+        href="{{ link }}"
+        style="display:inline-block;background-color:#009688;color:#ffffff;border-radius:6px;font-weight:600;font-size:14px;text-decoration:none;padding:14px 28px"
+        >Open dashboard</a
+      >
+    </p>
+    <p style="font-size:14px;line-height:1.5;color:#64748b">
+      Or copy and paste this link into your browser:<br />
+      <a href="{{ link }}" style="color:#00695c;word-break:break-all">{{ link }}</a>
+    </p>
+    <p style="font-size:14px;line-height:1.5;color:#64748b">
+      If you weren't expecting this invite, you can safely ignore this email.
+    </p>
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:40px 0 20px" />
+    <p style="font-size:12px;color:#64748b;margin:0">
+      © 2026 {{ project_name }}. All rights reserved.
+    </p>
+  </body>
+</html>

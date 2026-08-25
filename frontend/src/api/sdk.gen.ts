@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMeResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMeResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMeResponses, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMeResponses, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -369,13 +369,45 @@ export class WorkspacesService {
      * Create Workspace
      *
      * Create a workspace and attach the current user as Admin.
-     * Skip this if you will join an existing workspace via invite.
+     * Each user may create at most one workspace; join others via invite.
      */
     public static createWorkspace<ThrowOnError extends boolean = true>(options: Options<workspacesCreateWorkspaceData, ThrowOnError>) {
         return (options.client ?? client).post<workspacesCreateWorkspaceResponses, workspacesCreateWorkspaceErrors, ThrowOnError>({
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/workspaces/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+
+    /**
+     * Read Workspaces
+     *
+     * Workspaces the current user belongs to.
+     */
+    public static readWorkspaces<ThrowOnError extends boolean = true>(options?: Options<workspacesReadWorkspacesData, ThrowOnError>) {
+        return (options?.client ?? client).get<workspacesReadWorkspacesResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/',
+            ...options
+        });
+    }
+
+    /**
+     * Select Current Workspace
+     *
+     * Switch the current workspace. Must already be an active member.
+     */
+    public static selectCurrentWorkspace<ThrowOnError extends boolean = true>(options: Options<workspacesSelectCurrentWorkspaceData, ThrowOnError>) {
+        return (options.client ?? client).put<workspacesSelectCurrentWorkspaceResponses, workspacesSelectCurrentWorkspaceErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/current',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -408,6 +440,57 @@ export class WorkspacesService {
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/workspaces/me',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Read Workspace Members
+     *
+     * List members of the current workspace.
+     */
+    public static readWorkspaceMembers<ThrowOnError extends boolean = true>(options?: Options<workspacesReadWorkspaceMembersData, ThrowOnError>) {
+        return (options?.client ?? client).get<workspacesReadWorkspaceMembersResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/me/members',
+            ...options
+        });
+    }
+    
+    /**
+     * Invite Workspace Member
+     *
+     * Invite a user by email and role. Admin only.
+     * New users set a password via the existing recovery mail.
+     */
+    public static inviteWorkspaceMember<ThrowOnError extends boolean = true>(options: Options<workspacesInviteWorkspaceMemberData, ThrowOnError>) {
+        return (options.client ?? client).post<workspacesInviteWorkspaceMemberResponses, workspacesInviteWorkspaceMemberErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/me/members',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Update Workspace Member
+     *
+     * Change a member's role or deactivate them. Admin only.
+     */
+    public static updateWorkspaceMember<ThrowOnError extends boolean = true>(options: Options<workspacesUpdateWorkspaceMemberData, ThrowOnError>) {
+        return (options.client ?? client).patch<workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMemberErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/me/members/{user_id}',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

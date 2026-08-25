@@ -1,93 +1,96 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import (
+    CurrentWorkspace,
+    CurrentWorkspaceEditor,
+    SessionDep,
+    get_current_workspace_editor,
+)
 from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
 
 router = APIRouter(prefix="/items", tags=["items"])
 
 
+def _item_in_workspace(*, item: Item | None, workspace_id: uuid.UUID) -> Item:
+    if not item or item.workspace_id != workspace_id:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
+
+
 @router.get("/", response_model=ItemsPublic)
 def read_items(
-    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+    session: SessionDep,
+    workspace: CurrentWorkspace,
+    skip: int = 0,
+    limit: int = 100,
 ) -> Any:
     """
-    Retrieve items.
+    Retrieve items in the current workspace.
     """
-
-    if current_user.is_superuser:
-        count_statement = select(func.count()).select_from(Item)
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item).order_by(col(Item.created_at).desc()).offset(skip).limit(limit)
-        )
-        items = session.exec(statement).all()
-    else:
-        count_statement = (
-            select(func.count())
-            .select_from(Item)
-            .where(Item.owner_id == current_user.id)
-        )
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Item)
-            .where(Item.owner_id == current_user.id)
-            .order_by(col(Item.created_at).desc())
-            .offset(skip)
-            .limit(limit)
-        )
-        items = session.exec(statement).all()
-
-    items_public = [ItemPublic.model_validate(item) for item in items]
-    return ItemsPublic(data=items_public, count=count)
+    count = session.exec(
+        select(func.count()).select_from(Item).where(Item.workspace_id == workspace.id)
+    ).one()
+    items = session.exec(
+        select(Item)
+        .where(Item.workspace_id == workspace.id)
+        .order_by(col(Item.created_at).desc())
+        .offset(skip)
+        .limit(limit)
+    ).all()
+    return ItemsPublic(
+        data=[ItemPublic.model_validate(item) for item in items],
+        count=count,
+    )
 
 
 @router.get("/{id}", response_model=ItemPublic)
-def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+def read_item(session: SessionDep, workspace: CurrentWorkspace, id: uuid.UUID) -> Any:
     """
     Get item by ID.
     """
-    item = session.get(Item, id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    return item
+    return _item_in_workspace(item=session.get(Item, id), workspace_id=workspace.id)
 
 
 @router.post("/", response_model=ItemPublic)
 def create_item(
-    *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
+    *,
+    session: SessionDep,
+    current_user: CurrentWorkspaceEditor,
+    workspace: CurrentWorkspace,
+    item_in: ItemCreate,
 ) -> Any:
     """
-    Create new item.
+    Create new item. Editor or Admin.
     """
-    item = Item.model_validate(item_in, update={"owner_id": current_user.id})
+    item = Item.model_validate(
+        item_in, update={"owner_id": current_user.id, "workspace_id": workspace.id}
+    )
     session.add(item)
     session.commit()
     session.refresh(item)
     return item
 
 
-@router.put("/{id}", response_model=ItemPublic)
+@router.put(
+    "/{id}",
+    response_model=ItemPublic,
+    dependencies=[Depends(get_current_workspace_editor)],
+)
 def update_item(
     *,
     session: SessionDep,
-    current_user: CurrentUser,
+    workspace: CurrentWorkspace,
     id: uuid.UUID,
     item_in: ItemUpdate,
 ) -> Any:
     """
-    Update an item.
+    Update an item. Editor or Admin.
     """
-    item = session.get(Item, id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    item = _item_in_workspace(item=session.get(Item, id), workspace_id=workspace.id)
     update_dict = item_in.model_dump(exclude_unset=True)
     item.sqlmodel_update(update_dict)
     session.add(item)
@@ -96,18 +99,16 @@ def update_item(
     return item
 
 
-@router.delete("/{id}")
+@router.delete("/{id}", dependencies=[Depends(get_current_workspace_editor)])
 def delete_item(
-    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+    session: SessionDep,
+    workspace: CurrentWorkspace,
+    id: uuid.UUID,
 ) -> Message:
     """
-    Delete an item.
+    Delete an item. Editor or Admin.
     """
-    item = session.get(Item, id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    if not current_user.is_superuser and (item.owner_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    item = _item_in_workspace(item=session.get(Item, id), workspace_id=workspace.id)
     session.delete(item)
     session.commit()
     return Message(message="Item deleted successfully")

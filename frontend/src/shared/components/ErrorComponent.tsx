@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router"
+
+import { clearAccessToken, isLoggedIn } from "@/features/auth/session"
 import { Button } from "@/shared/ui/button"
+
+function goToLogin() {
+  clearAccessToken()
+  window.location.href = "/login"
+}
 
 export const ErrorComponent = () => {
   return (
@@ -19,9 +26,13 @@ export const ErrorComponent = () => {
       <p className="text-lg text-muted-foreground mb-4 text-center z-10">
         Something went wrong. Please try again.
       </p>
-      <Link to="/login">
-        <Button>Go Home</Button>
-      </Link>
+      {isLoggedIn() ? (
+        <Button onClick={goToLogin}>Log out</Button>
+      ) : (
+        <Link to="/login">
+          <Button>Go Home</Button>
+        </Link>
+      )}
     </div>
   )
 }

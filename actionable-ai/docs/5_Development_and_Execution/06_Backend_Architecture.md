@@ -38,7 +38,7 @@ Split into real services (chat vs knowledge vs tools) only when a single process
 | Config        | `pydantic-settings` from root `.env`          |                                                                 |
 | Email         | SMTP + Jinja HTML from `packages/react-email` |                                                                 |
 | Observability | Sentry (non-dev)                              |                                                                 |
-| Tests         | Pytest + `TestClient`                         | Real DB via Compose; session fixture deletes `Item` then `User` |
+| Tests         | Pytest + `TestClient`                         | Dedicated `{db}_test` database (default `app_test`); session fixture deletes rows there only |
 | Serve UI      | `app.frontend("/", directory=FRONTEND_DIR)`   | Built SPA copied into `backend/app/frontend`                    |
 
 

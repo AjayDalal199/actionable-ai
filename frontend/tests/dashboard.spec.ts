@@ -33,6 +33,7 @@ test("Product nav replaces the template Items dashboard", async ({ page }) => {
   await expect(
     page.getByText("Name your workspace → upload a doc → ask a question"),
   ).toBeVisible()
+  await expect(page.getByTestId("workspace-switcher")).toBeVisible()
 })
 
 test("Knowledge, Tools, and Chat shells are reachable from the sidebar", async ({
@@ -93,10 +94,12 @@ test.describe("Workspace empty state", () => {
     await page.getByTestId("create-workspace-button").click()
 
     await expect(page.getByText("Workspace created")).toBeVisible()
-    await expect(page.getByText(workspaceName)).toBeVisible()
     await expect(
       page.getByRole("button", { name: "Create workspace" }),
     ).toHaveCount(0)
+    await expect(page.getByTestId("workspace-switcher")).toContainText(
+      workspaceName,
+    )
 
     await page.getByRole("link", { name: "Go to Knowledge" }).click()
     await expect(page).toHaveURL(/\/dashboard\/knowledge/)

@@ -3,11 +3,15 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from pydantic import EmailStr, field_validator
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.base import get_datetime_utc
-from app.models.workspace import Workspace, WorkspaceRole, normalize_workspace_name
+from app.models.workspace import (
+    WorkspaceMembership,
+    WorkspaceRole,
+    normalize_workspace_name,
+)
 
 if TYPE_CHECKING:
     from app.models.item import Item
@@ -66,14 +70,17 @@ class User(UserBase, table=True):
     workspace_id: uuid.UUID | None = Field(
         default=None, foreign_key="workspace.id", ondelete="SET NULL", index=True
     )
-    role: WorkspaceRole | None = Field(default=None, sa_type=String(32))  # type: ignore
-    workspace: Workspace | None = Relationship(back_populates="users")
+    memberships: list[WorkspaceMembership] = Relationship(
+        back_populates="user", cascade_delete=True
+    )
     items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
+    workspace_id: uuid.UUID | None = None
+    role: WorkspaceRole | None = None
 
 
 class UsersPublic(SQLModel):

@@ -45,6 +45,11 @@ export type HTTPValidationError = {
 };
 
 /**
+ * WorkspaceRole
+ */
+export type WorkspaceRole = 'admin' | 'editor' | 'viewer';
+
+/**
  * ItemCreate
  */
 export type ItemCreate = {
@@ -240,6 +245,14 @@ export type UserPublic = {
      * Created At
      */
     created_at?: string | null;
+    /**
+     * Workspace Id
+     */
+    workspace_id?: string | null;
+    /**
+     * Role
+     */
+    role?: WorkspaceRole | null;
 };
 
 /**
@@ -357,6 +370,73 @@ export type WorkspaceCreate = {
 };
 
 /**
+ * WorkspaceInvite
+ */
+export type WorkspaceInvite = {
+    /**
+     * Email
+     */
+    email: string;
+    role: WorkspaceRole;
+    /**
+     * Full Name
+     */
+    full_name?: string | null;
+};
+
+/**
+ * WorkspaceMemberPublic
+ */
+export type WorkspaceMemberPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Full Name
+     */
+    full_name?: string | null;
+    role: WorkspaceRole;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+};
+
+/**
+ * WorkspaceMemberUpdate
+ */
+export type WorkspaceMemberUpdate = {
+    role?: WorkspaceRole | null;
+    /**
+     * Is Active
+     */
+    is_active?: boolean | null;
+};
+
+/**
+ * WorkspaceMembersPublic
+ */
+export type WorkspaceMembersPublic = {
+    /**
+     * Data
+     */
+    data: Array<WorkspaceMemberPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * WorkspacePublic
  */
 export type WorkspacePublic = {
@@ -372,6 +452,45 @@ export type WorkspacePublic = {
      * Created At
      */
     created_at?: string | null;
+};
+
+/**
+ * WorkspaceListItem
+ */
+export type WorkspaceListItem = WorkspacePublic & {
+    role: WorkspaceRole;
+    /**
+     * Is Current
+     */
+    is_current: boolean;
+};
+
+/**
+ * WorkspacesPublic
+ */
+export type WorkspacesPublic = {
+    /**
+     * Data
+     */
+    data: Array<WorkspaceListItem>;
+    /**
+     * Count
+     */
+    count: number;
+    /**
+     * Can Create
+     */
+    can_create: boolean;
+};
+
+/**
+ * WorkspaceSelect
+ */
+export type WorkspaceSelect = {
+    /**
+     * Workspace Id
+     */
+    workspace_id: string;
 };
 
 /**
@@ -1013,6 +1132,47 @@ export type workspacesCreateWorkspaceResponses = {
 
 export type workspacesCreateWorkspaceResponse = workspacesCreateWorkspaceResponses[keyof workspacesCreateWorkspaceResponses];
 
+export type workspacesReadWorkspacesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/';
+};
+
+export type workspacesReadWorkspacesResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspacesPublic;
+};
+
+export type workspacesReadWorkspacesResponse = workspacesReadWorkspacesResponses[keyof workspacesReadWorkspacesResponses];
+
+export type workspacesSelectCurrentWorkspaceData = {
+    body: WorkspaceSelect;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/current';
+};
+
+export type workspacesSelectCurrentWorkspaceErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesSelectCurrentWorkspaceError = workspacesSelectCurrentWorkspaceErrors[keyof workspacesSelectCurrentWorkspaceErrors];
+
+export type workspacesSelectCurrentWorkspaceResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspacePublic;
+};
+
+export type workspacesSelectCurrentWorkspaceResponse = workspacesSelectCurrentWorkspaceResponses[keyof workspacesSelectCurrentWorkspaceResponses];
+
 export type workspacesReadWorkspaceMeData = {
     body?: never;
     path?: never;
@@ -1053,3 +1213,74 @@ export type workspacesUpdateWorkspaceMeResponses = {
 };
 
 export type workspacesUpdateWorkspaceMeResponse = workspacesUpdateWorkspaceMeResponses[keyof workspacesUpdateWorkspaceMeResponses];
+
+export type workspacesReadWorkspaceMembersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/members';
+};
+
+export type workspacesReadWorkspaceMembersResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspaceMembersPublic;
+};
+
+export type workspacesReadWorkspaceMembersResponse = workspacesReadWorkspaceMembersResponses[keyof workspacesReadWorkspaceMembersResponses];
+
+export type workspacesInviteWorkspaceMemberData = {
+    body: WorkspaceInvite;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/members';
+};
+
+export type workspacesInviteWorkspaceMemberErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesInviteWorkspaceMemberError = workspacesInviteWorkspaceMemberErrors[keyof workspacesInviteWorkspaceMemberErrors];
+
+export type workspacesInviteWorkspaceMemberResponses = {
+    /**
+     * Successful Response
+     */
+    201: WorkspaceMemberPublic;
+};
+
+export type workspacesInviteWorkspaceMemberResponse = workspacesInviteWorkspaceMemberResponses[keyof workspacesInviteWorkspaceMemberResponses];
+
+export type workspacesUpdateWorkspaceMemberData = {
+    body: WorkspaceMemberUpdate;
+    path: {
+        /**
+         * User Id
+         */
+        user_id: string;
+    };
+    query?: never;
+    url: '/api/v1/workspaces/me/members/{user_id}';
+};
+
+export type workspacesUpdateWorkspaceMemberErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type workspacesUpdateWorkspaceMemberError = workspacesUpdateWorkspaceMemberErrors[keyof workspacesUpdateWorkspaceMemberErrors];
+
+export type workspacesUpdateWorkspaceMemberResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkspaceMemberPublic;
+};
+
+export type workspacesUpdateWorkspaceMemberResponse = workspacesUpdateWorkspaceMemberResponses[keyof workspacesUpdateWorkspaceMemberResponses];

@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router"
+
+import { clearAccessToken, isLoggedIn } from "@/features/auth/session"
 import { Button } from "@/shared/ui/button"
+
+function goToLogin() {
+  clearAccessToken()
+  window.location.href = "/login"
+}
 
 export const NotFound = () => {
   return (
@@ -19,10 +26,16 @@ export const NotFound = () => {
       <p className="text-lg text-muted-foreground mb-4 text-center z-10">
         The page you are looking for was not found.
       </p>
-      <div className="z-10">
-        <Link to="/">
-          <Button className="mt-4">Go home</Button>
-        </Link>
+      <div className="z-10 flex gap-2">
+        {isLoggedIn() ? (
+          <Button className="mt-4" onClick={goToLogin}>
+            Log out
+          </Button>
+        ) : (
+          <Link to="/">
+            <Button className="mt-4">Go home</Button>
+          </Link>
+        )}
       </div>
     </div>
   )

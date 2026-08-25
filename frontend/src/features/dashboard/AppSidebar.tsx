@@ -1,6 +1,7 @@
 import { BookOpen, Home, MessageSquare, Users, Wrench } from "lucide-react"
 
 import { useAuth } from "@/features/auth/useAuth"
+import { WorkspaceSwitcher } from "@/features/workspace/WorkspaceSwitcher"
 import { SidebarAppearance } from "@/shared/components/Appearance"
 import { Logo } from "@/shared/components/Logo"
 import {
@@ -35,6 +36,7 @@ export function AppSidebar() {
         <Main items={items} />
       </SidebarContent>
       <SidebarFooter>
+        <WorkspaceSwitcher />
         <SidebarAppearance />
         <User user={currentUser} />
       </SidebarFooter>

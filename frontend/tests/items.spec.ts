@@ -1,12 +1,22 @@
-import { expect, test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 import { createUser } from "./utils/privateApi"
 import {
   randomEmail,
   randomItemDescription,
   randomItemTitle,
   randomPassword,
+  randomWorkspaceName,
 } from "./utils/random"
 import { logInUser } from "./utils/user"
+
+async function ensureWorkspace(page: Page) {
+  const nameInput = page.getByTestId("create-workspace-name-input")
+  if (await nameInput.isVisible()) {
+    await nameInput.fill(randomWorkspaceName())
+    await page.getByTestId("create-workspace-button").click()
+    await expect(page.getByText("Workspace created")).toBeVisible()
+  }
+}
 
 test("Items page is accessible and shows correct title", async ({ page }) => {
   await page.goto("/dashboard/items")
@@ -33,6 +43,7 @@ test.describe("Items management", () => {
 
   test.beforeEach(async ({ page }) => {
     await logInUser(page, email, password)
+    await ensureWorkspace(page)
     await page.goto("/dashboard/items")
   })
 
@@ -125,6 +136,7 @@ test.describe("Items empty state", () => {
     const password = randomPassword()
     await createUser({ email, password })
     await logInUser(page, email, password)
+    await ensureWorkspace(page)
 
     await page.goto("/dashboard/items")
 

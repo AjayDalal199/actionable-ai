@@ -23,8 +23,16 @@ from app.models.user import (
 from app.models.workspace import (
     Workspace,
     WorkspaceCreate,
+    WorkspaceInvite,
+    WorkspaceListItem,
+    WorkspaceMemberPublic,
+    WorkspaceMembership,
+    WorkspaceMembersPublic,
+    WorkspaceMemberUpdate,
     WorkspacePublic,
     WorkspaceRole,
+    WorkspaceSelect,
+    WorkspacesPublic,
     WorkspaceUpdate,
 )
 
@@ -51,7 +59,15 @@ __all__ = [
     "UsersPublic",
     "Workspace",
     "WorkspaceCreate",
+    "WorkspaceInvite",
+    "WorkspaceListItem",
+    "WorkspaceMemberPublic",
+    "WorkspaceMembersPublic",
+    "WorkspaceMembership",
+    "WorkspaceMemberUpdate",
     "WorkspacePublic",
     "WorkspaceRole",
+    "WorkspaceSelect",
+    "WorkspacesPublic",
     "WorkspaceUpdate",
 ]

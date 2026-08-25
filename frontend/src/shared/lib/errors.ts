@@ -24,6 +24,18 @@ export function getHttpErrorDetail(error: unknown): unknown {
   return (error as HttpErrorShape).response?.data?.detail
 }
 
+export function isInvalidSessionError(error: unknown): boolean {
+  const status = getHttpErrorStatus(error)
+  const detail = getHttpErrorDetail(error)
+  if (status === 401) {
+    return true
+  }
+  if (status === 403 && detail === "Could not validate credentials") {
+    return true
+  }
+  return status === 404 && detail === "User not found"
+}
+
 function extractErrorMessage(err: Error): string {
   if (err instanceof AxiosError) {
     const errDetail = (err.response?.data as any)?.detail

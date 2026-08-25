@@ -59,7 +59,7 @@ $ docker compose exec backend bash
 
 ## Tests
 
-From `backend/`:
+From `backend/`. Pytest uses a dedicated database (`app_test` by default) so it does not wipe local data in `app`.
 
 ```console
 $ uv run bash scripts/test.sh

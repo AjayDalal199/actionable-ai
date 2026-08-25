@@ -13,13 +13,13 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 1.2 remaining RBAC, or start Phase 2 data plane. Do not start Knowledge APIs yet.
+**Task:** Phase 2 data plane. Do not start Knowledge APIs yet.
 
-- `[ ]` Replace template `is_superuser`-only gates for product routes with role checks
-- `[ ]` Invite flow (MVP-simple): Admin adds a user by email + role
-- `[ ]` Then Phase 2: pgvector, Redis, Document / ToolRegistry tables
+- `[ ]` Enable pgvector; add Document / DocumentChunk / ToolRegistry / GithubRepository (table only)
+- `[ ]` Add Redis to Compose and `REDIS_URL`
+- `[ ]` Decide local volume vs S3 for original uploads (document the choice)
 
-**Done when:** Follow the path-to-MVP order (RBAC remaining, then data plane). Dashboard UI can trail matching APIs.
+**Done when:** Postgres has pgvector, Redis is in Compose, and the schema in `02_Database_Schema.md` exists (including forward-looking `GithubRepository` with **no** sync logic). Dashboard UI can trail matching APIs.
 
 **After that (not now):** Phase 3 knowledge ingestion.
 
@@ -66,7 +66,7 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 ## Current state (as of 2026-08-25)
 
-Auth, workspaces, and the dashboard shell are in place. Knowledge, tools, chat, and the widget are not built yet.
+Auth, workspaces, RBAC, and the dashboard shell are in place. Knowledge, tools, chat, and the widget are not built yet.
 
 **Already in place**
 
@@ -76,7 +76,8 @@ Auth, workspaces, and the dashboard shell are in place. Knowledge, tools, chat, 
 - `[x]` Public landing page at `/` (ember brand, HITL artifact, logged-in redirect to `/dashboard`)
 - `[x]` `/signup`, `/login`, `/recover-password`, `/terms`, `/privacy`
 - `[x]` Wordmark **Actionable AI** in chrome
-- `[x]` Superuser admin (template user CRUD — not workspace RBAC)
+- `[x]` Superuser admin (platform ops user CRUD — not client Admin)
+- `[x]` Workspace RBAC (Admin / Editor / Viewer; invite, members, tenant-scoped product queries)
 - `[x]` Frontend architecture Option A (dashboard stays; widget = `packages/widget` later)
 - `[x]` Backend architecture Option B (modular monolith; `app/models/` package in place)
 
@@ -141,12 +142,14 @@ Do these **after** 1.0, one checkbox group per reviewable slice.
 
 - `[x]` Add `app/models/workspace.py` — `Workspace` (`id`, `name`, `created_at`) only; no User FK yet
 - `[x]` Alembic migration creating the `workspace` table (still no user columns)
-- `[x]` Add `workspace_id` + `role` on `User`; Alembic migration; signup/service comes next
-- `[x]` `CurrentWorkspace` dependency (from session user, not a client-supplied id)
-- `[x]` `app/services/` — signup does **not** auto-create a workspace (join-via-invite later). Optional `workspace_name` on signup, or `POST /workspaces/`, creates one and attaches the user as **Admin**
+- `[x]` Add `workspace_id` on `User` as the **current** workspace pointer; Alembic migration; signup/service comes next
+- `[x]` `CurrentWorkspace` dependency (from session user + active membership; never trust a client-supplied id without a membership check)
+- `[x]` `app/services/` — signup does **not** auto-create a workspace (join-via-invite later). Optional `workspace_name` on signup, or `POST /workspaces/`, creates one and attaches the user as **Admin**. Each user may **create at most one** workspace and **join many** via invite.
 - `[x]` `GET /api/v1/workspaces/me` — current workspace for the session
+- `[x]` `GET /api/v1/workspaces/` — workspaces the user belongs to (`can_create` if they have not created one yet)
+- `[x]` `PUT /api/v1/workspaces/current` — switch current workspace (must already be an active member)
 - `[x]` `PATCH /api/v1/workspaces/me` — rename (Admin only)
-- `[ ]` All product queries filter by `workspace_id` from `CurrentWorkspace` (never trust a client-supplied workspace id without membership check)
+- `[x]` All product queries filter by `workspace_id` from `CurrentWorkspace` (never trust a client-supplied workspace id without membership check)
 
 
 
@@ -162,12 +165,12 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 | Viewer | Read docs/tools, use internal chat, cannot mutate config                        |
 
 
-- `[x]` Add `workspace_id` + `role` on `User` (or a `WorkspaceMembership` table if we want multi-workspace later; **MVP = one workspace per user**)
-- `[ ]` Replace template `is_superuser`-only gates for product routes with role checks
-- `[ ]` Keep platform `is_superuser` for *our* ops admin only (not client Admin)
-- `[ ]` Invite flow (MVP-simple): Admin adds a user by email + role; invited user sets password via existing email recovery/invite mail
-- `[ ]` List workspace members; Admin can change role or deactivate
-- `[ ]` Tests: cross-tenant isolation (user A cannot read user B’s documents/tools/chat)
+- `[x]` `WorkspaceMembership` (`user_id`, `workspace_id`, `role`, `is_active`); `User.workspace_id` is current workspace only. Create at most one (`Workspace.created_by_id` unique); join many via invite. `GET /workspaces/` lists memberships; `PUT /workspaces/current` switches.
+- `[x]` Replace template `is_superuser`-only gates for product routes with role checks
+- `[x]` Keep platform `is_superuser` for *our* ops admin only (not client Admin)
+- `[x]` Invite flow (MVP-simple): Admin adds a user by email + role; invited user sets password via existing email recovery/invite mail
+- `[x]` List workspace members; Admin can change role or deactivate
+- `[x]` Tests: cross-tenant isolation on members and items (knowledge/tools/chat inherit `CurrentWorkspace` when those APIs exist)
 
 
 

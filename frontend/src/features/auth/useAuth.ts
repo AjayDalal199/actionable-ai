@@ -66,6 +66,7 @@ export const useAuth = () => {
     clearAccessToken()
     queryClient.removeQueries({ queryKey: authKeys.currentUser })
     queryClient.removeQueries({ queryKey: workspaceKeys.current })
+    queryClient.removeQueries({ queryKey: workspaceKeys.list })
     navigate({ to: "/login" })
   }
 

@@ -190,8 +190,8 @@ function SignUp() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Create your own workspace, or leave this blank if you will
-                    join one at work.
+                    You can create one workspace. Leave this blank if you will
+                    join workspaces by invite.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
