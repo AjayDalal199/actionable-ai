@@ -41,15 +41,15 @@ class WorkspaceMembership(SQLModel, table=True):
     workspace_id: uuid.UUID = Field(
         foreign_key="workspace.id", primary_key=True, ondelete="CASCADE", index=True
     )
-    role: WorkspaceRole = Field(sa_type=String(32))  # type: ignore
+    role: WorkspaceRole = Field(sa_type=String(32))
     invitation_status: InvitationStatus = Field(
         default=InvitationStatus.ACCEPTED,
-        sa_type=String(32),  # type: ignore
+        sa_type=String(32),
     )
     is_active: bool = True
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
+        sa_type=DateTime(timezone=True),
     )
     user: "User" = Relationship(back_populates="memberships")  # noqa: UP037
     workspace: "Workspace" = Relationship(back_populates="memberships")  # noqa: UP037
@@ -60,7 +60,7 @@ class Workspace(SQLModel, table=True):
     name: str = Field(min_length=1, max_length=255)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
+        sa_type=DateTime(timezone=True),
     )
     created_by_id: uuid.UUID | None = Field(
         default=None,

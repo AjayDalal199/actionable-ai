@@ -66,7 +66,7 @@ class User(UserBase, table=True):
     must_set_password: bool = False
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
+        sa_type=DateTime(timezone=True),
     )
     workspace_id: uuid.UUID | None = Field(
         default=None, foreign_key="workspace.id", ondelete="SET NULL", index=True
