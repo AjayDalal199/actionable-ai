@@ -24,6 +24,12 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.services.workspaces import (
+    CannotDeleteLastAdminError,
+    assert_can_delete_user,
+    create_and_attach_workspace,
+    to_user_public,
+)
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -47,7 +53,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     )
     users = session.exec(statement).all()
 
-    users_public = [UserPublic.model_validate(user) for user in users]
+    users_public = [to_user_public(session=session, user=user) for user in users]
     return UsersPublic(data=users_public, count=count)
 
 
@@ -75,7 +81,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             subject=email_data.subject,
             html_content=email_data.html_content,
         )
-    return user
+    return to_user_public(session=session, user=user)
 
 
 @router.patch("/me", response_model=UserPublic)
@@ -97,7 +103,7 @@ def update_user_me(
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
-    return current_user
+    return to_user_public(session=session, user=current_user)
 
 
 @router.patch("/me/password", response_model=Message)
@@ -122,11 +128,11 @@ def update_password_me(
 
 
 @router.get("/me", response_model=UserPublic)
-def read_user_me(current_user: CurrentUser) -> Any:
+def read_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Get current user.
     """
-    return current_user
+    return to_user_public(session=session, user=current_user)
 
 
 @router.delete("/me", response_model=Message)
@@ -137,6 +143,13 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     if current_user.is_superuser:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+    try:
+        assert_can_delete_user(session=session, user=current_user)
+    except CannotDeleteLastAdminError:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete the last admin of a workspace that has other members",
         )
     session.delete(current_user)
     session.commit()
@@ -155,8 +168,16 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
-    return user
+    user = crud.create_user(
+        session=session,
+        user_create=user_create,
+        commit=not bool(user_in.workspace_name),
+    )
+    if user_in.workspace_name:
+        create_and_attach_workspace(
+            session=session, user=user, name=user_in.workspace_name
+        )
+    return to_user_public(session=session, user=user)
 
 
 @router.get("/{user_id}", response_model=UserPublic)
@@ -168,7 +189,7 @@ def read_user_by_id(
     """
     user = session.get(User, user_id)
     if user == current_user:
-        return user
+        return to_user_public(session=session, user=current_user)
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=403,
@@ -176,7 +197,7 @@ def read_user_by_id(
         )
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
+    return to_user_public(session=session, user=user)
 
 
 @router.patch(
@@ -208,7 +229,7 @@ def update_user(
             )
 
     db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
-    return db_user
+    return to_user_public(session=session, user=db_user)
 
 
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
@@ -224,6 +245,13 @@ def delete_user(
     if user == current_user:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+    try:
+        assert_can_delete_user(session=session, user=user)
+    except CannotDeleteLastAdminError:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete the last admin of a workspace that has other members",
         )
     statement = delete(Item).where(col(Item.owner_id) == user_id)
     session.exec(statement)

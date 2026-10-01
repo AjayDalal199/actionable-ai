@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test"
 
 import { randomEmail, randomPassword } from "./utils/random"
+import { logOutUser } from "./utils/user"
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -31,6 +32,7 @@ test("Inputs are visible, empty and editable", async ({ page }) => {
   await verifyInput(page, "email-input")
   await verifyInput(page, "password-input")
   await verifyInput(page, "confirm-password-input")
+  await verifyInput(page, "workspace-name-input")
 })
 
 test("Sign Up button is visible", async ({ page }) => {
@@ -53,6 +55,11 @@ test("Sign up with valid name, email, and password", async ({ page }) => {
   await page.goto("/signup")
   await fillForm(page, full_name, email, password, password)
   await page.getByRole("button", { name: "Sign Up" }).click()
+  await page.waitForURL("/dashboard")
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
+  await expect(
+    page.getByText("Name your workspace → upload a doc → ask a question"),
+  ).toBeVisible()
 })
 
 test("Sign up with invalid email", async ({ page }) => {
@@ -79,7 +86,9 @@ test("Sign up with existing email", async ({ page }) => {
 
   await fillForm(page, fullName, email, password, password)
   await page.getByRole("button", { name: "Sign Up" }).click()
-  await expect(page).toHaveURL(/\/login$/)
+  await page.waitForURL("/dashboard")
+  await expect(page.getByRole("heading", { name: "Quick Start" })).toBeVisible()
+  await logOutUser(page)
 
   await page.goto("/signup")
 

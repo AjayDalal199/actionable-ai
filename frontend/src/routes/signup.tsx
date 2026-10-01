@@ -6,19 +6,20 @@ import {
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { AuthLayout } from "@/components/Common/AuthLayout"
+import { AuthLayout } from "@/features/auth/AuthLayout"
+import { isLoggedIn, useAuth } from "@/features/auth/useAuth"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { LoadingButton } from "@/components/ui/loading-button"
-import { PasswordInput } from "@/components/ui/password-input"
-import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+} from "@/shared/ui/form"
+import { Input } from "@/shared/ui/input"
+import { LoadingButton } from "@/shared/ui/loading-button"
+import { PasswordInput } from "@/shared/ui/password-input"
 
 const formSchema = z
   .object({
@@ -31,6 +32,7 @@ const formSchema = z
     confirm_password: z
       .string()
       .min(1, { message: "Password confirmation is required" }),
+    workspace_name: z.string().max(255).optional(),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "The passwords don't match",
@@ -44,14 +46,14 @@ export const Route = createFileRoute("/signup")({
   beforeLoad: async () => {
     if (isLoggedIn()) {
       throw redirect({
-        to: "/",
+        to: "/dashboard",
       })
     }
   },
   head: () => ({
     meta: [
       {
-        title: "Sign Up - FastAPI Template",
+        title: "Sign Up — Actionable AI",
       },
     ],
   }),
@@ -68,15 +70,23 @@ function SignUp() {
       full_name: "",
       password: "",
       confirm_password: "",
+      workspace_name: "",
     },
   })
 
   const onSubmit = (data: FormData) => {
     if (signUpMutation.isPending) return
 
-    // exclude confirm_password from submission data
-    const { confirm_password: _confirm_password, ...submitData } = data
-    signUpMutation.mutate(submitData)
+    const {
+      confirm_password: _confirm_password,
+      workspace_name,
+      ...submitData
+    } = data
+    const trimmedName = workspace_name?.trim()
+    signUpMutation.mutate({
+      ...submitData,
+      ...(trimmedName ? { workspace_name: trimmedName } : {}),
+    })
   }
 
   return (
@@ -160,6 +170,29 @@ function SignUp() {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="workspace_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workspace name (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="workspace-name-input"
+                      placeholder="Acme Corp"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    You can create one workspace. Leave this blank if you will
+                    join workspaces by invite.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

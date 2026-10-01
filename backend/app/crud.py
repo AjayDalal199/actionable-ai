@@ -7,23 +7,29 @@ from app.core.security import get_password_hash, verify_password
 from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
 
 
-def create_user(*, session: Session, user_create: UserCreate) -> User:
+def create_user(
+    *, session: Session, user_create: UserCreate, commit: bool = True
+) -> User:
     db_obj = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
     )
     session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
+    if commit:
+        session.commit()
+        session.refresh(db_obj)
+    else:
+        session.flush()
     return db_obj
 
 
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
     user_data = user_in.model_dump(exclude_unset=True)
-    extra_data = {}
+    extra_data: dict[str, Any] = {}
     if "password" in user_data:
         password = user_data["password"]
         hashed_password = get_password_hash(password)
         extra_data["hashed_password"] = hashed_password
+        extra_data["must_set_password"] = False
     db_user.sqlmodel_update(user_data, update=extra_data)
     session.add(db_user)
     session.commit()
@@ -60,8 +66,16 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
-def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -> Item:
-    db_item = Item.model_validate(item_in, update={"owner_id": owner_id})
+def create_item(
+    *,
+    session: Session,
+    item_in: ItemCreate,
+    owner_id: uuid.UUID,
+    workspace_id: uuid.UUID,
+) -> Item:
+    db_item = Item.model_validate(
+        item_in, update={"owner_id": owner_id, "workspace_id": workspace_id}
+    )
     session.add(db_item)
     session.commit()
     session.refresh(db_item)

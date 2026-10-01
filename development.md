@@ -1,16 +1,22 @@
-# FastAPI Project - Development
+# Actionable AI — Development
 
-## Local Development
+## Local development
 
-For local development, run PostgreSQL and Mailcatcher with Docker Compose, and run the FastAPI and Vite development servers locally.
+Run PostgreSQL and Mailcatcher with Docker Compose, and run the FastAPI and Vite servers on your machine.
 
-Start the supporting services:
+Copy env defaults if you do not already have a local file (`.env` is gitignored):
+
+```bash
+cp .env.example .env
+```
+
+Start supporting services:
 
 ```bash
 docker compose up -d db mailcatcher
 ```
 
-Then, from the `backend` directory, install the dependencies and prepare the database:
+From `backend/`, install dependencies and prepare the database:
 
 ```bash
 uv sync
@@ -23,116 +29,107 @@ Start the FastAPI development server:
 uv run fastapi dev
 ```
 
-In another terminal, from the project root, install the frontend dependencies and start the Vite development server:
+In another terminal, from the repo root:
 
 ```bash
 bun install
 bun run dev
 ```
 
-Now you can open these URLs:
+| URL | What |
+| --- | --- |
+| <http://localhost:5173> | Vite: marketing site and dashboard |
+| <http://localhost:8000> | FastAPI |
+| <http://localhost:8000/docs> | OpenAPI (Swagger UI) |
+| <http://localhost:1080> | Mailcatcher |
 
-Frontend development server: <http://localhost:5173>
+Vite talks to the API at `http://localhost:8000`, from `frontend/.env` (`VITE_API_URL`).
 
-Backend API: <http://localhost:8000>
+First superuser credentials are `FIRST_SUPERUSER` and `FIRST_SUPERUSER_PASSWORD` in `.env`. Local `.env` may use `changethis` because `FASTAPI_ENV=development`. Staging and production must not.
 
-Automatic interactive API documentation with Swagger UI: <http://localhost:8000/docs>
+### Frontend served by FastAPI
 
-Mailcatcher: <http://localhost:1080>
-
-The frontend development server uses the backend at `http://localhost:8000`, as configured in `frontend/.env`.
-
-### Frontend Served by FastAPI
-
-Build the frontend from the `frontend` directory:
+From `frontend/`:
 
 ```bash
 bun run build
 ```
 
-The build is written to `backend/app/frontend` and served by FastAPI at <http://localhost:8000>. Rebuild the frontend after making frontend changes.
+The build is written to `backend/app/frontend` and served at <http://localhost:8000>. Rebuild after frontend changes.
 
-## Full Stack with Docker Compose
+## Full stack with Docker Compose
 
-To run the backend and built frontend in Docker Compose:
+To run the backend and the built frontend in Compose (no local Vite):
 
 ```bash
 docker compose run --rm backend bash scripts/prestart.sh
 docker compose watch
 ```
 
-Now you can open these URLs:
+| URL | What |
+| --- | --- |
+| <http://localhost:8000> | App (SPA + API) |
+| <http://localhost:8000/docs> | OpenAPI |
+| <http://localhost:8080> | Adminer |
+| <http://localhost:8090> | Traefik dashboard (local only) |
+| <http://localhost:1080> | Mailcatcher |
 
-Application, with the frontend and API served by FastAPI: <http://localhost:8000>
+Stop a locally running `fastapi dev` first; both use port `8000`.
 
-Automatic interactive API documentation with Swagger UI: <http://localhost:8000/docs>
-
-Adminer, database web administration: <http://localhost:8080>
-
-Traefik UI, to see how the routes are being handled by the proxy: <http://localhost:8090>
-
-Mailcatcher: <http://localhost:1080>
-
-Stop a locally running FastAPI server before starting the Compose backend because both use port `8000`.
-
-**Note**: The first time you start the stack, it might take a minute for all the services to be ready. To monitor it, use `docker compose logs`, or `docker compose logs backend` for the backend service.
+The first start can take a minute. Watch with `docker compose logs` or `docker compose logs backend`.
 
 ## Mailcatcher
 
-Mailcatcher captures emails sent during local development instead of delivering them. The local backend connects to it at `localhost:1025`, and the Compose backend connects to the `mailcatcher` service. Captured emails are available at <http://localhost:1080>.
+Mailcatcher captures mail in local development instead of sending it. The local backend uses `localhost:1025`; the Compose backend uses the `mailcatcher` service. UI: <http://localhost:1080>.
 
-## Docker Compose Files and Environment Variables
+## Docker Compose files and environment variables
 
-The main `compose.yml` file contains the configuration shared by the whole stack. Docker Compose loads it automatically.
+| File | When it loads |
+| --- | --- |
+| `compose.yml` | Always (shared stack) |
+| `compose.override.yml` | Automatically locally (ports, Mailcatcher, watch, `FASTAPI_ENV=development`) |
+| `compose.deploy.yml` | Only when you pass `-f compose.yml -f compose.deploy.yml` on a server (HTTPS, Let's Encrypt) |
 
-The `compose.override.yml` file adds local development settings, such as mounting the source code as a volume. Docker Compose also loads it automatically and applies it on top of `compose.yml`.
+Never apply `compose.override.yml` on staging or production.
 
-The `compose.deploy.yml` file contains the deployment-specific settings, including HTTPS and automatic certificate handling. It is explicitly combined with `compose.yml` when deploying the application.
-
-The backend reads local settings from the `.env` file. Docker Compose also uses it for variable interpolation and passes the settings each container needs.
-
-After changing variables, make sure you restart the stack:
+The app reads local settings from `.env`. Compose interpolates the same file and passes each container what it needs. After changing variables, restart:
 
 ```bash
 docker compose watch
 ```
 
-## The `.env` File
+Do not put staging or production secrets in `.env`. See [deployment strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md) and the [Compose operator guide](./deployment-docker-compose.md).
 
-The tracked `.env` file contains local development defaults, passwords, and other configuration. Its hostnames use `localhost` for processes running on your machine. Docker Compose overrides hostnames such as the database and SMTP server with their Compose service names.
+## Tests
 
-Do not store deployment secrets in `.env`. Configure them as described in the [FastAPI Cloud deployment guide](./deployment.md) or the [Docker Compose deployment guide](./deployment-docker-compose.md).
+Backend (from `backend/`, with Postgres up):
 
-## Pre-commit Hooks and Code Linting
+```bash
+uv run bash scripts/test.sh
+```
 
-The project uses [prek](https://prek.j178.dev/), a modern alternative to [pre-commit](https://pre-commit.com/), for code linting and formatting.
+Playwright needs the Compose backend. See [frontend/README.md](./frontend/README.md).
 
-You can find a file `.pre-commit-config.yaml` with configurations at the root of the project.
+## Pre-commit hooks and linting
 
-### Install `prek` to Run Automatically
+The project uses [prek](https://prek.j178.dev/) (via `.pre-commit-config.yaml`) for linting and formatting.
 
-`prek` is already part of the dependencies of the project.
-
-From the project root, install the Git hook so that `prek` runs automatically before each commit:
+From the repo root, install the Git hook:
 
 ```bash
 uv run prek install -f
 ```
 
-The `-f` flag forces the installation, in case there was already a `pre-commit` hook previously installed.
-
-Now whenever you try to commit, for example with:
-
-```bash
-git commit
-```
-
-`prek` will check and format the code you are about to commit. If it modifies any files, add those files to Git again before committing.
-
-### Run `prek` Manually
-
-You can also run `prek` manually on all files from the project root:
+Run on all files:
 
 ```bash
 uv run prek run --all-files
 ```
+
+## Where to read next
+
+- [MVP task list](./actionable-ai/docs/task.md) — what to build
+- [Frontend architecture](./actionable-ai/docs/5_Development_and_Execution/05_Frontend_Architecture.md)
+- [Backend architecture](./actionable-ai/docs/5_Development_and_Execution/06_Backend_Architecture.md)
+- [backend/README.md](./backend/README.md) — models, Alembic, emails
+- [frontend/README.md](./frontend/README.md) — OpenAPI client, Playwright

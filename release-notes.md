@@ -2,13 +2,31 @@
 
 ## Latest Changes
 
+## 0.1.0 (2026-10-01)
+
+First Actionable AI product snapshot (Phase 1: workspaces and RBAC). Knowledge, tools, chat, and the embeddable widget are not in this release.
+
+### Features
+
+* Add the public marketing landing page, plus `/terms` and `/privacy`.
+* Add the dashboard shell with Quick Start empty state and product sidebar.
+* Add workspaces: create, switch current workspace, and rename.
+* Add workspace RBAC (Admin, Editor, Viewer), member management, and email invitations.
+
 ### Fixes
 
-* 🐛 Add background to the sticky layout header. PR [#2384](https://github.com/fastapi/full-stack-fastapi-template/pull/2384) by [@istoutjesdijk](https://github.com/istoutjesdijk).
+* Log users in after signup and send them to the dashboard.
+
+### Refactors
+
+* Split SQLModel tables into an `app.models` package.
 
 ### Docs
 
-* 📝 Simplify project documentation. PR [#2442](https://github.com/fastapi/full-stack-fastapi-template/pull/2442) by [@tiangolo](https://github.com/tiangolo).
+* Lock frontend Option A and backend Option B architecture.
+* Document Compose staging/production deployment and software licensing.
+
+Versions **0.12.0 and earlier** are Full Stack FastAPI Template history, not Actionable AI product releases.
 
 ## 0.12.0 (2026-08-12)
 

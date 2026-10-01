@@ -1,15 +1,18 @@
 import uuid
 from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app import crud
 from app.core.config import settings
 from app.core.security import verify_password
-from app.models import User, UserCreate
+from app.models import User, UserCreate, Workspace, WorkspaceRole
+from app.services.workspaces import get_membership
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_email, random_lower_string
+from tests.utils.workspace import auth_headers_for_role, create_workspace
 
 
 def test_get_users_superuser_me(
@@ -21,6 +24,8 @@ def test_get_users_superuser_me(
     assert current_user["is_active"] is True
     assert current_user["is_superuser"]
     assert current_user["email"] == settings.FIRST_SUPERUSER
+    assert current_user["role"] == WorkspaceRole.ADMIN
+    assert current_user["workspace_id"]
 
 
 def test_get_users_normal_user_me(
@@ -32,6 +37,8 @@ def test_get_users_normal_user_me(
     assert current_user["is_active"] is True
     assert current_user["is_superuser"] is False
     assert current_user["email"] == settings.EMAIL_TEST_USER
+    assert current_user["workspace_id"] is None
+    assert current_user["role"] is None
 
 
 def test_create_user_new_email(
@@ -335,8 +342,91 @@ def test_register_user(client: TestClient, db: Session) -> None:
     assert user_db
     assert user_db.email == username
     assert user_db.full_name == full_name
+    assert user_db.workspace_id is None
     verified, _ = verify_password(password, user_db.hashed_password)
     assert verified
+
+
+def test_register_user_with_workspace_name(client: TestClient, db: Session) -> None:
+    username = random_email()
+    password = random_lower_string()
+    data = {
+        "email": username,
+        "password": password,
+        "full_name": "David",
+        "workspace_name": "Acme Corp",
+    }
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json=data,
+    )
+    assert r.status_code == 200
+
+    user_db = db.exec(select(User).where(User.email == username)).first()
+    assert user_db
+    assert user_db.workspace_id is not None
+    membership = get_membership(
+        session=db, user_id=user_db.id, workspace_id=user_db.workspace_id
+    )
+    assert membership is not None
+    assert membership.role == WorkspaceRole.ADMIN
+    workspace = db.get(Workspace, user_db.workspace_id)
+    assert workspace is not None
+    assert workspace.name == "Acme Corp"
+
+
+def test_register_user_with_workspace_name_strips(
+    client: TestClient, db: Session
+) -> None:
+    username = random_email()
+    data = {
+        "email": username,
+        "password": random_lower_string(),
+        "full_name": "David",
+        "workspace_name": "  Acme Corp  ",
+    }
+    r = client.post(f"{settings.API_V1_STR}/users/signup", json=data)
+    assert r.status_code == 200
+    user_db = db.exec(select(User).where(User.email == username)).first()
+    assert user_db
+    workspace = db.get(Workspace, user_db.workspace_id)
+    assert workspace is not None
+    assert workspace.name == "Acme Corp"
+
+
+def test_register_user_blank_workspace_name_is_422(client: TestClient) -> None:
+    r = client.post(
+        f"{settings.API_V1_STR}/users/signup",
+        json={
+            "email": random_email(),
+            "password": random_lower_string(),
+            "full_name": "David",
+            "workspace_name": "   ",
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_register_user_with_workspace_rolls_back_if_attach_fails(
+    client: TestClient, db: Session
+) -> None:
+    username = random_email()
+    with patch(
+        "app.api.routes.users.create_and_attach_workspace",
+        side_effect=RuntimeError("workspace attach failed"),
+    ):
+        with pytest.raises(RuntimeError, match="workspace attach failed"):
+            client.post(
+                f"{settings.API_V1_STR}/users/signup",
+                json={
+                    "email": username,
+                    "password": random_lower_string(),
+                    "full_name": "David",
+                    "workspace_name": "Acme Corp",
+                },
+            )
+    db.expire_all()
+    assert db.exec(select(User).where(User.email == username)).first() is None
 
 
 def test_register_user_already_exists_error(client: TestClient) -> None:
@@ -519,3 +609,47 @@ def test_delete_user_without_privileges(
     )
     assert r.status_code == 403
     assert r.json()["detail"] == "The user doesn't have enough privileges"
+
+
+def test_delete_user_me_with_own_workspace(client: TestClient, db: Session) -> None:
+    headers, email, _workspace_id = create_workspace(client, db)
+    user = crud.get_user_by_email(session=db, email=email)
+    assert user is not None
+    user_id = user.id
+    r = client.delete(f"{settings.API_V1_STR}/users/me", headers=headers)
+    assert r.status_code == 200
+    db.expire_all()
+    assert db.exec(select(User).where(User.id == user_id)).first() is None
+
+
+def test_delete_user_me_blocked_if_last_admin_with_members(
+    client: TestClient, db: Session
+) -> None:
+    headers, admin_email, workspace_id = create_workspace(client, db)
+    auth_headers_for_role(client, db, workspace_id, WorkspaceRole.EDITOR)
+    r = client.delete(f"{settings.API_V1_STR}/users/me", headers=headers)
+    assert r.status_code == 409
+    assert (
+        r.json()["detail"]
+        == "Cannot delete the last admin of a workspace that has other members"
+    )
+    admin = crud.get_user_by_email(session=db, email=admin_email)
+    assert admin is not None
+
+
+def test_delete_user_blocked_if_last_admin_with_members(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    _headers, admin_email, workspace_id = create_workspace(client, db)
+    auth_headers_for_role(client, db, workspace_id, WorkspaceRole.EDITOR)
+    admin = crud.get_user_by_email(session=db, email=admin_email)
+    assert admin is not None
+    r = client.delete(
+        f"{settings.API_V1_STR}/users/{admin.id}",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 409
+    assert (
+        r.json()["detail"]
+        == "Cannot delete the last admin of a workspace that has other members"
+    )

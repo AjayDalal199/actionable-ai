@@ -1,79 +1,79 @@
-# Full Stack FastAPI Template
+# Actionable AI (A²I)
 
-[![Test Docker Compose](../../actions/workflows/test-docker-compose.yml/badge.svg)](../../actions/workflows/test-docker-compose.yml)
-[![Test Backend](../../actions/workflows/test-backend.yml/badge.svg)](../../actions/workflows/test-backend.yml)
+An in-product agent that answers from your knowledge **and** takes action — with a confirmation gate on writes.
 
-## Technology Stack and Features
+A developer can sign up, upload docs, register a tool, paste one script tag, and have a live agent on their site. Time-to-value under 5 minutes.
 
-- ⚡ [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.
-  - 🧰 [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
-  - 🔍 [Pydantic](https://docs.pydantic.dev), used by FastAPI, for the data validation and settings management.
-  - 💾 [PostgreSQL](https://www.postgresql.org) as the SQL database.
-- 🚀 [React](https://react.dev) for the frontend.
-  - 🧩 Built into the backend application and served by FastAPI on the same domain as the API.
-  - 💃 Using TypeScript, hooks, [Vite](https://vitejs.dev), and other parts of a modern frontend stack.
-  - 🎨 [Tailwind CSS](https://tailwindcss.com) and [shadcn/ui](https://ui.shadcn.com) for the frontend components.
-  - 🤖 An automatically generated frontend client.
-  - 🧪 [Playwright](https://playwright.dev) for end-to-end testing.
-  - 🦇 Dark mode support.
-- ☁️ [FastAPI Cloud](https://fastapicloud.com) for deployment.
-- 🐋 [Docker Compose](https://www.docker.com) for local services and self-hosted deployment.
-  - 📞 [Traefik](https://traefik.io) as a reverse proxy with automatic HTTPS.
-- 🔒 Secure password hashing by default.
-- 🔑 JWT (JSON Web Token) authentication.
-- 📫 Email-based password recovery.
-- 📬 [Mailcatcher](https://mailcatcher.me) for local email testing during development.
-- ✅ Tests with [Pytest](https://pytest.org).
-- 🏭 CI (continuous integration) and CD (continuous deployment) based on GitHub Actions.
+## What this repository is
 
-### Dashboard Login
+| Path | Role |
+| --- | --- |
+| [`frontend/`](./frontend/) | Public marketing site (`/`) and integrator dashboard (`/dashboard`). React, Vite, TanStack Router, shadcn/ui. |
+| [`backend/`](./backend/) | One FastAPI app: API under `/api/v1`, built SPA served from the same origin. Modular monolith. |
+| [`packages/`](./packages/) | React Email templates today. Embeddable widget later (`packages/widget`). |
+| [`actionable-ai/docs/`](./actionable-ai/docs/) | Product, architecture, and the MVP task list. |
+| [`compose.yml`](./compose.yml) | Local and remote stack: Traefik, PostgreSQL, backend. |
 
-![Dashboard login screenshot](img/login.png)
+**Status:** Auth and the marketing site work. Architecture is locked. Workspaces, knowledge (RAG), tools, chat, and the widget are not built yet. Track progress in [task.md](./actionable-ai/docs/task.md).
 
-### Dashboard - Admin
+This repo started from the [Full Stack FastAPI Template](https://github.com/fastapi/full-stack-fastapi-template). The template leftovers (demo Items CRUD, FastAPI Cloud as a primary host) are being replaced, not shipped as product.
 
-![Admin dashboard screenshot](img/dashboard.png)
+## Stack
 
-### Dashboard - Items
+- **API:** FastAPI, SQLModel, Alembic, PostgreSQL, JWT auth
+- **Dashboard:** Vite, React, TypeScript, TanStack Query / Router, Tailwind, shadcn/ui
+- **Emails:** React Email → Jinja HTML
+- **Local / deploy:** Docker Compose, Traefik (HTTPS in deploy), Playwright, Pytest
+- **Coming for MVP:** pgvector, Redis, LangGraph, embeddable Shadow DOM widget
 
-![Items dashboard screenshot](img/dashboard-items.png)
+Architecture (locked): frontend [Option A](./actionable-ai/docs/5_Development_and_Execution/05_Frontend_Architecture.md) — keep `frontend/` as-is; widget in `packages/widget`. Backend [Option B](./actionable-ai/docs/5_Development_and_Execution/06_Backend_Architecture.md) — models package, services, thin routes. One deployable, not microservices.
 
-### Dashboard - Dark Mode
+## Documentation
 
-![Dark mode dashboard screenshot](img/dashboard-dark.png)
+| Doc | What it is |
+| --- | --- |
+| [MVP task list](./actionable-ai/docs/task.md) | What to build, in order |
+| [PRD](./actionable-ai/docs/3_Product_Definition_and_Scoping/PRD.md) | Product requirements |
+| [System architecture](./actionable-ai/docs/5_Development_and_Execution/01_System_Architecture.md) | High-level shape |
+| [Deployment strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md) | Staging vs production policy |
+| [Development](./development.md) | Run the stack locally |
+| [Deploy with Docker Compose](./deployment-docker-compose.md) | Operator steps for a VPS |
+| [Contributing](./CONTRIBUTING.md) | How we take changes |
 
-### Interactive API Documentation
+## Local development
 
-![API docs](img/docs.png)
+Requirements: [Docker](https://www.docker.com/), [uv](https://docs.astral.sh/uv/), [Bun](https://bun.sh/).
 
-## How to Use It
+```bash
+cp .env.example .env   # if you do not already have a local .env
+docker compose up -d db mailcatcher
+cd backend && uv sync && uv run bash scripts/prestart.sh && uv run fastapi dev
+```
 
-Click the **Use this template** button at the top of this page to create a new repository.
+In another terminal, from the repo root:
 
-## Backend Development
+```bash
+bun install
+bun run dev
+```
 
-Backend docs: [backend/README.md](./backend/README.md).
+| URL | What |
+| --- | --- |
+| <http://localhost:5173> | Vite dashboard / marketing site |
+| <http://localhost:8000> | API (and the built SPA after `bun run build` in `frontend/`) |
+| <http://localhost:8000/docs> | OpenAPI |
+| <http://localhost:1080> | Mailcatcher |
 
-## Frontend Development
+Default superuser comes from `.env` (`FIRST_SUPERUSER` / `FIRST_SUPERUSER_PASSWORD`). Do not use `changethis` outside local development.
 
-Frontend docs: [frontend/README.md](./frontend/README.md).
+Full workflow, Compose watch mode, linting, and tests: [development.md](./development.md).
 
 ## Deployment
 
-FastAPI Cloud deployment: [deployment.md](./deployment.md).
+**Staging and production** are Docker Compose + Traefik on separate VPS instances. Staging deploys from the default branch; production requires approval. Policy: [07 Deployment Strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md). Commands: [deployment-docker-compose.md](./deployment-docker-compose.md).
 
-Self-hosted deployment with Docker Compose: [deployment-docker-compose.md](./deployment-docker-compose.md).
-
-## Development
-
-General development docs: [development.md](./development.md).
-
-This includes the local FastAPI and Vite workflow, Docker Compose services, `.env` configuration, and more.
-
-## Release Notes
-
-Check the file [release-notes.md](./release-notes.md).
+FastAPI Cloud is **not** the primary host (we need Postgres with pgvector, Redis, file volumes, and a worker). Do not treat a push to `master` as a Cloud deploy.
 
 ## License
 
-The Full Stack FastAPI Template is licensed under the terms of the MIT license.
+MIT. See [LICENSE](./LICENSE). Template portions retain the original FastAPI Template copyright.

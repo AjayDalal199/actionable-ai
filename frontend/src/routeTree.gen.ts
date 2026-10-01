@@ -9,23 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as JoinWorkspaceRouteImport } from './routes/join-workspace'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
-import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
-import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
+import { Route as DashboardChatRouteImport } from './routes/dashboard/chat'
+import { Route as DashboardItemsRouteImport } from './routes/dashboard/items'
+import { Route as DashboardKnowledgeRouteImport } from './routes/dashboard/knowledge'
+import { Route as DashboardMembersRouteImport } from './routes/dashboard/members'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardToolsRouteImport } from './routes/dashboard/tools'
 
-const LayoutRoute = LayoutRouteImport.update({
-  id: '/_layout',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinWorkspaceRoute = JoinWorkspaceRouteImport.update({
+  id: '/join-workspace',
+  path: '/join-workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
@@ -43,108 +67,201 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutIndexRoute = LayoutIndexRouteImport.update({
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
-const LayoutAdminRoute = LayoutAdminRouteImport.update({
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
-const LayoutItemsRoute = LayoutItemsRouteImport.update({
+const DashboardChatRoute = DashboardChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardItemsRoute = DashboardItemsRouteImport.update({
   id: '/items',
   path: '/items',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => DashboardRoute,
 } as any)
-const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
+const DashboardKnowledgeRoute = DashboardKnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMembersRoute = DashboardMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => LayoutRoute,
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardToolsRoute = DashboardToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => DashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof LayoutIndexRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/join-workspace': typeof JoinWorkspaceRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/admin': typeof LayoutAdminRoute
-  '/items': typeof LayoutItemsRoute
-  '/settings': typeof LayoutSettingsRoute
+  '/terms': typeof TermsRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/chat': typeof DashboardChatRoute
+  '/dashboard/items': typeof DashboardItemsRoute
+  '/dashboard/knowledge': typeof DashboardKnowledgeRoute
+  '/dashboard/members': typeof DashboardMembersRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tools': typeof DashboardToolsRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/join-workspace': typeof JoinWorkspaceRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/admin': typeof LayoutAdminRoute
-  '/items': typeof LayoutItemsRoute
-  '/settings': typeof LayoutSettingsRoute
-  '/': typeof LayoutIndexRoute
+  '/terms': typeof TermsRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/chat': typeof DashboardChatRoute
+  '/dashboard/items': typeof DashboardItemsRoute
+  '/dashboard/knowledge': typeof DashboardKnowledgeRoute
+  '/dashboard/members': typeof DashboardMembersRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tools': typeof DashboardToolsRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_layout': typeof LayoutRouteWithChildren
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/join-workspace': typeof JoinWorkspaceRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/_layout/admin': typeof LayoutAdminRoute
-  '/_layout/items': typeof LayoutItemsRoute
-  '/_layout/settings': typeof LayoutSettingsRoute
-  '/_layout/': typeof LayoutIndexRoute
+  '/terms': typeof TermsRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/chat': typeof DashboardChatRoute
+  '/dashboard/items': typeof DashboardItemsRoute
+  '/dashboard/knowledge': typeof DashboardKnowledgeRoute
+  '/dashboard/members': typeof DashboardMembersRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/tools': typeof DashboardToolsRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
+    | '/join-workspace'
     | '/login'
+    | '/privacy'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
-    | '/admin'
-    | '/items'
-    | '/settings'
+    | '/terms'
+    | '/dashboard/admin'
+    | '/dashboard/chat'
+    | '/dashboard/items'
+    | '/dashboard/knowledge'
+    | '/dashboard/members'
+    | '/dashboard/settings'
+    | '/dashboard/tools'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
+    | '/join-workspace'
     | '/login'
+    | '/privacy'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
-    | '/admin'
-    | '/items'
-    | '/settings'
-    | '/'
+    | '/terms'
+    | '/dashboard/admin'
+    | '/dashboard/chat'
+    | '/dashboard/items'
+    | '/dashboard/knowledge'
+    | '/dashboard/members'
+    | '/dashboard/settings'
+    | '/dashboard/tools'
+    | '/dashboard'
   id:
     | '__root__'
-    | '/_layout'
+    | '/'
+    | '/dashboard'
+    | '/join-workspace'
     | '/login'
+    | '/privacy'
     | '/recover-password'
     | '/reset-password'
     | '/signup'
-    | '/_layout/admin'
-    | '/_layout/items'
-    | '/_layout/settings'
-    | '/_layout/'
+    | '/terms'
+    | '/dashboard/admin'
+    | '/dashboard/chat'
+    | '/dashboard/items'
+    | '/dashboard/knowledge'
+    | '/dashboard/members'
+    | '/dashboard/settings'
+    | '/dashboard/tools'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  LayoutRoute: typeof LayoutRouteWithChildren
+  IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
+  JoinWorkspaceRoute: typeof JoinWorkspaceRoute
   LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_layout': {
-      id: '/_layout'
-      path: ''
+    '/': {
+      id: '/'
+      path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof LayoutRouteImport
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join-workspace': {
+      id: '/join-workspace'
+      path: '/join-workspace'
+      fullPath: '/join-workspace'
+      preLoaderRoute: typeof JoinWorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -152,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recover-password': {
@@ -175,60 +299,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_layout/': {
-      id: '/_layout/'
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
       path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof LayoutIndexRouteImport
-      parentRoute: typeof LayoutRoute
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_layout/admin': {
-      id: '/_layout/admin'
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
       path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof LayoutAdminRouteImport
-      parentRoute: typeof LayoutRoute
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_layout/items': {
-      id: '/_layout/items'
+    '/dashboard/chat': {
+      id: '/dashboard/chat'
+      path: '/chat'
+      fullPath: '/dashboard/chat'
+      preLoaderRoute: typeof DashboardChatRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/items': {
+      id: '/dashboard/items'
       path: '/items'
-      fullPath: '/items'
-      preLoaderRoute: typeof LayoutItemsRouteImport
-      parentRoute: typeof LayoutRoute
+      fullPath: '/dashboard/items'
+      preLoaderRoute: typeof DashboardItemsRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_layout/settings': {
-      id: '/_layout/settings'
+    '/dashboard/knowledge': {
+      id: '/dashboard/knowledge'
+      path: '/knowledge'
+      fullPath: '/dashboard/knowledge'
+      preLoaderRoute: typeof DashboardKnowledgeRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/members': {
+      id: '/dashboard/members'
+      path: '/members'
+      fullPath: '/dashboard/members'
+      preLoaderRoute: typeof DashboardMembersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
       path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof LayoutSettingsRouteImport
-      parentRoute: typeof LayoutRoute
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/tools': {
+      id: '/dashboard/tools'
+      path: '/tools'
+      fullPath: '/dashboard/tools'
+      preLoaderRoute: typeof DashboardToolsRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }
 
-interface LayoutRouteChildren {
-  LayoutAdminRoute: typeof LayoutAdminRoute
-  LayoutItemsRoute: typeof LayoutItemsRoute
-  LayoutSettingsRoute: typeof LayoutSettingsRoute
-  LayoutIndexRoute: typeof LayoutIndexRoute
+interface DashboardRouteChildren {
+  DashboardAdminRoute: typeof DashboardAdminRoute
+  DashboardChatRoute: typeof DashboardChatRoute
+  DashboardItemsRoute: typeof DashboardItemsRoute
+  DashboardKnowledgeRoute: typeof DashboardKnowledgeRoute
+  DashboardMembersRoute: typeof DashboardMembersRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardToolsRoute: typeof DashboardToolsRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
-const LayoutRouteChildren: LayoutRouteChildren = {
-  LayoutAdminRoute: LayoutAdminRoute,
-  LayoutItemsRoute: LayoutItemsRoute,
-  LayoutSettingsRoute: LayoutSettingsRoute,
-  LayoutIndexRoute: LayoutIndexRoute,
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAdminRoute: DashboardAdminRoute,
+  DashboardChatRoute: DashboardChatRoute,
+  DashboardItemsRoute: DashboardItemsRoute,
+  DashboardKnowledgeRoute: DashboardKnowledgeRoute,
+  DashboardMembersRoute: DashboardMembersRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardToolsRoute: DashboardToolsRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 
-const LayoutRouteWithChildren =
-  LayoutRoute._addFileChildren(LayoutRouteChildren)
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  LayoutRoute: LayoutRouteWithChildren,
+  IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
+  JoinWorkspaceRoute: JoinWorkspaceRoute,
   LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

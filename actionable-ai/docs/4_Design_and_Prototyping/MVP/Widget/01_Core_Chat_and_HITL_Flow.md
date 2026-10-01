@@ -6,7 +6,7 @@
 - **Version:** MVP (Phase 1)
 - **Status:** Approved
 - **Owner:** Product Team
-- **Last Updated:** 2026-08-23
+- **Last Updated:** 2026-08-24
 
 ---
 
@@ -45,7 +45,7 @@ End-Users of the client's SaaS platform.
 
 ### Failure Flows
 - **API Timeout:** Widget removes loader, displays "I'm having trouble connecting to my brain right now. Please try again."
-- **HITL Cancelled:** User clicks Cancel. AI responds: "No problem, I've aborted that action."
+- **HITL Cancelled:** User clicks Go back. AI responds: "No problem, I won't do that."
 
 ---
 
@@ -81,10 +81,12 @@ The sole interface for interacting with the AI.
 ### Components
 #### HITL Confirmation Card
 - **Type:** Inline Card within Message Feed
-- **Purpose:** Securely request permission before a destructive action.
-- **Content:** Warning Icon, Action Title, Action Description, Confirm/Cancel Buttons.
-- **Primary action:** `Confirm` (Sends execution signal via SSE).
-- **Secondary actions:** `Cancel` (Aborts action).
+- **Purpose:** Ask the end-user to confirm the **action** before the agent performs it. The agent may call an API after confirm; the user never sees that.
+- **Content:** Action title in plain language, short consequence, Confirm / Go back. **Never** show HTTP method, path, JSON, tool name, or the word “API.”
+- **Example:** Title `Cancel your Pro plan`. Body `Your Pro plan will end. You keep access until this billing period closes.` Badge `Cannot be undone` (optional). Buttons: Go back (abort) · Confirm (do it).
+- **Primary action:** `Confirm` (agent then executes the registered tool).
+- **Secondary actions:** `Go back` (aborts the action). Do not label this “Cancel” when the action itself is a cancellation.
+- **Visibility:** End-user widget only. Integrators see endpoints in the dashboard tool registry, not here.
 
 ---
 
@@ -191,6 +193,6 @@ It guarantees 100% CSS isolation without having to write aggressive reset styles
 ## Feature
 - [ ] User can open and close the widget.
 - [ ] Optimistic loader appears instantly upon sending a message.
-- [ ] HITL Card renders correctly when a "Write" tool is triggered.
-- [ ] Clicking Confirm/Cancel on the HITL card disables the buttons permanently for that specific card.
+- [ ] HITL Card renders in plain language when a write action is triggered (no endpoint or API jargon).
+- [ ] Clicking Confirm/Go back on the HITL card disables the buttons permanently for that specific card.
 - [ ] Widget is fully responsive and takes over the screen on mobile devices.

@@ -20,7 +20,7 @@ erDiagram
     Workspace ||--o{ GithubRepository : tracks
 
     Document ||--o{ DocumentChunk : divided_into
-    
+
     Workspace {
         uuid id PK
         string name
@@ -79,7 +79,7 @@ The root tenant for a business utilizing the A²I platform.
 - **`DocumentChunk`**: Utilizes the `pgvector` extension. The `embedding` column will store floats (typically dimension 1536 for OpenAI models).
 
 ### 2.3. `ToolRegistry` (MVP)
-- Stores the developer configurations for agent tools. 
+- Stores the developer configurations for agent tools.
 - The `schema` column uses PostgreSQL's native `JSONB` to store the strict API parameters.
 - The `requires_hitl` boolean is the hard-lock security measure preventing LLMs from executing destructive actions without the user clicking the "Confirm" button in the widget.
 

@@ -1,7 +1,7 @@
 [project]
 name = "app"
 version = "0.1.0"
-description = ""
+description = "Actionable AI API"
 requires-python = ">=3.14,<4.0"
 dependencies = [
     "fastapi[standard]>=0.141.1,<1.0.0",
@@ -65,9 +65,18 @@ ignore = [
 # Preserve types, even if a file imports `from __future__ import annotations`.
 keep-runtime-typing = true
 
+[tool.ruff.lint.per-file-ignores]
+"tests/conftest.py" = ["I001"]
+
 [tool.coverage.run]
 source = ["app"]
 dynamic_context = "test_function"
+omit = [
+    "app/alembic/*",
+    "app/initial_data.py",
+    "app/backend_pre_start.py",
+    "app/tests_pre_start.py",
+]
 
 [tool.coverage.report]
 show_missing = true
