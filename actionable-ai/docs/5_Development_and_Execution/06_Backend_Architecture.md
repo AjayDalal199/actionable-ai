@@ -375,4 +375,3 @@ Still **one task at a time**:
 6. Signup creates workspace via `app/services/`.
 
 Frontend stays [Option A](./05_Frontend_Architecture.md): no folder rewrite required for this backend work.
-

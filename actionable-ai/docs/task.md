@@ -1,7 +1,7 @@
 # Actionable AI (A²I) — MVP Task List
 
-**Product:** Actionable AI (A²I) Platform  
-**Phase:** MVP — “Prove it works safely”  
+**Product:** Actionable AI (A²I) Platform
+**Phase:** MVP — “Prove it works safely”
 **Goal:** A developer can sign up, upload docs, register a tool, paste one script tag, and have a live in-product agent that answers from their knowledge *and* executes actions with Human-in-the-Loop (HITL) on writes. Time-to-value under 5 minutes.
 
 **Legend:** `[x]` done · `[/]` in progress · `[ ]` not started

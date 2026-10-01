@@ -274,13 +274,13 @@ If a real customer exists later, replace this strip with a logo row *and keep* t
 
 Three columns:
 
-1. **Stale knowledge**  
+1. **Stale knowledge**
    The bot answers from a wiki that last matched the product two releases ago.
 
-2. **Passive answers**  
+2. **Passive answers**
    “Go to Settings → Billing → Cancel” is not help. It is a reading assignment.
 
-3. **Unsafe or unshippable agents**  
+3. **Unsafe or unshippable agents**
    Wiring tool-calling without a confirmation gate is how refunds and deletes escape into production.
 
 No “pain points” heading. The title already states the problem.
@@ -291,13 +291,13 @@ No “pain points” heading. The title already states the problem.
 
 Numbered 01 / 02 / 03, left-aligned, mono numerals.
 
-1. **Feed it what you already have**  
+1. **Feed it what you already have**
    Drop PDFs, Markdown, or pasted API docs. The agent retrieves from that corpus immediately. No repo connection required for the first trial.
 
-2. **Register the hands**  
+2. **Register the hands**
    Point at OpenAPI, a JSON schema, or a client-side function. Mark each tool read or write. Writes lock HITL on.
 
-3. **Drop the widget**  
+3. **Drop the widget**
    One script tag, Shadow DOM, signed user context. The same agent your visitor just tested is now on their product.
 
 Each step may show a small artifact: file list → schema snippet → `<script src="…">`. Keep snippets short enough to read without scrolling sideways on mobile.
@@ -308,16 +308,16 @@ Each step may show a small artifact: file list → schema snippet → `<script s
 
 Four split rows. Alternate artifact side on desktop (copy | visual, then visual | copy). Same order in the DOM for screen readers: heading, body, artifact.
 
-1. **Bring your own APIs**  
+1. **Bring your own APIs**
    Paste OpenAPI or a JSON schema. The platform maps endpoints to LLM tools. You keep the APIs; the agent gets a typed contract.
 
-2. **Knowledge in minutes**  
+2. **Knowledge in minutes**
    Upload policies, manuals, and product docs. Retrieval is the default path for questions that should not hit a tool.
 
-3. **Human-in-the-loop on writes**  
+3. **Human-in-the-loop on writes**
    Writes show a confirmation card: what will happen, in plain language. They confirm or go back. They never see an API. Nothing runs until they confirm.
 
-4. **A widget that will not fight your CSS**  
+4. **A widget that will not fight your CSS**
    Shadow DOM isolation, small payload, XSS sanitization. Built so an engineer can ship it without a design-system collision.
 
 Do not add a fifth card for “AI-powered” or “enterprise security.” Security has its own section.
@@ -370,22 +370,22 @@ Keep the table to four rows. This is orientation, not a feature matrix.
 
 Accordion. One question open at a time. Answers in body size, not legal fine print.
 
-**Do I need to connect GitHub to try this?**  
+**Do I need to connect GitHub to try this?**
 No. Upload documents and register tools by hand. Repository sync is a later path, not the front door.
 
-**What happens if the agent wants to delete or charge?**  
+**What happens if the agent wants to delete or charge?**
 That is a write. The widget asks them to confirm the action in plain language. Confirm does it. Go back does not. They never see an API.
 
-**Will this restyle our app?**  
+**Will this restyle our app?**
 The widget runs in Shadow DOM. Host CSS stays out; widget CSS stays in.
 
-**Is there a free tier?**  
+**Is there a free tier?**
 Yes. Create an account, ingest a small corpus, and embed the widget. Paid limits and automation come after you have a working agent.
 
-**Where does user data go?**  
+**Where does user data go?**
 Chat and tool calls run through the A²I backend so the model can retrieve and act. You authorize actions with a signed user context. Full data-processing terms live in the Privacy Policy. (Link it. Do not improvise a compliance essay here.)
 
-**Can we talk to sales?**  
+**Can we talk to sales?**
 For volume, SSO, or a security review, use Contact. The default path is self-serve signup.
 
 ### 8.10 Closing CTA
@@ -442,7 +442,7 @@ No testimonial block until there is a real quote with a real name and company.
 
 ## 11. SEO, social, analytics
 
-**Title:** Actionable AI — An agent that answers and acts  
+**Title:** Actionable AI — An agent that answers and acts
 **Meta description:** Embed an AI agent in your product. It answers from your docs, does the work, and asks a human to confirm the action first.
 
 **Open Graph / Twitter:** dark hero crop (headline + HITL card), 1200×630. Alt text: “Actionable AI landing page showing a chat confirmation to cancel a subscription.”

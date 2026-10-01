@@ -5,8 +5,8 @@
 *   **Secondary:** Developer Tooling companies.
 
 ## Unique Value Proposition (UVP)
-*We don't just answer questions; we take action.* 
-Unlike standard chatbots (which just read docs) or complex agent frameworks (which require months of setup), our platform offers a "plug-and-play" widget that combines automated codebase ingestion with direct API execution. 
+*We don't just answer questions; we take action.*
+Unlike standard chatbots (which just read docs) or complex agent frameworks (which require months of setup), our platform offers a "plug-and-play" widget that combines automated codebase ingestion with direct API execution.
 
 ## Business Model & Pricing (Draft)
 A tiered SaaS model based on usage and advanced features:

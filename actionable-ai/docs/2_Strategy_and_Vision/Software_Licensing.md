@@ -96,7 +96,7 @@ Private does **not** mean “no copyright rules.” These still apply:
 
 **What still bites a private MIT repo:**
 
-1. **Leak or mis-shared access.** Anyone who receives the tree under today’s `LICENSE` has MIT rights to that snapshot. A former contractor with a clone, a public gist, or “make this repo public for a minute” is enough.
+1. **Leak or accidentally shared access.** Anyone who receives the tree under today’s `LICENSE` has MIT rights to that snapshot. A former contractor with a clone, a public gist, or “make this repo public for a minute” is enough.
 2. **Later you go public.** Then MIT-on-everything becomes the problem described in §7. Change the license **before** that, or accept that old commits stay MIT.
 3. **Copyleft dependencies.** Privacy of *our* source does not cancel AGPL/GPL obligations on *their* source.
 

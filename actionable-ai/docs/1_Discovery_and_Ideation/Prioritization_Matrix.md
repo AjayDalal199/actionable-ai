@@ -19,5 +19,5 @@
 | **Visual Knowledge Graph** (Internal View) | 2 (Internal only) | 0.5 (Low) | 0.8 (Medium) | 2 months | **0.4** | **Drop** |
 
 ## Summary
-The scoring validates that we must focus our initial MVP and V1 efforts on the **Simple JS Tool Registration API** (highest RICE score due to low effort/high impact) and the **PR-Triggered Auto-Drafting**. 
+The scoring validates that we must focus our initial MVP and V1 efforts on the **Simple JS Tool Registration API** (highest RICE score due to low effort/high impact) and the **PR-Triggered Auto-Drafting**.
 Complex UI features like "Show Me How" mode should be deferred to later versions, and the Knowledge Graph is dropped entirely for now.

@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMeResponses, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMeResponses, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspaceMeResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMeResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -288,7 +288,7 @@ export class ItemsService {
     /**
      * Read Items
      *
-     * Retrieve items.
+     * Retrieve items in the current workspace.
      */
     public static readItems<ThrowOnError extends boolean = true>(options?: Options<itemsReadItemsData, ThrowOnError>) {
         return (options?.client ?? client).get<itemsReadItemsResponses, itemsReadItemsErrors, ThrowOnError>({
@@ -302,7 +302,7 @@ export class ItemsService {
     /**
      * Create Item
      *
-     * Create new item.
+     * Create new item. Editor or Admin.
      */
     public static createItem<ThrowOnError extends boolean = true>(options: Options<itemsCreateItemData, ThrowOnError>) {
         return (options.client ?? client).post<itemsCreateItemResponses, itemsCreateItemErrors, ThrowOnError>({
@@ -320,7 +320,7 @@ export class ItemsService {
     /**
      * Delete Item
      *
-     * Delete an item.
+     * Delete an item. Editor or Admin.
      */
     public static deleteItem<ThrowOnError extends boolean = true>(options: Options<itemsDeleteItemData, ThrowOnError>) {
         return (options.client ?? client).delete<itemsDeleteItemResponses, itemsDeleteItemErrors, ThrowOnError>({
@@ -348,7 +348,7 @@ export class ItemsService {
     /**
      * Update Item
      *
-     * Update an item.
+     * Update an item. Editor or Admin.
      */
     public static updateItem<ThrowOnError extends boolean = true>(options: Options<itemsUpdateItemData, ThrowOnError>) {
         return (options.client ?? client).put<itemsUpdateItemResponses, itemsUpdateItemErrors, ThrowOnError>({
@@ -365,6 +365,20 @@ export class ItemsService {
 }
 
 export class WorkspacesService {
+    /**
+     * Read Workspaces
+     *
+     * Workspaces the current user belongs to.
+     */
+    public static readWorkspaces<ThrowOnError extends boolean = true>(options?: Options<workspacesReadWorkspacesData, ThrowOnError>) {
+        return (options?.client ?? client).get<workspacesReadWorkspacesResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/',
+            ...options
+        });
+    }
+    
     /**
      * Create Workspace
      *
@@ -383,21 +397,7 @@ export class WorkspacesService {
             }
         });
     }
-
-    /**
-     * Read Workspaces
-     *
-     * Workspaces the current user belongs to.
-     */
-    public static readWorkspaces<ThrowOnError extends boolean = true>(options?: Options<workspacesReadWorkspacesData, ThrowOnError>) {
-        return (options?.client ?? client).get<workspacesReadWorkspacesResponses, unknown, ThrowOnError>({
-            responseType: 'json',
-            security: [{ scheme: 'bearer', type: 'http' }],
-            url: '/api/v1/workspaces/',
-            ...options
-        });
-    }
-
+    
     /**
      * Select Current Workspace
      *
@@ -531,7 +531,7 @@ export class WorkspacesService {
     /**
      * Update Workspace Member
      *
-     * Change a member's role or deactivate them. Admin only.
+     * Change a member's role or deactivate them in this workspace. Admin only.
      */
     public static updateWorkspaceMember<ThrowOnError extends boolean = true>(options: Options<workspacesUpdateWorkspaceMemberData, ThrowOnError>) {
         return (options.client ?? client).patch<workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMemberErrors, ThrowOnError>({

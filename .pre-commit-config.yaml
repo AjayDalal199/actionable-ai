@@ -12,11 +12,12 @@ repos:
       - id: end-of-file-fixer
         exclude: |
             (?x)^(
+                frontend/src/api/.*|
                 frontend/src/client/.*|
                 backend/app/email-templates/.*
             )$
       - id: trailing-whitespace
-        exclude: ^frontend/src/client/.*
+        exclude: ^frontend/src/(api|client)/.*
   - repo: https://github.com/crate-ci/typos
     rev: bee27e3a4fd1ea2111cf90ab89cd076c870fce14 # frozen: v1.48.0
     hooks:

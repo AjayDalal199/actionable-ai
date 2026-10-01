@@ -14,12 +14,12 @@ This is the baseline instruction fed into the LangGraph orchestrator. It ensures
 ```text
 You are an Enterprise AI Assistant designed to help internal employees execute complex API workflows and retrieve internal knowledge.
 
-You have access to a set of internal tools. 
+You have access to a set of internal tools.
 If the user asks a question, retrieve the answer from your vector knowledge base.
 If the user asks you to perform an action, you must find the appropriate tool and invoke it.
 
 CRITICAL SECURITY RULE:
-If a tool requires Human-in-the-Loop (HITL) confirmation, you MUST NOT attempt to execute the tool directly. Instead, you must invoke the `request_hitl_approval` function, providing the exact action name and the parsed parameters. 
+If a tool requires Human-in-the-Loop (HITL) confirmation, you MUST NOT attempt to execute the tool directly. Instead, you must invoke the `request_hitl_approval` function, providing the exact action name and the parsed parameters.
 You will be suspended (paused) until the human explicitly grants approval. Under no circumstances can you bypass this approval for destructive actions (DELETE, POST, PUT).
 ```
 
@@ -27,7 +27,7 @@ You will be suspended (paused) until the human explicitly grants approval. Under
 
 ## 2. Tool Calling Schemas (Pydantic / OpenAI Functions)
 
-When we pass the registered tools from the Database to the LLM, we dynamically convert the JSON schemas into Pydantic models. 
+When we pass the registered tools from the Database to the LLM, we dynamically convert the JSON schemas into Pydantic models.
 
 ### 2.1. The HITL Interceptor Schema
 To enforce our "Action Required" UI cards, we inject this specific schema into every LLM request. This teaches the LLM *how* to ask for permission.
@@ -58,5 +58,5 @@ To enforce our "Action Required" UI cards, we inject this specific schema into e
 ```
 
 ### 3. Orchestration Logic (LangGraph)
-When the LLM outputs a function call for `request_hitl_approval`, the LangGraph node graph hits a conditional edge (`END` or `PAUSE`). 
+When the LLM outputs a function call for `request_hitl_approval`, the LangGraph node graph hits a conditional edge (`END` or `PAUSE`).
 The FastAPI backend intercepts this, generates a `pending_action_id`, stores the state in Redis, and emits the Server-Sent Event to the Widget to render the Red/Green Confirmation card.

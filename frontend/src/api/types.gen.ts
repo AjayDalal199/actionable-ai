@@ -45,11 +45,6 @@ export type HTTPValidationError = {
 };
 
 /**
- * WorkspaceRole
- */
-export type WorkspaceRole = 'admin' | 'editor' | 'viewer';
-
-/**
  * InvitationStatus
  */
 export type InvitationStatus = 'pending' | 'accepted' | 'declined';
@@ -254,9 +249,6 @@ export type UserPublic = {
      * Workspace Id
      */
     workspace_id?: string | null;
-    /**
-     * Role
-     */
     role?: WorkspaceRole | null;
 };
 
@@ -424,6 +416,29 @@ export type WorkspaceInvitePreview = {
 };
 
 /**
+ * WorkspaceListItem
+ */
+export type WorkspaceListItem = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Created At
+     */
+    created_at?: string | null;
+    role: WorkspaceRole;
+    /**
+     * Is Current
+     */
+    is_current: boolean;
+};
+
+/**
  * WorkspaceMemberPublic
  */
 export type WorkspaceMemberPublic = {
@@ -495,33 +510,9 @@ export type WorkspacePublic = {
 };
 
 /**
- * WorkspaceListItem
+ * WorkspaceRole
  */
-export type WorkspaceListItem = WorkspacePublic & {
-    role: WorkspaceRole;
-    /**
-     * Is Current
-     */
-    is_current: boolean;
-};
-
-/**
- * WorkspacesPublic
- */
-export type WorkspacesPublic = {
-    /**
-     * Data
-     */
-    data: Array<WorkspaceListItem>;
-    /**
-     * Count
-     */
-    count: number;
-    /**
-     * Can Create
-     */
-    can_create: boolean;
-};
+export type WorkspaceRole = 'admin' | 'editor' | 'viewer';
 
 /**
  * WorkspaceSelect
@@ -541,6 +532,24 @@ export type WorkspaceUpdate = {
      * Name
      */
     name: string;
+};
+
+/**
+ * WorkspacesPublic
+ */
+export type WorkspacesPublic = {
+    /**
+     * Data
+     */
+    data: Array<WorkspaceListItem>;
+    /**
+     * Count
+     */
+    count: number;
+    /**
+     * Can Create
+     */
+    can_create: boolean;
 };
 
 export type loginLoginAccessTokenData = {
@@ -1122,30 +1131,21 @@ export type itemsUpdateItemResponses = {
 
 export type itemsUpdateItemResponse = itemsUpdateItemResponses[keyof itemsUpdateItemResponses];
 
-export type privateCreateUserData = {
-    body: PrivateUserCreate;
+export type workspacesReadWorkspacesData = {
+    body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/private/users/';
+    url: '/api/v1/workspaces/';
 };
 
-export type privateCreateUserErrors = {
-    /**
-     * Validation Error
-     */
-    422: HTTPValidationError;
-};
-
-export type privateCreateUserError = privateCreateUserErrors[keyof privateCreateUserErrors];
-
-export type privateCreateUserResponses = {
+export type workspacesReadWorkspacesResponses = {
     /**
      * Successful Response
      */
-    200: UserPublic;
+    200: WorkspacesPublic;
 };
 
-export type privateCreateUserResponse = privateCreateUserResponses[keyof privateCreateUserResponses];
+export type workspacesReadWorkspacesResponse = workspacesReadWorkspacesResponses[keyof workspacesReadWorkspacesResponses];
 
 export type workspacesCreateWorkspaceData = {
     body: WorkspaceCreate;
@@ -1171,22 +1171,6 @@ export type workspacesCreateWorkspaceResponses = {
 };
 
 export type workspacesCreateWorkspaceResponse = workspacesCreateWorkspaceResponses[keyof workspacesCreateWorkspaceResponses];
-
-export type workspacesReadWorkspacesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/workspaces/';
-};
-
-export type workspacesReadWorkspacesResponses = {
-    /**
-     * Successful Response
-     */
-    200: WorkspacesPublic;
-};
-
-export type workspacesReadWorkspacesResponse = workspacesReadWorkspacesResponses[keyof workspacesReadWorkspacesResponses];
 
 export type workspacesSelectCurrentWorkspaceData = {
     body: WorkspaceSelect;
@@ -1404,3 +1388,28 @@ export type workspacesUpdateWorkspaceMemberResponses = {
 };
 
 export type workspacesUpdateWorkspaceMemberResponse = workspacesUpdateWorkspaceMemberResponses[keyof workspacesUpdateWorkspaceMemberResponses];
+
+export type privateCreateUserData = {
+    body: PrivateUserCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/private/users/';
+};
+
+export type privateCreateUserErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type privateCreateUserError = privateCreateUserErrors[keyof privateCreateUserErrors];
+
+export type privateCreateUserResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserPublic;
+};
+
+export type privateCreateUserResponse = privateCreateUserResponses[keyof privateCreateUserResponses];
