@@ -43,6 +43,10 @@ updates:
     labels: [dependencies, internal]
     ignore:
       - dependency-name: "@hey-api/openapi-ts"
+      - dependency-name: "typescript"
+        versions: [">=6.0.0"]
+      - dependency-name: "@tanstack/react-table"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-packages:
         patterns:
