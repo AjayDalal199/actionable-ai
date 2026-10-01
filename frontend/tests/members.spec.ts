@@ -6,7 +6,7 @@ import {
   randomPassword,
   randomWorkspaceName,
 } from "./utils/random"
-import { logInUser } from "./utils/user"
+import { logInUser, logOutUser } from "./utils/user"
 
 async function ensureWorkspace(page: Page) {
   const nameInput = page.getByTestId("create-workspace-name-input")
@@ -73,7 +73,7 @@ test.describe("Workspace members", () => {
     await page.getByTestId("invite-member-submit").click()
     await expect(page.getByText("Member invited")).toBeVisible()
 
-    await page.getByRole("button", { name: "Log out" }).click()
+    await logOutUser(page)
     await logInUser(page, memberEmail, memberPassword)
 
     await page.getByRole("link", { name: "Members", exact: true }).click()
@@ -134,8 +134,7 @@ test.describe("Workspace members", () => {
     await page.getByTestId("accept-invite-button").click()
     await expect(page.getByText("Invite accepted")).toBeVisible()
 
-    await page.getByTestId("user-menu").click()
-    await page.getByTestId("logout-button").click()
+    await logOutUser(page)
     await logInUser(page, memberEmail, memberPassword)
     await page.getByRole("link", { name: "Members", exact: true }).click()
     await expect(page.getByTestId(`member-status-${memberEmail}`)).toHaveText(
@@ -167,13 +166,11 @@ test.describe("Workspace members", () => {
     await page.getByTestId("invite-member-submit").click()
     await expect(page.getByText("Member invited")).toBeVisible()
 
-    await page.getByTestId("user-menu").click()
-    await page.getByTestId("logout-button").click()
-
     const emailData = await findLastEmail({
       request,
       filter: (e) => e.recipients.includes(`<${memberEmail}>`),
     })
+    await logOutUser(page)
     await page.goto(
       `${process.env.MAILCATCHER_HOST}/messages/${emailData.id}.html`,
     )
