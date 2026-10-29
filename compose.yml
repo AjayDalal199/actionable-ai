@@ -38,16 +38,14 @@ services:
     environment:
       - ADMINER_DESIGN=pepa-linha-dark
     labels:
-      # Enable Traefik for this service
       - traefik.enable=true
-      # Route HTTP traffic for the Adminer subdomain
-      - traefik.http.routers.adminer-http.rule=Host(`adminer.${DOMAIN:-localhost}`)
-      - traefik.http.routers.adminer-http.entrypoints=http
-      # Define the port inside of the Docker service to use
-      - traefik.http.services.adminer.loadbalancer.server.port=8080
+      - traefik.http.routers.${STACK_NAME:-a2i}-adminer-http.rule=Host(`adminer.${DOMAIN:-localhost}`)
+      - traefik.http.routers.${STACK_NAME:-a2i}-adminer-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME:-a2i}-adminer-http.service=${STACK_NAME:-a2i}-adminer
+      - traefik.http.services.${STACK_NAME:-a2i}-adminer.loadbalancer.server.port=8080
 
   backend:
-    image: backend:latest
+    image: backend:${STACK_NAME:-a2i}
     depends_on:
       db:
         condition: service_healthy
@@ -63,6 +61,7 @@ services:
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
       SENTRY_DSN: ${SENTRY_DSN:-}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
@@ -74,15 +73,11 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     labels:
-      # Enable Traefik for this service
       - traefik.enable=true
-
-      # Define the port inside of the Docker service to use
-      - traefik.http.services.backend.loadbalancer.server.port=8000
-
-      # Route HTTP traffic for this domain
-      - traefik.http.routers.backend-http.rule=Host(`${DOMAIN:-localhost}`)
-      - traefik.http.routers.backend-http.entrypoints=http
+      - traefik.http.services.${STACK_NAME:-a2i}-backend.loadbalancer.server.port=8000
+      - traefik.http.routers.${STACK_NAME:-a2i}-backend-http.rule=Host(`${DOMAIN:-localhost}`)
+      - traefik.http.routers.${STACK_NAME:-a2i}-backend-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME:-a2i}-backend-http.service=${STACK_NAME:-a2i}-backend
 
 volumes:
   app-db-data:

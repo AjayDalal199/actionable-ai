@@ -1,41 +1,76 @@
 name: Deploy with Docker Compose
 
 on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
   workflow_dispatch:
+    inputs:
+      target:
+        description: Environment to deploy
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+      ref:
+        description: Git SHA (empty = this workflow revision)
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy-docker-compose
+  group: >-
+    deploy-${{ github.event_name == 'workflow_dispatch' && inputs.target ||
+        github.event_name == 'push' && 'staging' ||
+        'production' }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    # Do not deploy the template repository, only projects created from it
-    if: github.repository != 'fastapi/full-stack-fastapi-template'
-    runs-on: self-hosted
-    timeout-minutes: 30
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event.pull_request.merged == true &&
+       contains(github.event.pull_request.labels.*.name, 'release'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: >-
+      ${{ github.event_name == 'workflow_dispatch' && inputs.target ||
+          github.event_name == 'push' && 'staging' ||
+          'production' }}
     env:
       DOMAIN: ${{ vars.DOMAIN }}
       PROJECT_NAME: ${{ vars.PROJECT_NAME }}
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      STACK_NAME: ${{ vars.STACK_NAME }}
+      SSH_HOST: ${{ vars.SSH_HOST }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
       FIRST_SUPERUSER: ${{ vars.FIRST_SUPERUSER }}
-      FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
       SMTP_HOST: ${{ vars.SMTP_HOST }}
       SMTP_USER: ${{ vars.SMTP_USER }}
-      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       EMAILS_FROM_EMAIL: ${{ vars.EMAILS_FROM_EMAIL }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+      LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
+      WEB_CONCURRENCY: ${{ vars.WEB_CONCURRENCY }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      DEPLOY_SHA: ${{ inputs.ref || github.event.pull_request.merge_commit_sha || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build
-        run: docker compose -f compose.yml -f compose.deploy.yml build
-      - name: Prepare database
-        run: docker compose -f compose.yml -f compose.deploy.yml run --rm backend bash scripts/prestart.sh
-      - name: Start application
-        run: docker compose -f compose.yml -f compose.deploy.yml up -d
+      - name: Deploy over SSH
+        run: bash scripts/ci-deploy-ssh.sh
