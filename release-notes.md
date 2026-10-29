@@ -2,6 +2,8 @@
 
 ## Latest Changes
 
+## 0.1.1 (2026-10-29)
+
 ### Features
 
 * Deploy staging at `staging.dactionlabs.com` and production at `app.dactionlabs.com` as separate Docker Compose stacks on Oracle Cloud.
