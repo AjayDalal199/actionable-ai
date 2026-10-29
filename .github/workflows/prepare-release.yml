@@ -23,8 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: read
-      id-token: write
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Dump GitHub context
         env:
@@ -55,19 +56,16 @@ jobs:
           version="$(uv run python scripts/prepare_release.py current-version)"
           echo "$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-      - name: Get PR Submit token
-        id: pr-submit
-        uses: tiangolo/pr-submit@d802fdf59bde80bc3eb8bd3259f4cbeec63de4aa # 0.0.1
       - name: Create release pull request
         env:
           BASE_BRANCH: master
-          GH_TOKEN: ${{ steps.pr-submit.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.release-version.outputs.version }}
         run: |
           set -euo pipefail
           branch="release-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          git config user.name "pr-submit[bot]"
-          git config user.email "pr-submit[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add release-notes.md backend/pyproject.toml
           git commit -m "🔖 Release version ${VERSION}"
