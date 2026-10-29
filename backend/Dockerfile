@@ -62,4 +62,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 WORKDIR /app/backend/
 
-CMD ["fastapi", "run", "--workers", "4"]
+ENV WEB_CONCURRENCY=1
+
+CMD ["sh", "-c", "exec fastapi run --workers \"${WEB_CONCURRENCY}\""]

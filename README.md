@@ -37,7 +37,8 @@ Architecture (locked): frontend [Option A](./actionable-ai/docs/5_Development_an
 | [System architecture](./actionable-ai/docs/5_Development_and_Execution/01_System_Architecture.md) | High-level shape |
 | [Deployment strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md) | Staging vs production policy |
 | [Development](./development.md) | Run the stack locally |
-| [Deploy with Docker Compose](./deployment-docker-compose.md) | Operator steps for a VPS |
+| [Deploy with Docker Compose](./deployment-docker-compose.md) | Compose operator steps |
+| [Oracle Cloud Free Tier](./deployment-oracle-cloud.md) | Two VMs (staging + prod) on dactionlabs.com |
 | [Contributing](./CONTRIBUTING.md) | How we take changes |
 
 ## Local development
@@ -70,9 +71,9 @@ Full workflow, Compose watch mode, linting, and tests: [development.md](./develo
 
 ## Deployment
 
-**Staging and production** are Docker Compose + Traefik on separate VPS instances. Staging deploys from the default branch; production requires approval. Policy: [07 Deployment Strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md). Commands: [deployment-docker-compose.md](./deployment-docker-compose.md).
+**Staging** deploys when a PR merges to `develop`. **Production** deploys when a labeled release PR merges to `master`. Each environment is its own Oracle Cloud Always Free VM (`staging.dactionlabs.com` / `app.dactionlabs.com`). Policy: [07 Deployment Strategy](./actionable-ai/docs/5_Development_and_Execution/07_Deployment_Strategy.md). Oracle bootstrap: [deployment-oracle-cloud.md](./deployment-oracle-cloud.md). Compose commands: [deployment-docker-compose.md](./deployment-docker-compose.md).
 
-FastAPI Cloud is **not** the primary host (we need Postgres with pgvector, Redis, file volumes, and a worker). Do not treat a push to `master` as a Cloud deploy.
+Leave the Cloud workflow disabled so a push to `master` cannot deploy there by accident. If you are reading older template docs, ignore Cloud as the happy path.
 
 ## License
 

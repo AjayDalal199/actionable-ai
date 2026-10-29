@@ -1,13 +1,14 @@
 """Prepare a release by updating and extracting release notes."""
 
 import re
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Annotated, Literal
 
 import typer
 
 RELEASE_NOTES_FILE = Path("release-notes.md")
+BACKEND_PYPROJECT_FILE = Path("backend/pyproject.toml")
 RELEASE_NOTES_HEADER = "# Release Notes\n\n"
 LATEST_CHANGES_HEADER = "## Latest Changes"
 VERSION_HEADING_PATTERN = re.compile(r"(?m)^## (\d+\.\d+\.\d+)(?: \([^)]+\))?$")
@@ -45,7 +46,7 @@ def update_release_notes(
     latest_header = f"{RELEASE_NOTES_HEADER}{LATEST_CHANGES_HEADER}\n"
     if not content.startswith(latest_header):
         raise RuntimeError(f"{release_notes_file} must start with {latest_header!r}")
-    if re.search(rf"^## {re.escape(version)}(?: \([^)]+\))?$", content, re.M):
+    if re.search(rf"^## {re.escape(version)}(?: \([^)]+\))?$", content, re.MULTILINE):
         raise RuntimeError(f"Release notes already contain a section for {version}")
 
     current_version = get_current_version(content, release_notes_file)
@@ -97,7 +98,21 @@ def prepare_release(
         update_release_notes(content, version, release_date, release_notes_file),
         encoding="utf-8",
     )
+    update_pyproject_version(version, BACKEND_PYPROJECT_FILE)
     return version
+
+
+def update_pyproject_version(version: str, pyproject_file: Path) -> None:
+    content = pyproject_file.read_text(encoding="utf-8")
+    updated, count = re.subn(
+        r'(?m)^version = "[^"]+"$',
+        f'version = "{version}"',
+        content,
+        count=1,
+    )
+    if count != 1:
+        raise RuntimeError(f"Could not update version in {pyproject_file}")
+    pyproject_file.write_text(updated, encoding="utf-8")
 
 
 @app.command()
@@ -118,14 +133,16 @@ def prepare(
         ),
     ] = RELEASE_NOTES_FILE,
     release_date: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--date",
             help="Release date in YYYY-MM-DD format. Defaults to today.",
         ),
-    ] = date.today().isoformat(),
+    ] = None,
 ) -> None:
-    parsed_release_date = date.fromisoformat(release_date or date.today().isoformat())
+    parsed_release_date = date.fromisoformat(
+        release_date or datetime.now(UTC).date().isoformat()
+    )
     version = prepare_release(bump, parsed_release_date, release_notes_file)
     typer.echo(f"Prepared release {version} ({parsed_release_date.isoformat()})")
 
