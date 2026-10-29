@@ -11,8 +11,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: write
     timeout-minutes: 5
     steps:
       - name: Dump GitHub context
@@ -71,17 +70,13 @@ jobs:
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Get PR Push token
-        id: pr-push
-        if: env.CAN_PUSH == 'true' && steps.changes.outputs.changed == 'true'
-        uses: tiangolo/pr-push@f336b3817f32ea9b8273a8c15f8ecb739ac38167 # 0.0.4
       - name: Commit and push changes
         if: env.CAN_PUSH == 'true' && steps.changes.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ steps.pr-push.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "pr-push[bot]"
-          git config user.email "pr-push[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           gh auth setup-git
           git add -A
           if git diff --staged --quiet; then
