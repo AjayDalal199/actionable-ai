@@ -68,8 +68,8 @@ Replace with the real DNS once domains are purchased. Keep the shape.
 
 | Role | Staging | Production |
 | --- | --- | --- |
-| App (SPA + API + widget script) | `https://staging.actionable.ai` | `https://app.actionable.ai` |
-| Adminer | `https://adminer.staging.actionable.ai` (VPN or IP allowlist) | **Not exposed** |
+| App (SPA + API + widget script) | `https://staging.dactionlabs.com` | `https://app.dactionlabs.com` |
+| Adminer | `https://adminer.staging.dactionlabs.com` (VPN or IP allowlist) | **Not exposed** |
 | Traefik dashboard | Off | Off |
 
 `FRONTEND_HOST` in each environment is that environment’s app URL. CORS and password-reset links depend on it.
@@ -78,11 +78,11 @@ Replace with the real DNS once domains are purchased. Keep the shape.
 
 **Two VPS, two Compose projects, two GitHub Environments.** Staging and production do not share a Docker daemon, a Postgres volume, a Traefik certificate store, or a `SECRET_KEY`.
 
-| Why not one box with two stacks | Why not Kubernetes |
-| --- | --- |
-| Staging will churn (pgvector image, Redis, workers). A bad Compose change or a self-hosted runner with the Docker socket must not be able to stop production. | One FastAPI app and a handful of sidecars. K8s adds a cluster to operate before we have paying load. |
+**Oracle Cloud Always Free (current):** two Ampere VMs, **1 OCPU / 6 GB** each (Always Free Ampere is 2 OCPU / 12 GB total). Operator guide: [deployment-oracle-cloud.md](../../../deployment-oracle-cloud.md). 6 GB needs swap and `WEB_CONCURRENCY=1`.
 
-**Cheap fallback (not the default):** one VPS, two Compose project names (`STACK_NAME=a2i-staging` / `a2i-prod`), Traefik routing by `Host()`. Use only if budget forces it, and still keep **separate volumes, secrets, and a production deploy that is not the staging runner**.
+| Why two VMs | Why not Kubernetes |
+| --- | --- |
+| Staging will churn (pgvector image, Redis, workers). A bad Compose change must not be able to stop production. | One FastAPI app and a handful of sidecars. K8s adds a cluster to operate before we have paying load. |
 
 ### 3.3 What may differ between staging and prod
 
@@ -135,46 +135,45 @@ Already sketched in `deployment.md` and `.github/workflows/deploy.yml`.
 
 ```text
 feature branch
-    → PR
+    → PR into develop
         → CI: backend pytest, Playwright, Compose smoke
-            → merge to default branch (`master`)
-                → automatic deploy to STAGING
-                    → soak + smoke (and Phase 10.3 when we claim MVP)
-                        → human approval
-                            → deploy that same git SHA to PRODUCTION
+            → merge to develop
+                → automatic deploy to STAGING (staging.dactionlabs.com)
+                    → soak + smoke
+                        → Actions → Prepare Release
+                            → labeled release PR into master
+                                → merge → deploy PRODUCTION (app.dactionlabs.com)
 ```
 
 Rules:
 
 1. **Nothing reaches production that has not run on staging** at that SHA (hotfix exception: §8).
-2. **Production is never an automatic push to `master`.** Use `workflow_dispatch` and/or a GitHub Release, with the `production` Environment requiring a reviewer.
-3. **Staging deploys on every merge to `master`** so it does not rot. A red staging deploy blocks production, not development — fix `master` or revert.
+2. **Production is not an automatic push of every commit to `master`.** It is a **release PR** (label `release`) that freezes `release-notes.md` and bumps the package version. The human gate is reviewing that PR.
+3. **Staging deploys on every merge to `develop`** so it does not rot. A red staging deploy blocks a release, not feature work on a branch.
 4. **Migrations run as part of deploy** (`scripts/prestart.sh`: wait for DB → `alembic upgrade head` → seed superuser). Forward-only. No auto-downgrade. A migration that cannot run in seconds on a copy of prod data does not ship.
 
 ### 5.1 CI vs CD
 
 | Gate | When | Blocks |
 | --- | --- | --- |
-| Pytest + coverage | PR and `master` | Merge |
-| Playwright | PR and `master` (when frontend/backend/compose change) | Merge |
-| Compose smoke (`test-docker-compose.yml`) | PR and `master` | Merge |
-| Staging deploy | After merge to `master` | Production (informally: do not promote a SHA whose staging deploy failed) |
-| Production deploy | Manual / release + Environment approval | Live traffic |
+| Pytest + coverage | PR and `develop` / `master` | Merge |
+| Playwright | PR and `develop` / `master` (when frontend/backend/compose change) | Merge |
+| Compose smoke (`test-docker-compose.yml`) | PR and `develop` / `master` | Merge |
+| Staging deploy | After merge to `develop` | Release (do not cut a release whose staging deploy failed) |
+| Production deploy | Merge of a `release` PR into `master` | Live traffic |
 
 CD does not replace CI. A deploy workflow must not skip tests “to go faster.”
 
 ### 5.2 GitHub Actions shape (target)
 
-Replace the single-environment `deploy-docker-compose.yml` (`workflow_dispatch` only, repo-level secrets, one self-hosted runner) with:
-
 | Workflow | Trigger | Runner | GitHub Environment |
 | --- | --- | --- | --- |
-| Deploy staging | Push to `master` + `workflow_dispatch` | Self-hosted on the **staging** VPS | `staging` |
-| Deploy production | `workflow_dispatch` (input: git ref) and/or publish release | Self-hosted on the **prod** VPS, or GitHub-hosted + SSH | `production` (required reviewers) |
+| Deploy staging | Push to `develop` + `workflow_dispatch` | GitHub-hosted `ubuntu-latest`, SSH to the **staging** VM | `staging` |
+| Deploy production | Merged PR labeled `release` into `master` + `workflow_dispatch` | GitHub-hosted `ubuntu-latest`, SSH to the **prod** VM | `production` |
 
-`concurrency` per environment so two deploys cannot interleave `compose up` on the same stack. Do not `cancel-in-progress` on production (let the in-flight deploy finish).
+`concurrency` per environment so two deploys cannot interleave `compose up` on the same VM. Do not `cancel-in-progress` (let the in-flight deploy finish).
 
-Self-hosted runners: **private repo only**, dedicated `github` user in the `docker` group, one runner **per VPS**, not a runner on a laptop. Staging’s runner must not have network credentials that can `compose` production.
+The repo is public: **no self-hosted runner on either VM**. Self-hosted runners are for private repos only.
 
 ---
 
@@ -184,7 +183,7 @@ Self-hosted runners: **private repo only**, dedicated `github` user in the `dock
 
 | Name | Secret? | Notes |
 | --- | --- | --- |
-| `DOMAIN` | no | Hostname only, e.g. `staging.actionable.ai` |
+| `DOMAIN` | no | Hostname only, e.g. `staging.dactionlabs.com` |
 | `PROJECT_NAME` | no | `Actionable AI` |
 | `FIRST_SUPERUSER` | no | Ops inbox, not a personal Gmail if we can avoid it |
 | `SMTP_HOST` / `SMTP_USER` / `EMAILS_FROM_EMAIL` | no | Real provider in both envs (not Mailcatcher) |
@@ -221,7 +220,7 @@ The backend image builds the SPA with `VITE_API_URL` empty so the browser talks 
 
 ## 7. Compose topology (target)
 
-Same files for both remote envs: `compose.yml` + `compose.deploy.yml`. Never apply `compose.override.yml` on a server (dev ports, Mailcatcher, insecure Traefik API, bind-mounted source).
+Same files for both remote envs: `compose.yml` + `compose.deploy.yml`. Each VM’s Traefik binds 80/443. Never apply `compose.override.yml` on a server (dev ports, Mailcatcher, insecure Traefik API, bind-mounted source).
 
 ```text
 Internet
@@ -235,7 +234,7 @@ worker  → Postgres + Redis   (when ingestion leaves BackgroundTasks)
 backend → disk volume for uploads (Phase 2.3)
 ```
 
-**Project name** must include the environment (`a2i-staging`, `a2i-prod`) so containers, networks, and volumes never collide if the fallback single-VPS setup is used.
+**Project name** must include the environment (`COMPOSE_PROJECT_NAME=a2i-staging` / `a2i-prod`).
 
 **Adminer in production:** omit the service or do not set `traefik.enable=true`. Inspect Postgres with an SSH tunnel (`kubectl` is not a substitute we have).
 
@@ -247,11 +246,11 @@ backend → disk volume for uploads (Phase 2.3)
 
 ## 8. Releases, rollback, hotfixes
 
-**Normal release:** git SHA that is green on CI, deployed to staging, smoked, then the same SHA to production.
+**Normal release:** git SHA that is green on CI, deployed to staging (`develop`), smoked, then a **Prepare Release** PR into `master`.
 
 **Rollback:** redeploy the previous known-good image/SHA. If a migration already ran, rollback requires a **forward** fix or a written downgrade revision — do not `alembic downgrade` on production as the default move.
 
-**Hotfix:** branch from the production SHA, PR with CI, deploy that SHA to staging (even if `master` has moved), then to production, then merge back to `master`. Do not SSH in and edit containers.
+**Hotfix:** branch from the production SHA, PR with CI into `develop` (staging), then Prepare Release into `master`, then keep `develop` in sync. Do not SSH in and edit containers.
 
 **Downtime:** `docker compose up -d` restarts the backend. MVP accepts a few seconds of dropped SSE. Do not build a blue/green platform until a client SLA requires it. Warn beta clients of a deploy window if we know HITL sessions will drop.
 
@@ -309,13 +308,12 @@ A staging key leaked in a client’s public JS is expected (workspace public id)
 
 | Piece | Today | Target |
 | --- | --- | --- |
-| Compose deploy files | Yes | Keep; add Redis / worker / vector image when product needs them |
+| Compose deploy files | Yes (`STACK_NAME`) | Keep; add Redis / worker / vector image when product needs them |
 | Manual server deploy | Documented | Keep as break-glass |
-| GitHub deploy workflow | One stack, `workflow_dispatch`, repo secrets, single self-hosted runner | Two workflows, GitHub Environments, auto staging, gated prod |
-| FastAPI Cloud workflow | On push to `master` | Disabled / unused so it cannot fire by accident |
-| `STACK_NAME` / project name | Missing | Add so env isolation is explicit |
-| Staging VPS + DNS | Not provisioned | First infra slice |
-| Prod VPS + DNS | Not provisioned | Before first live client, not before first staging beta |
+| GitHub deploy workflow | SSH from `ubuntu-latest`; staging on `develop`; prod on `release` PR | Keep |
+| FastAPI Cloud workflow | Disabled | Stay disabled |
+| `STACK_NAME` / project name | `a2i-staging` / `a2i-prod` | Keep |
+| Staging + prod VM + DNS | Operator guide; not provisioned until OCI console work | First infra slice |
 | Backups | None | Prod before real data |
 | Widget URL | N/A | Same origin on each env |
 
@@ -327,8 +325,8 @@ A staging key leaked in a client’s public JS is expected (workspace public id)
 | --- | --- | --- | --- |
 | D1 | Primary hosting | **Decided** | Docker Compose + Traefik on VPS |
 | D2 | FastAPI Cloud | **Decided** | Not primary; do not auto-deploy `master` there |
-| D3 | Staging vs prod isolation | **Decided** | Two VPS, two secret sets, two GitHub Environments |
-| D4 | Promotion | **Decided** | Auto staging from `master`; prod only with approval of a SHA that ran on staging |
+| D3 | Staging vs prod isolation | **Decided** | Two VPS (Always Free: 1 OCPU / 6 GB each), two secret sets, two GitHub Environments |
+| D4 | Promotion | **Decided** | Auto staging from `develop`; prod only via labeled release PR into `master` |
 | D5 | App packaging | **Decided** | Single backend image (SPA + API + later widget file) |
 | D6 | Adminer | **Decided** | Staging only, not public on prod |
 | D7 | Widget delivery (MVP) | **Decided** | Same origin as the API; CDN is V1 |
@@ -351,15 +349,13 @@ A staging key leaked in a client’s public JS is expected (workspace public id)
 
 ## 16. Implementation slices (after this decision)
 
-Do these in order. Provisioning staging is enough to start beta QA; production can wait until a client is going live.
-
-1. **Inventory:** disable or guard `.github/workflows/deploy.yml` (FastAPI Cloud) so `master` cannot deploy to the wrong place.
-2. **Compose project name:** `STACK_NAME` (or equivalent) in deploy files so two stacks cannot clobber each other.
-3. **GitHub Environments** `staging` and `production` with the secret table in §6.1.
-4. **Staging VPS:** Docker Engine, DNS, self-hosted runner, first successful Compose deploy, Sentry, SMTP.
-5. **Split the deploy workflow** into staging (on `master`) and production (approval).
-6. **Smoke script** against staging after deploy (health check + login page).
-7. **Production VPS** + backups + no Adminer, when a live client is scheduled.
+1. **Inventory:** FastAPI Cloud workflow disabled.
+2. **Compose:** `STACK_NAME`, unique Traefik names, Adminer staging-only.
+3. **GitHub Environments** `staging` and `production` with the secret table in §6.1 plus **per-VM** SSH keys.
+4. **Staging VM + DNS** (`staging.dactionlabs.com`): 1 OCPU / 6 GB, Docker Engine, `deploy` user, first Compose deploy. See [deployment-oracle-cloud.md](../../../deployment-oracle-cloud.md).
+5. **CD:** merge to `develop` → staging VM; labeled release PR into `master` → production VM.
+6. **Smoke** health check + login on staging; then first release PR for the production VM.
+7. **Backups** before real client data.
 8. **Extend Compose** with Redis / pgvector / upload volume / worker in the same slices as the product phases — not as a separate “platform rewrite.”
 
-**Done when:** a merge to `master` updates staging without SSH, a reviewer can promote that SHA to production, and Phase 10.3 can be executed against `https://staging.…` rather than localhost.
+**Done when:** a merge to `develop` updates staging without a laptop SSH as the happy path, a release PR can ship production, and Phase 10.3 can be executed against `https://staging.dactionlabs.com` rather than localhost.

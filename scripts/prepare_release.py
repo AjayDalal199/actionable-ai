@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 import typer
 
 RELEASE_NOTES_FILE = Path("release-notes.md")
+BACKEND_PYPROJECT_FILE = Path("backend/pyproject.toml")
 RELEASE_NOTES_HEADER = "# Release Notes\n\n"
 LATEST_CHANGES_HEADER = "## Latest Changes"
 VERSION_HEADING_PATTERN = re.compile(r"(?m)^## (\d+\.\d+\.\d+)(?: \([^)]+\))?$")
@@ -97,7 +98,21 @@ def prepare_release(
         update_release_notes(content, version, release_date, release_notes_file),
         encoding="utf-8",
     )
+    update_pyproject_version(version, BACKEND_PYPROJECT_FILE)
     return version
+
+
+def update_pyproject_version(version: str, pyproject_file: Path) -> None:
+    content = pyproject_file.read_text(encoding="utf-8")
+    updated, count = re.subn(
+        r'(?m)^version = "[^"]+"$',
+        f'version = "{version}"',
+        content,
+        count=1,
+    )
+    if count != 1:
+        raise RuntimeError(f"Could not update version in {pyproject_file}")
+    pyproject_file.write_text(updated, encoding="utf-8")
 
 
 @app.command()

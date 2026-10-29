@@ -44,7 +44,7 @@ SSE chat (when it exists) will not use this client; that helper lives under `fea
 Vite defaults to `VITE_API_URL` in `frontend/.env`. The production image builds with an empty URL so the browser uses the same origin as FastAPI.
 
 ```env
-VITE_API_URL=https://staging.actionable.ai
+VITE_API_URL=https://staging.dactionlabs.com
 ```
 
 ## Code structure

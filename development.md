@@ -88,7 +88,7 @@ Mailcatcher captures mail in local development instead of sending it. The local 
 | --- | --- |
 | `compose.yml` | Always (shared stack) |
 | `compose.override.yml` | Automatically locally (ports, Mailcatcher, watch, `FASTAPI_ENV=development`) |
-| `compose.deploy.yml` | Only when you pass `-f compose.yml -f compose.deploy.yml` on a server (HTTPS, Let's Encrypt) |
+| `compose.deploy.yml` | Only when you pass `-f compose.yml -f compose.deploy.yml` on a server (HTTPS, Let’s Encrypt, Adminer profile) |
 
 Never apply `compose.override.yml` on staging or production.
 
