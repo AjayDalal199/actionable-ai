@@ -1,8 +1,10 @@
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { Check } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { useAuth } from "@/features/auth/useAuth"
+import { documentsQueryOptions } from "@/features/knowledge/queries"
 import { CreateWorkspaceForm } from "@/features/workspace/CreateWorkspaceForm"
 import { useCurrentWorkspace } from "@/features/workspace/queries"
 import { WorkspaceLoadError } from "@/features/workspace/WorkspaceGate"
@@ -19,6 +21,15 @@ export function DashboardHome() {
     isPending,
     refetch,
   } = useCurrentWorkspace()
+  const documents = useQuery({
+    ...documentsQueryOptions(workspace?.id ?? "pending"),
+    enabled: Boolean(workspace?.id),
+  })
+  const documentRows = documents.data?.data ?? []
+  const hasActiveDocument = documentRows.some((row) => row.status === "active")
+  const hasProcessingDocument = documentRows.some(
+    (row) => row.status === "processing",
+  )
 
   return (
     <div className="flex flex-col gap-8">
@@ -57,12 +68,22 @@ export function DashboardHome() {
           </QuickStartStep>
           <QuickStartStep
             disabled={!workspace}
+            done={hasActiveDocument}
             n={2}
             title="Upload a document"
-            description="Add a PDF or Markdown file so the agent has something to answer from."
+            description={
+              hasActiveDocument
+                ? "A document is ready for questions."
+                : hasProcessingDocument
+                  ? "Your document is processing. The sandbox opens when it is ready."
+                  : "Add a PDF or Markdown file so the agent has something to answer from."
+            }
           >
             {workspace ? (
-              <Button asChild>
+              <Button
+                asChild
+                variant={hasActiveDocument ? "outline" : "default"}
+              >
                 <Link to="/dashboard/knowledge">Go to Knowledge</Link>
               </Button>
             ) : (
@@ -73,10 +94,17 @@ export function DashboardHome() {
             disabled={!workspace}
             n={3}
             title="Ask a question"
-            description="Try the internal chat once a document is in the knowledge base."
+            description={
+              hasActiveDocument
+                ? "The sandbox is ready. Ask as your dashboard account."
+                : "Try the internal chat once a document is in the knowledge base."
+            }
           >
             {workspace ? (
-              <Button asChild variant="outline">
+              <Button
+                asChild
+                variant={hasActiveDocument ? "default" : "outline"}
+              >
                 <Link to="/dashboard/chat">Go to Chat</Link>
               </Button>
             ) : (

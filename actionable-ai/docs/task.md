@@ -13,15 +13,15 @@
 
 ## Next up (do this only)
 
-**Task:** Sandbox and internal chat (7.1 and 7.2). Do not start the widget, the widget channel, JS tool execution (Phase 5.4), or the widget preview (7.3).
+**Task:** Embeddable customer widget (Phase 6). Include the widget channel, JS tool execution (Phase 5.4), the snippet (6.5), and the widget preview (7.3). Do not run JS tools from the internal sandbox.
 
-- `[ ]` Sandbox chat on the dashboard using the internal orchestrator (`channel: internal`)
-- `[ ]` Route `/dashboard/chat`: full-page chat with workspace RAG, tools, and HITL on writes
-- `[ ]` Leave the widget channel, `tool_js`, and the embeddable widget for Phase 6
+- `[ ]` Package `packages/widget`: Shadow DOM chat, end-user JWT, and the JS tool bridge
+- `[ ]` Dashboard snippet export (6.5) and the widget preview (7.3)
+- `[ ]` Leave `tool_js` execution out of `/dashboard/chat`
 
-**Done when:** A member can ask the sandbox a question answered from an uploaded document, and confirm or reject a write tool without leaving the dashboard.
+**Done when:** A host page loads one script, opens a Shadow DOM chat, streams answers, and confirms or rejects a write in plain language.
 
-**After that (not now):** the embeddable widget (Phase 6), its snippet, JS tool execution (5.4), and the widget preview (7.3). See [Path to MVP](#path-to-mvp).
+**After that (not now):** handoff and launch safety (Phase 8). See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -64,9 +64,11 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 
 
-## Current state (as of 2026-10-30)
+## Current state (as of 2026-10-31)
 
-Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, the internal chat orchestrator, and the Knowledge and Tools screens are in place. Sandbox chat and the widget are not built yet. JS tools stay stored; the orchestrator does not emit `tool_js` or run them.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, the internal chat orchestrator, the Knowledge and Tools screens, and sandbox chat are in place. The widget is not built yet. JS tools stay stored; the orchestrator does not emit `tool_js` or run them.
+
+Known gap, fix before relying on the post-approve reply: Gemini 3.5 Flash Lite rejects the follow-up turn because the replayed function call has no thought signature. The HTTP tool still runs on approval. Rejection does not call the tool.
 
 **Already in place**
 
@@ -84,7 +86,7 @@ Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool regis
 **Still template leftovers (must be replaced, not shipped as product)**
 
 - `[ ]` Remove demo **Items** CRUD from dashboard and API (or hide it) once Knowledge / Tools exist
-- `[x]` Replace template dashboard home with the Quick Start empty state (sandbox chat still Phase 7)
+- `[x]` Replace template dashboard home with the Quick Start empty state
 - `[x]` Hide Items from the sidebar (Phase 1.3) — Items API and `/dashboard/items` remain until Knowledge exists
 
 ---
@@ -110,9 +112,9 @@ Work in this order. Phase numbers stay as they are so older notes still point at
         ↓
 3.3 Knowledge screen  +  4.3 Tools screen    done
         ↓
-7.1 Sandbox  +  7.2 Internal chat           ← next
+7.1 Sandbox  +  7.2 Internal chat           done
         ↓
-6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet
+6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet  ← next
         ↓
 8. Handoff + launch safety
         ↓
@@ -469,10 +471,10 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 
 Journey 1 in `User_Journeys.md`.
 
-- `[ ]` After first workspace: guided steps (upload → ask). Copy-snippet is Phase 6.5.
-- `[ ]` **Sandbox chat** on the dashboard using the internal orchestrator (`channel: internal`). This is dashboard UI, not the embeddable widget.
-- `[ ]` Redirect/focus sandbox when the first document becomes Active (target: usable within ~60s of upload)
-- `[ ]` Sandbox may use the dashboard user as identity; label it clearly as a test surface
+- `[x]` After first workspace: guided steps (upload → ask). Copy-snippet is Phase 6.5.
+- `[x]` **Sandbox chat** on the dashboard using the internal orchestrator (`channel: internal`). This is dashboard UI, not the embeddable widget.
+- `[x]` Redirect/focus sandbox when the first document becomes Active (target: usable within ~60s of upload)
+- `[x]` Sandbox may use the dashboard user as identity; label it clearly as a test surface
 
 
 
@@ -480,9 +482,9 @@ Journey 1 in `User_Journeys.md`.
 
 PRD: internal chatbot is MVP (Marcus / sales-support).
 
-- `[ ]` Route `/dashboard/chat` — full-page chat, same APIs, workspace RAG + tools
-- `[ ]` Default to read-heavy behavior; still HITL if someone tests a write tool
-- `[ ]` Empty state if no documents: point to Knowledge upload
+- `[x]` Route `/dashboard/chat` — full-page chat, same APIs, workspace RAG + tools
+- `[x]` Default to read-heavy behavior; still HITL if someone tests a write tool
+- `[x]` Empty state if no documents: point to Knowledge upload
 
 
 
@@ -607,7 +609,7 @@ Use this if you want a calendar-shaped path. Durations assume a small team; adju
 | **B**  | Phase 3.1–3.2: ingestion API                                          | **Done** — upload → Active chunks. Knowledge screen is C2   |
 | **C1** | Phase 4.2 + Phase 5 internal channel                                  | **Done** — internal stream, HITL, and HTTP tool confirm     |
 | **C2** | Phase 3.3 + 4.3: Knowledge and Tools screens                          | Upload and register from the dashboard                       |
-| **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | Internal Q&A and HITL against a registered HTTP tool        |
+| **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | **Done** — internal Q&A and HITL against a registered HTTP tool |
 | **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | Script tag on an example host                               |
 | **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run          | MVP acceptance checklist all green                           |
 

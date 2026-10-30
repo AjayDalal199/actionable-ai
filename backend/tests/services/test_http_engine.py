@@ -390,3 +390,33 @@ def test_default_client_sets_a_timeout_and_does_not_follow_redirects(
     assert seen["follow_redirects"] is False
     assert TOOL_HTTP_TIMEOUT.connect == 5.0
     assert TOOL_HTTP_TIMEOUT.read == 10.0
+
+
+def test_database_string_method_is_called() -> None:
+    from sqlalchemy.orm.attributes import set_committed_value
+
+    tool = _tool("https://api.example.com/notes", method=HttpMethod.POST)
+    set_committed_value(tool, "http_method", "POST")
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json={"status": "saved"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    try:
+        result = execute_http_tool(
+            tool=tool,
+            arguments={"note": "tide is high"},
+            bearer=_BEARER,
+            client=client,
+        )
+    finally:
+        client.close()
+    assert type(tool.http_method) is str
+    assert result.ok is True
+    assert result.status_code == 200
+    assert len(seen) == 1
+    assert seen[0].method == "POST"
+    assert json.loads(seen[0].content) == {"note": "tide is high"}
+    assert seen[0].headers["authorization"] == f"Bearer {_BEARER}"

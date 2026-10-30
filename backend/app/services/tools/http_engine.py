@@ -137,6 +137,11 @@ def _prepare(
     stored_url = tool.url
     if method is None or not stored_url:
         return _failure(_HTTP_FIELDS)
+    # Rows loaded through the string column come back as plain strings.
+    try:
+        method = HttpMethod(method)
+    except ValueError:
+        return _failure(_HTTP_FIELDS)
     provided = _argument_map(arguments)
     if isinstance(provided, HttpToolResult):
         return provided
