@@ -18,13 +18,13 @@
 - `[ ]` HTTP client with timeouts
 - `[ ]` Block obvious SSRF: localhost, link-local, private RFC1918, and cloud metadata hosts
 - `[ ]` HTTPS required except localhost for integrator testing
-- `[ ]` Pass the end-user JWT through as `Authorization: Bearer`
+- `[ ]` Pass a caller-supplied bearer through as `Authorization: Bearer`
 - `[ ]` Map non-2xx to a structured error the model can explain
 - `[ ]` Retry once on 502/503
 
-**Done when:** The server can call a registered HTTPS tool with a timeout, refuse a private or metadata address, forward an end-user JWT, and return a real error on non-2xx.
+**Done when:** The server can call a registered HTTPS tool with a timeout, refuse a private or metadata address, forward the caller-supplied bearer, and return a real error on non-2xx.
 
-**After that (not now):** the chat orchestrator. Knowledge dashboard UI stays in Phase 3.3. Tools dashboard UI stays in Phase 4.3.
+**After that (not now):** Phase 5 for the internal channel only, then the Knowledge and Tools screens (3.3 and 4.3), then sandbox and `/dashboard/chat` (7.1 and 7.2). The embeddable widget (Phase 6), its snippet, and the widget preview (7.3) wait until that internal chat works. See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -67,15 +67,15 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 
 
-## Current state (as of 2026-08-25)
+## Current state (as of 2026-10-30)
 
-Auth, workspaces, RBAC, the dashboard shell, and knowledge ingestion are in place. Tools, chat, and the widget are not built yet.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, and the tool registry APIs are in place. Chat, the Knowledge and Tools screens, and the widget are not built yet.
 
 **Already in place**
 
 - `[x]` FastAPI backend in `./backend` (users, login, JWT, password recovery)
 - `[x]` React / Vite dashboard in `./frontend` (TanStack Router, shadcn/ui, Tailwind)
-- `[x]` PostgreSQL + SQLModel + Alembic (no pgvector yet)
+- `[x]` PostgreSQL + SQLModel + Alembic + pgvector
 - `[x]` Public landing page at `/` (ember brand, HITL artifact, logged-in redirect to `/dashboard`)
 - `[x]` `/signup`, `/login`, `/recover-password`, `/terms`, `/privacy`
 - `[x]` Wordmark **Actionable AI** in chrome
@@ -96,24 +96,32 @@ Auth, workspaces, RBAC, the dashboard shell, and knowledge ingestion are in plac
 
 ## Path to MVP
 
-Work in this order. Later phases depend on earlier ones. Dashboard UI can trail its matching API by a sprint, but do not start the widget until chat streaming exists.
+Work in this order. Phase numbers stay as they are so older notes still point at the same work. **Build order changed 2026-10-30:** make chat usable inside the dashboard before building the embeddable widget. The widget channel, the host-page JS tool bridge (5.4), the snippet, and the widget preview (7.3) ship with Phase 6.
 
 ```text
-1. Workspace + RBAC
+1. Workspace + RBAC                         done
         ↓
-2. Data plane (pgvector, Redis, core tables)
+2. Data plane (pgvector, Redis, tables)     done
         ↓
-3. Knowledge ingestion  ──┐
-        ↓                 │
-4. Tool registry          ├── 5. Chat orchestrator (RAG + tools + HITL + SSE)
-        ↓                 │
-6. Embeddable widget  ←───┘
+3.1–3.2 Knowledge ingestion API             done
         ↓
-7. Dashboard product (upload UI, tools UI, sandbox, snippet, internal chat)
+4.1 Tool registry APIs                      done
         ↓
-8. Handoff + launch safety + QA
+4.2 API Request Engine                      ← next
         ↓
-     MVP ship
+5. Chat orchestrator, internal channel only
+        ↓
+3.3 Knowledge screen  +  4.3 Tools screen
+        ↓
+7.1 Sandbox  +  7.2 Internal chat
+        ↓
+6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet
+        ↓
+8. Handoff + launch safety
+        ↓
+9. Integration docs
+        ↓
+10. QA and MVP acceptance
 ```
 
 ---
@@ -265,6 +273,8 @@ Align with `03_MVP_API_Contracts.md`, plus list/status that the UI needs.
 
 ### 3.3 Knowledge Base UI (dashboard)
 
+Build this after the internal orchestrator (Phase 5), together with the Tools screen (4.3), and before sandbox chat (7.1). The upload API already exists.
+
 Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.md`
 
 - `[ ]` Route `/dashboard/knowledge`
@@ -310,13 +320,15 @@ MVP needs real HTTP calls. Full SSRF hardening is V1; **do the minimum now** so 
 - `[ ]` HTTP client with timeouts
 - `[ ]` Block obvious SSRF: localhost, link-local, private RFC1918, AWS/GCP metadata hosts (expand in V1)
 - `[ ]` HTTPS required except `localhost` for integrator testing
-- `[ ]` Pass through the **end-user JWT** (Phase 6) as `Authorization: Bearer` (or a documented header) to the client API — we do not invent permissions
+- `[ ]` Pass through a caller-supplied bearer as `Authorization: Bearer` (or a documented header) to the client API — we do not invent permissions. Internal chat passes the dashboard member’s token. The host end-user JWT arrives with Phase 6.
 - `[ ]` Map non-2xx to a structured error the LLM can explain (no fake success)
 - `[ ]` Simple retry: once on 502/503; no infinite loops
 
 
 
 ### 4.3 Tools & Actions UI (dashboard)
+
+Build this after the internal orchestrator (Phase 5), together with the Knowledge screen (3.3), and before sandbox chat (7.1). The registry API already exists.
 
 Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/02_Tool_Registration_Flow.md`
 
@@ -334,9 +346,9 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/02_Tool_Registration_Flow.md`
 
 ## Phase 5 — Chat orchestrator (the product brain)
 
-**Why now:** Sandbox, internal chat, and the widget all share one streaming API.
+**Why now:** Sandbox and `/dashboard/chat` need one streaming API. Build the `internal` channel here. Leave the widget channel and the host-page JS bridge (5.4) for Phase 6, after internal chat is usable.
 
-**Done when:** A message streams tokens; questions hit RAG; write tools pause for HITL; confirm resumes and completes; reject aborts.
+**Done when:** A logged-in member can stream an answer from workspace documents, a write tool pauses for HITL, confirm runs the HTTP tool, and reject aborts. Widget auth is not part of this slice.
 
 Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
@@ -348,7 +360,7 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
   - Request: `{ session_id, message, channel?: "widget" | "internal" }`
   - Events: `message` (token/text), `hitl_required`, `tool_js` (client-side function), `error`, `done`
 - `[ ]` `POST /api/v1/chat/hitl-confirm` — `{ pending_action_id, decision: "approved" | "rejected" }` → resume or abort
-- `[ ]` Widget channel: require **host end-user JWT** (Phase 6), not only the integrator’s dashboard JWT
+- `[ ]` Widget channel: require **host end-user JWT**, not the integrator’s dashboard JWT. Build this with Phase 6, not with the internal channel.
 - `[ ]` Internal/sandbox channel: require logged-in workspace member
 - `[ ]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
 - `[ ]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
@@ -380,7 +392,9 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
 
 
-### 5.4 Client-side (JS) tools
+### 5.4 Client-side (JS) tools — with Phase 6
+
+JS tools can already be stored. Host-page execution waits for the widget. Do not build this in the internal-channel slice. HTTP tools run through the Phase 4.2 engine.
 
 - `[ ]` Registry entry has no URL; widget is told `{ name, arguments }`
 - `[ ]` Widget looks up `window`/`registerTool` map; on missing/throw, show fallback text (do not crash)
@@ -392,7 +406,7 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
 ## Phase 6 — Embeddable customer widget
 
-**Why now:** This is the surface beta clients actually ship. It consumes Phase 5.
+**When:** After sandbox and internal chat (Phase 7.1 and 7.2) work. This is the surface beta clients ship on their own site. It consumes the Phase 5 orchestrator. Build the widget channel’s end-user JWT check and the JS tool bridge (5.4) here, plus the snippet (6.5) and the dashboard widget preview (7.3).
 
 **Done when:** A host page loads one script, opens a Shadow DOM chat, streams answers, shows HITL in plain language, and confirms/rejects safely.
 
@@ -450,16 +464,16 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 
 ## Phase 7 — Dashboard product complete (Quick Start loop)
 
-**Why now:** TTV is measured here: signup → upload → sandbox question → copy snippet.
+**When:** Build 7.1 and 7.2 after the Knowledge and Tools screens, and before the widget. Internal time-to-value is signup → upload → sandbox question → HITL confirm. Copy-snippet and 7.3 wait for Phase 6.
 
-**Done when:** A new Admin can finish that loop without leaving the app or reading a separate PDF.
+**Done when:** A new Admin can upload a document, ask the sandbox a question, and confirm or reject a write tool without leaving the dashboard. Pasting a script tag is Phase 6, not this slice.
 
 ### 7.1 Quick Start + sandbox
 
 Journey 1 in `User_Journeys.md`.
 
-- `[ ]` After first workspace: guided steps (upload → ask → copy snippet)
-- `[ ]` **Sandbox chat** on dashboard using the same orchestrator as the widget (`channel: internal` or `sandbox`)
+- `[ ]` After first workspace: guided steps (upload → ask). Copy-snippet is Phase 6.5.
+- `[ ]` **Sandbox chat** on the dashboard using the internal orchestrator (`channel: internal`). This is dashboard UI, not the embeddable widget.
 - `[ ]` Redirect/focus sandbox when the first document becomes Active (target: usable within ~60s of upload)
 - `[ ]` Sandbox may use the dashboard user as identity; label it clearly as a test surface
 
@@ -475,7 +489,9 @@ PRD: internal chatbot is MVP (Marcus / sales-support).
 
 
 
-### 7.3 Widget preview (optional but useful)
+### 7.3 Widget preview — with Phase 6
+
+Do not start this with sandbox chat. It mounts the real widget from Phase 6.
 
 - `[ ]` Dashboard page that mounts the real widget against the current workspace (staging key) so David does not need a second app on day one
 
@@ -587,14 +603,16 @@ A stranger (or us pretending to be David) can:
 Use this if you want a calendar-shaped path. Durations assume a small team; adjust, do not skip dependencies.
 
 
-| Sprint | Focus                                                             | Exit                                                    |
-| ------ | ----------------------------------------------------------------- | ------------------------------------------------------- |
-| **A0** | Phase 1.0: `app/models/` package split                            | **Done** — imports and tests green; DB schema unchanged |
-| **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema               | Isolated tenants, empty product tables                  |
-| **B**  | Phase 3: ingestion API + Knowledge UI                             | Upload → Active chunks                                  |
-| **C**  | Phase 4 + 5 without widget: tools API/UI + orchestrator + sandbox | Sandbox Q&A + HITL against a mock HTTP tool             |
-| **D**  | Phase 6–7: `packages/widget`, JWT, snippet, internal chat         | Script tag on example host                              |
-| **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run      | MVP acceptance checklist all green                      |
+| Sprint | Focus                                                                 | Exit                                                         |
+| ------ | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **A0** | Phase 1.0: `app/models/` package split                                | **Done** — imports and tests green; DB schema unchanged     |
+| **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema                   | **Done** — isolated tenants, product tables                 |
+| **B**  | Phase 3.1–3.2: ingestion API                                          | **Done** — upload → Active chunks. Knowledge screen is C2   |
+| **C1** | Phase 4.2 + Phase 5 internal channel                                  | **4.1 done.** Call an HTTPS tool; stream an internal answer |
+| **C2** | Phase 3.3 + 4.3: Knowledge and Tools screens                          | Upload and register from the dashboard                       |
+| **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | Internal Q&A and HITL against a registered HTTP tool        |
+| **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | Script tag on an example host                               |
+| **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run          | MVP acceptance checklist all green                           |
 
 
 ---
