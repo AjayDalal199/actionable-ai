@@ -13,18 +13,18 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 4.2 API Request Engine. Do not start the widget, the Knowledge dashboard UI, or the Tools dashboard UI yet.
+**Task:** Phase 5 chat orchestrator, internal channel only. Do not start the widget, the Knowledge dashboard UI, or the Tools dashboard UI yet.
 
-- `[ ]` HTTP client with timeouts
-- `[ ]` Block obvious SSRF: localhost, link-local, private RFC1918, and cloud metadata hosts
-- `[ ]` HTTPS required except localhost for integrator testing
-- `[ ]` Pass a caller-supplied bearer through as `Authorization: Bearer`
-- `[ ]` Map non-2xx to a structured error the model can explain
-- `[ ]` Retry once on 502/503
+- `[ ]` Stream an internal chat answer for a logged-in workspace member
+- `[ ]` Retrieve active workspace documents into the prompt
+- `[ ]` Load registered tools and enforce HITL in code before a write runs
+- `[ ]` On approve, call the HTTP tool through the API request engine with the member's bearer
+- `[ ]` On reject, do not call the tool
+- `[ ]` Leave JS tools and the widget channel for Phase 6
 
-**Done when:** The server can call a registered HTTPS tool with a timeout, refuse a private or metadata address, forward the caller-supplied bearer, and return a real error on non-2xx.
+**Done when:** A logged-in member can stream an answer from workspace documents, a write tool pauses for HITL, confirm runs the HTTP tool, and reject aborts.
 
-**After that (not now):** Phase 5 for the internal channel only, then the Knowledge and Tools screens (3.3 and 4.3), then sandbox and `/dashboard/chat` (7.1 and 7.2). The embeddable widget (Phase 6), its snippet, and the widget preview (7.3) wait until that internal chat works. See [Path to MVP](#path-to-mvp).
+**After that (not now):** the Knowledge and Tools screens (3.3 and 4.3), then sandbox and `/dashboard/chat` (7.1 and 7.2). The embeddable widget (Phase 6), its snippet, and the widget preview (7.3) wait until that internal chat works. See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -69,7 +69,7 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 ## Current state (as of 2026-10-30)
 
-Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, and the tool registry APIs are in place. Chat, the Knowledge and Tools screens, and the widget are not built yet.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, and the API request engine are in place. Chat, the Knowledge and Tools screens, and the widget are not built yet.
 
 **Already in place**
 
@@ -107,9 +107,9 @@ Work in this order. Phase numbers stay as they are so older notes still point at
         ↓
 4.1 Tool registry APIs                      done
         ↓
-4.2 API Request Engine                      ← next
+4.2 API Request Engine                      done
         ↓
-5. Chat orchestrator, internal channel only
+5. Chat orchestrator, internal channel only  ← next
         ↓
 3.3 Knowledge screen  +  4.3 Tools screen
         ↓
@@ -317,12 +317,12 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.
 
 MVP needs real HTTP calls. Full SSRF hardening is V1; **do the minimum now** so we do not fetch metadata IPs.
 
-- `[ ]` HTTP client with timeouts
-- `[ ]` Block obvious SSRF: localhost, link-local, private RFC1918, AWS/GCP metadata hosts (expand in V1)
-- `[ ]` HTTPS required except `localhost` for integrator testing
-- `[ ]` Pass through a caller-supplied bearer as `Authorization: Bearer` (or a documented header) to the client API — we do not invent permissions. Internal chat passes the dashboard member’s token. The host end-user JWT arrives with Phase 6.
-- `[ ]` Map non-2xx to a structured error the LLM can explain (no fake success)
-- `[ ]` Simple retry: once on 502/503; no infinite loops
+- `[x]` HTTP client with timeouts
+- `[x]` Block obvious SSRF: link-local, private RFC1918, and AWS/GCP metadata hosts (full SSRF hardening is V1). `localhost`, `127.0.0.1`, and `::1` stay allowed
+- `[x]` HTTPS required except `localhost`, `127.0.0.1`, and `::1` for integrator testing
+- `[x]` Pass through a caller-supplied bearer as `Authorization: Bearer` — we do not invent permissions. Internal chat passes the dashboard member’s token. The host end-user JWT arrives with Phase 6.
+- `[x]` Map non-2xx to a structured error the LLM can explain (no fake success)
+- `[x]` Simple retry: once on 502/503; no infinite loops
 
 
 
@@ -527,7 +527,7 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 - `[ ]` Daily or monthly **soft LLM budget** per workspace (env-configured) so a viral page cannot create a surprise five-figure bill
 - `[ ]` HITL hard-lock tested as a security test, not only a UX test
 - `[ ]` Tenant isolation tests on chat, knowledge, tools
-- `[ ]` Minimum SSRF denylist on the API Request Engine (Phase 4.2)
+- `[x]` Minimum SSRF denylist on the API Request Engine (Phase 4.2)
 - `[ ]` Max graph iterations (Phase 5.1)
 - `[ ]` Do **not** claim SOC2/GDPR/LlamaGuard on the marketing site (already specified)
 
@@ -608,7 +608,7 @@ Use this if you want a calendar-shaped path. Durations assume a small team; adju
 | **A0** | Phase 1.0: `app/models/` package split                                | **Done** — imports and tests green; DB schema unchanged     |
 | **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema                   | **Done** — isolated tenants, product tables                 |
 | **B**  | Phase 3.1–3.2: ingestion API                                          | **Done** — upload → Active chunks. Knowledge screen is C2   |
-| **C1** | Phase 4.2 + Phase 5 internal channel                                  | **4.1 done.** Call an HTTPS tool; stream an internal answer |
+| **C1** | Phase 4.2 + Phase 5 internal channel                                  | **4.2 done.** Stream an internal answer                     |
 | **C2** | Phase 3.3 + 4.3: Knowledge and Tools screens                          | Upload and register from the dashboard                       |
 | **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | Internal Q&A and HITL against a registered HTTP tool        |
 | **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | Script tag on an example host                               |
