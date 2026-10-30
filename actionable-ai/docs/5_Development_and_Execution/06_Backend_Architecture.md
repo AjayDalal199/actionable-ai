@@ -346,7 +346,7 @@ Widget JWT (B4) is **designed now**, implemented when the widget exists (Phase 6
 | B5 | Ingestion runner | **Decided** | FastAPI `BackgroundTasks` first; ARQ (or TaskIQ) when Redis exists |
 | B6 | HITL store | **Decided** | Redis (not a Postgres row) for pause/resume |
 | B7 | LLM / graph | **Decided** | In-process LangGraph in `services/chat/` |
-| B8 | File bytes | **Decided** | Local volume in Compose for MVP; hide behind `services/knowledge/storage.py` so S3 can swap later |
+| B8 | File bytes | **Decided** | Boot volume on each VM (~80 GB, shared with OS, images, and Postgres). Docker named volume. No object storage for MVP. Hide behind `services/knowledge/storage.py` |
 
 
 ---

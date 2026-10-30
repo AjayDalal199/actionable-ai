@@ -44,7 +44,7 @@ That is **one container image**, one public hostname per environment. Do not spl
 | When | Add |
 | --- | --- |
 | Phase 2 | `pgvector` on Postgres; Redis; `REDIS_URL` |
-| Phase 2–3 | Persistent volume for uploaded files (local disk; S3-compatible later) |
+| Phase 2–3 | Docker named volume for uploads on the VM boot disk (~80 GB). No object storage |
 | Reliable ingestion (after first Knowledge spike) | Worker process (ARQ / TaskIQ) sharing the backend image |
 | Phase 6 | Widget static file in the backend image (or Traefik file server) |
 
@@ -199,7 +199,6 @@ Add when those phases land (still unique per env):
 | --- | --- | --- |
 | `OPENAI_API_KEY` | 3 | Staging can use a separate OpenAI project with a hard spend cap |
 | `REDIS_URL` | 2 | Internal Compose DNS, e.g. `redis://redis:6379/0` — not public |
-| Object-storage credentials | when S3 replaces local volume | |
 
 Workspace widget JWT secrets live **in the database per workspace**, not in env (backend B4). Env only holds *our* signing key for dashboard users.
 
@@ -231,7 +230,7 @@ Internet
 backend → Postgres (volume app-db-data)
 backend → Redis     (Phase 2)
 worker  → Postgres + Redis   (when ingestion leaves BackgroundTasks)
-backend → disk volume for uploads (Phase 2.3)
+backend → upload volume on the boot disk (Phase 2.3)
 ```
 
 **Project name** must include the environment (`COMPOSE_PROJECT_NAME=a2i-staging` / `a2i-prod`).
@@ -261,9 +260,11 @@ backend → disk volume for uploads (Phase 2.3)
 | | Staging | Production |
 | --- | --- | --- |
 | Postgres volume | Persistent, but wipeable | Persistent |
-| Backups | Optional | **Required before first real client:** nightly `pg_dump` (or volume snapshot) off-box, tested restore quarterly |
-| Uploaded files | Local volume | Local volume until S3; then bucket with versioning |
+| Backups | Optional | **Required before first real client:** nightly `pg_dump` (or volume snapshot) off-box, tested restore quarterly. Also copy the upload directory; a database dump does not contain the files |
+| Uploaded files | Docker volume on the ~80 GB boot disk. Wipeable with the VM | Same disk. Shared with the OS, images, and Postgres |
 | Redis | Ephemeral OK (HITL state is short-lived) | Ephemeral OK for MVP; losing Redis aborts in-flight HITL, not the document corpus |
+
+Uploads do not use object storage. Each VM’s boot volume is the store (about 80 GB). At a 10 MB cap that holds a small beta after leaving room for the OS, images, and Postgres. Prune unused images so the disk does not fill. Revisit only when free space on either VM gets tight.
 
 Never point a local laptop at the production `DATABASE_URL`. Never copy production dumps into Slack.
 

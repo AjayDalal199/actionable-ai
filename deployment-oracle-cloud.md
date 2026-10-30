@@ -41,7 +41,7 @@ Home region only. Retry another availability domain if Ampere is out of capacity
 3. Launch **two** Always Free Ampere instances, each:
    - Image: Ubuntu **Always Free Eligible** (ARM)
    - Shape: `VM.Standard.A1.Flex`, **1 OCPU**, **6 GB**
-   - Boot volume **70–80 GB** (200 GB Always Free total for both)
+   - Boot volume **70–80 GB** (200 GB Always Free total for both). This disk is also the MVP upload store: a Docker named volume on the boot volume, no object storage and no extra block volume
    - Public IPv4, SSH public key, no password SSH
    - Names: `a2i-staging`, `a2i-prod`
 4. DNS at dactionlabs.com:
@@ -169,6 +169,6 @@ docker compose -f compose.yml -f compose.deploy.yml up -d
 - Ampere Always Free is often out of capacity; two 1-OCPU instances can be harder to place than one 2-OCPU instance.
 - Let’s Encrypt fails if DNS does not already point at **that** VM, or if Traefik flaps (rate limits).
 - A timeout on ports 80 and 443 with SSH still working means the subnet security list is missing those ports, or the VM `iptables` ACCEPT rules sit below the REJECT rule. `sudo iptables -L INPUT --line-numbers` should show 80 and 443 before REJECT.
-- ARM `compose build` on 6 GB needs the 4 GB swap. Prune unused Docker images so the 80 GB boot volume does not fill.
+- ARM `compose build` on 6 GB needs the 4 GB swap. Prune unused Docker images so the 80 GB boot volume does not fill. That disk also holds original uploads (10 MB cap). Leave room for the OS, images, and Postgres.
+- Five Always Free volume backups + 20 GB Object Storage are for the **prod database dump**, not for application uploads. Copy the upload directory off-box before the first real client. Staging may be wiped.
 - Staging’s Docker socket cannot reach production. Still never put production secrets on the staging Environment.
-- Five Always Free volume backups + 20 GB Object Storage: dump **prod**. Staging may be wiped.

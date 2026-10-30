@@ -17,7 +17,7 @@
 
 - `[ ]` Enable pgvector; add Document / DocumentChunk / ToolRegistry / GithubRepository (table only)
 - `[ ]` Add Redis to Compose and `REDIS_URL`
-- `[ ]` Decide local volume vs S3 for original uploads (document the choice)
+- `[x]` Original uploads live on each VM’s ~80 GB boot volume (no object storage). See Phase 2.3
 
 **Done when:** Postgres has pgvector, Redis is in Compose, and the schema in `02_Database_Schema.md` exists (including forward-looking `GithubRepository` with **no** sync logic). Dashboard UI can trail matching APIs.
 
@@ -213,7 +213,13 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 ### 2.3 Object / file storage for uploads
 
-- `[ ]` Decide store: local volume for MVP Docker, S3-compatible later — document the choice
+**Decided (2026-10-30):** Original files live on the VM boot volume. Staging and production each have about **80 GB** and no object storage. A Docker named volume on that disk holds the bytes (Docker’s data root is already there). Local Compose uses the same kind of volume. Do not add a separate block volume for MVP.
+
+The disk is shared with the OS, images, and Postgres. Keep the **10MB** upload cap and prune unused images so the volume does not fill. A container recreate keeps the files; deleting the VM or the Docker volume does not. `pg_dump` does not include them — before the first real production client, the off-box backup must copy this directory too. Staging may still be wiped.
+
+A later object store can replace the directory behind `services/knowledge/storage.py`. Routes must not assume a filesystem path.
+
+- `[x]` Store: boot-volume disk on each VM (this section, deployment strategy §9, Oracle guide)
 - `[ ]` Persist original file bytes keyed by `document_id` (needed to re-process on failure)
 - `[ ]` Max size **10MB** to match the Knowledge UI spec (API contract said 50MB — **implement 10MB** and update the API contract)
 
