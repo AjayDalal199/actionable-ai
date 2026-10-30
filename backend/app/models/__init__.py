@@ -19,7 +19,16 @@ from app.models.item import (
     ItemsPublic,
     ItemUpdate,
 )
-from app.models.tool_registry import HttpMethod, ToolKind, ToolRegistry
+from app.models.tool_registry import (
+    HttpMethod,
+    ToolKind,
+    ToolPublic,
+    ToolRegister,
+    ToolRegisterResponse,
+    ToolRegistry,
+    ToolsPublic,
+    ToolUpdate,
+)
 from app.models.user import (
     UpdatePassword,
     User,
@@ -73,7 +82,12 @@ __all__ = [
     "Token",
     "TokenPayload",
     "ToolKind",
+    "ToolPublic",
+    "ToolRegister",
+    "ToolRegisterResponse",
     "ToolRegistry",
+    "ToolUpdate",
+    "ToolsPublic",
     "UpdatePassword",
     "User",
     "UserBase",

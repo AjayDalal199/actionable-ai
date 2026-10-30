@@ -1,7 +1,8 @@
 import uuid
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
+from pydantic import ConfigDict
 from sqlalchemy import Column, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
@@ -45,3 +46,47 @@ class ToolRegistry(SQLModel, table=True):
     description: str = Field(default="", sa_type=Text())
     is_active: bool = True
     workspace: Workspace | None = Relationship(back_populates="tools")
+
+
+class ToolRegister(SQLModel):
+    model_config = ConfigDict(populate_by_name=True)  # type: ignore[assignment]
+
+    name: str
+    kind: ToolKind | None = None
+    http_method: HttpMethod | None = None
+    url: str | None = None
+    requires_hitl: bool = False
+    description: str = ""
+    tool_schema: dict[str, Any] = Field(alias="schema")
+
+
+class ToolUpdate(SQLModel):
+    model_config = ConfigDict(populate_by_name=True)  # type: ignore[assignment]
+
+    http_method: HttpMethod | None = None
+    url: str | None = None
+    description: str | None = None
+    requires_hitl: bool | None = None
+    tool_schema: dict[str, Any] | None = Field(default=None, alias="schema")
+
+
+class ToolPublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    kind: ToolKind
+    http_method: HttpMethod | None
+    url: str | None
+    tool_schema: dict[str, Any] = Field(serialization_alias="schema")
+    requires_hitl: bool
+    description: str
+    is_active: bool
+
+
+class ToolsPublic(SQLModel):
+    data: list[ToolPublic]
+    count: int
+
+
+class ToolRegisterResponse(SQLModel):
+    tool_id: uuid.UUID
+    status: Literal["active"]

@@ -13,15 +13,18 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 4 tool registry APIs. Do not start the widget, the Knowledge dashboard UI, or the Tools UI yet.
+**Task:** Phase 4.2 API Request Engine. Do not start the widget, the Knowledge dashboard UI, or the Tools dashboard UI yet.
 
-- `[ ]` `POST /api/v1/tools/register` forces `requires_hitl=true` for POST/PUT/DELETE
-- `[ ]` List, get, update, and delete tools for the current workspace
-- `[ ]` Editor registers; Viewer cannot; duplicate names return 409
+- `[ ]` HTTP client with timeouts
+- `[ ]` Block obvious SSRF: localhost, link-local, private RFC1918, and cloud metadata hosts
+- `[ ]` HTTPS required except localhost for integrator testing
+- `[ ]` Pass the end-user JWT through as `Authorization: Bearer`
+- `[ ]` Map non-2xx to a structured error the model can explain
+- `[ ]` Retry once on 502/503
 
-**Done when:** An Editor can register an HTTPS (or localhost) endpoint with a JSON schema, and a write method cannot be saved with HITL off.
+**Done when:** The server can call a registered HTTPS tool with a timeout, refuse a private or metadata address, forward an end-user JWT, and return a real error on non-2xx.
 
-**After that (not now):** Phase 4.2 API Request Engine, then the chat orchestrator. Knowledge dashboard UI stays in Phase 3.3.
+**After that (not now):** the chat orchestrator. Knowledge dashboard UI stays in Phase 3.3. Tools dashboard UI stays in Phase 4.3.
 
 ---
 
@@ -286,17 +289,17 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.
 
 ### 4.1 Tool APIs
 
-- `[ ]` `POST /api/v1/tools/register` — body per API contract; force `requires_hitl=true` for POST/PUT/DELETE even if client sends false
-- `[ ]` `GET /api/v1/tools` — list
-- `[ ]` `GET /api/v1/tools/{id}`
-- `[ ]` `PATCH /api/v1/tools/{id}` — edit schema/url/description
-- `[ ]` `DELETE /api/v1/tools/{id}` (or deactivate)
-- `[ ]` Validate: `name` snake_case `^[a-z0-9_]+$`; unique per workspace (409)
-- `[ ]` Validate JSON Schema is an object with `type` / `properties`
-- `[ ]` Tool kinds for MVP:
+- `[x]` `POST /api/v1/tools/register` — body per API contract; force `requires_hitl=true` for POST/PUT/DELETE even if client sends false
+- `[x]` `GET /api/v1/tools` — list
+- `[x]` `GET /api/v1/tools/{id}`
+- `[x]` `PATCH /api/v1/tools/{id}` — edit schema/url/description
+- `[x]` `DELETE /api/v1/tools/{id}` (or deactivate)
+- `[x]` Validate: `name` snake_case `^[a-z0-9_]+$`; unique per workspace (409)
+- `[x]` Validate JSON Schema is an object with `type` / `properties`
+- `[x]` Tool kinds for MVP:
   - **HTTP:** method + URL + schema (server-side execution via our API Request Engine)
   - **JS:** name + schema only (execution happens in the host page; we emit a tool-call event to the widget)
-- `[ ]` Tests: HITL hard-lock, 409 duplicate, Viewer cannot register
+- `[x]` Tests: HITL hard-lock, 409 duplicate, Viewer cannot register
 
 
 

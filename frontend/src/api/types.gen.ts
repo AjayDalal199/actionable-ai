@@ -122,6 +122,11 @@ export type HTTPValidationError = {
 };
 
 /**
+ * HttpMethod
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+/**
  * InvitationStatus
  */
 export type InvitationStatus = 'pending' | 'accepted' | 'declined';
@@ -252,6 +257,132 @@ export type Token = {
      * Token Type
      */
     token_type?: string;
+};
+
+/**
+ * ToolKind
+ */
+export type ToolKind = 'http' | 'js';
+
+/**
+ * ToolPublic
+ */
+export type ToolPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    kind: ToolKind;
+    http_method: HttpMethod | null;
+    /**
+     * Url
+     */
+    url: string | null;
+    /**
+     * Schema
+     */
+    schema: {
+        [key: string]: unknown;
+    };
+    /**
+     * Requires Hitl
+     */
+    requires_hitl: boolean;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+};
+
+/**
+ * ToolRegister
+ */
+export type ToolRegister = {
+    /**
+     * Name
+     */
+    name: string;
+    kind?: ToolKind | null;
+    http_method?: HttpMethod | null;
+    /**
+     * Url
+     */
+    url?: string | null;
+    /**
+     * Requires Hitl
+     */
+    requires_hitl?: boolean;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Schema
+     */
+    schema: {
+        [key: string]: unknown;
+    };
+};
+
+/**
+ * ToolRegisterResponse
+ */
+export type ToolRegisterResponse = {
+    /**
+     * Tool Id
+     */
+    tool_id: string;
+    /**
+     * Status
+     */
+    status: 'active';
+};
+
+/**
+ * ToolUpdate
+ */
+export type ToolUpdate = {
+    http_method?: HttpMethod | null;
+    /**
+     * Url
+     */
+    url?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Requires Hitl
+     */
+    requires_hitl?: boolean | null;
+    /**
+     * Schema
+     */
+    schema?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
+ * ToolsPublic
+ */
+export type ToolsPublic = {
+    /**
+     * Data
+     */
+    data: Array<ToolPublic>;
+    /**
+     * Count
+     */
+    count: number;
 };
 
 /**
@@ -1584,6 +1715,155 @@ export type knowledgeReadDocumentResponses = {
 };
 
 export type knowledgeReadDocumentResponse = knowledgeReadDocumentResponses[keyof knowledgeReadDocumentResponses];
+
+export type toolsRegisterToolData = {
+    body: ToolRegister;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tools/register';
+};
+
+export type toolsRegisterToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsRegisterToolError = toolsRegisterToolErrors[keyof toolsRegisterToolErrors];
+
+export type toolsRegisterToolResponses = {
+    /**
+     * Successful Response
+     */
+    201: ToolRegisterResponse;
+};
+
+export type toolsRegisterToolResponse = toolsRegisterToolResponses[keyof toolsRegisterToolResponses];
+
+export type toolsReadToolsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/tools';
+};
+
+export type toolsReadToolsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsReadToolsError = toolsReadToolsErrors[keyof toolsReadToolsErrors];
+
+export type toolsReadToolsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToolsPublic;
+};
+
+export type toolsReadToolsResponse = toolsReadToolsResponses[keyof toolsReadToolsResponses];
+
+export type toolsRemoveToolData = {
+    body?: never;
+    path: {
+        /**
+         * Tool Id
+         */
+        tool_id: string;
+    };
+    query?: never;
+    url: '/api/v1/tools/{tool_id}';
+};
+
+export type toolsRemoveToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsRemoveToolError = toolsRemoveToolErrors[keyof toolsRemoveToolErrors];
+
+export type toolsRemoveToolResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type toolsRemoveToolResponse = toolsRemoveToolResponses[keyof toolsRemoveToolResponses];
+
+export type toolsReadToolData = {
+    body?: never;
+    path: {
+        /**
+         * Tool Id
+         */
+        tool_id: string;
+    };
+    query?: never;
+    url: '/api/v1/tools/{tool_id}';
+};
+
+export type toolsReadToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsReadToolError = toolsReadToolErrors[keyof toolsReadToolErrors];
+
+export type toolsReadToolResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToolPublic;
+};
+
+export type toolsReadToolResponse = toolsReadToolResponses[keyof toolsReadToolResponses];
+
+export type toolsUpdateToolData = {
+    body: ToolUpdate;
+    path: {
+        /**
+         * Tool Id
+         */
+        tool_id: string;
+    };
+    query?: never;
+    url: '/api/v1/tools/{tool_id}';
+};
+
+export type toolsUpdateToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsUpdateToolError = toolsUpdateToolErrors[keyof toolsUpdateToolErrors];
+
+export type toolsUpdateToolResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToolPublic;
+};
+
+export type toolsUpdateToolResponse = toolsUpdateToolResponses[keyof toolsUpdateToolResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

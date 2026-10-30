@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, knowledgeReadDocumentData, knowledgeReadDocumentErrors, knowledgeReadDocumentResponses, knowledgeReadDocumentsData, knowledgeReadDocumentsErrors, knowledgeReadDocumentsResponses, knowledgeRemoveDocumentData, knowledgeRemoveDocumentErrors, knowledgeRemoveDocumentResponses, knowledgeUploadKnowledgeData, knowledgeUploadKnowledgeErrors, knowledgeUploadKnowledgeResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspaceMeResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMeResponses } from './types.gen';
+import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, knowledgeReadDocumentData, knowledgeReadDocumentErrors, knowledgeReadDocumentResponses, knowledgeReadDocumentsData, knowledgeReadDocumentsErrors, knowledgeReadDocumentsResponses, knowledgeRemoveDocumentData, knowledgeRemoveDocumentErrors, knowledgeRemoveDocumentResponses, knowledgeUploadKnowledgeData, knowledgeUploadKnowledgeErrors, knowledgeUploadKnowledgeResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, toolsReadToolData, toolsReadToolErrors, toolsReadToolResponses, toolsReadToolsData, toolsReadToolsErrors, toolsReadToolsResponses, toolsRegisterToolData, toolsRegisterToolErrors, toolsRegisterToolResponses, toolsRemoveToolData, toolsRemoveToolErrors, toolsRemoveToolResponses, toolsUpdateToolData, toolsUpdateToolErrors, toolsUpdateToolResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspaceMeResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMeResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -606,6 +606,90 @@ export class KnowledgeService {
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/knowledge/documents/{document_id}',
             ...options
+        });
+    }
+}
+
+export class ToolsService {
+    /**
+     * Register Tool
+     *
+     * Register an HTTP or JS tool for the current workspace.
+     *
+     * HTTP tools include a method and URL. JS tools send a name and schema, with
+     * kind "js" or with no method and no URL. POST, PUT, and DELETE are stored
+     * with requires_hitl true. The URL is not called.
+     */
+    public static registerTool<ThrowOnError extends boolean = true>(options: Options<toolsRegisterToolData, ThrowOnError>) {
+        return (options.client ?? client).post<toolsRegisterToolResponses, toolsRegisterToolErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/tools/register',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Read Tools
+     *
+     * List tools in the current workspace.
+     */
+    public static readTools<ThrowOnError extends boolean = true>(options?: Options<toolsReadToolsData, ThrowOnError>) {
+        return (options?.client ?? client).get<toolsReadToolsResponses, toolsReadToolsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/tools',
+            ...options
+        });
+    }
+    
+    /**
+     * Remove Tool
+     *
+     * Delete a tool row from the current workspace.
+     */
+    public static removeTool<ThrowOnError extends boolean = true>(options: Options<toolsRemoveToolData, ThrowOnError>) {
+        return (options.client ?? client).delete<toolsRemoveToolResponses, toolsRemoveToolErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/tools/{tool_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Tool
+     *
+     * Get one tool in the current workspace.
+     */
+    public static readTool<ThrowOnError extends boolean = true>(options: Options<toolsReadToolData, ThrowOnError>) {
+        return (options.client ?? client).get<toolsReadToolResponses, toolsReadToolErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/tools/{tool_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Tool
+     *
+     * Edit schema, URL, description, or method for a tool in this workspace.
+     */
+    public static updateTool<ThrowOnError extends boolean = true>(options: Options<toolsUpdateToolData, ThrowOnError>) {
+        return (options.client ?? client).patch<toolsUpdateToolResponses, toolsUpdateToolErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/tools/{tool_id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
         });
     }
 }
