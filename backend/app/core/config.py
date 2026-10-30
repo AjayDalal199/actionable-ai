@@ -11,6 +11,8 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.embeddings import EMBEDDING_DIMENSION, EMBEDDING_MODEL
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -38,6 +40,30 @@ class Settings(BaseSettings):
             if database_url.startswith(scheme):
                 return database_url.replace(scheme, "postgresql+psycopg://", 1)
         return database_url
+
+    # Fixed to match document_chunk.embedding. A change needs a migration.
+    EMBEDDING_MODEL: str = EMBEDDING_MODEL
+    EMBEDDING_DIMENSION: int = EMBEDDING_DIMENSION
+
+    @field_validator("EMBEDDING_MODEL")
+    @classmethod
+    def _embedding_model_matches_column(cls, value: str) -> str:
+        if value != EMBEDDING_MODEL:
+            raise ValueError(
+                f"EMBEDDING_MODEL stays {EMBEDDING_MODEL} until a migration "
+                "changes document_chunk.embedding."
+            )
+        return value
+
+    @field_validator("EMBEDDING_DIMENSION")
+    @classmethod
+    def _embedding_dimension_matches_column(cls, value: int) -> int:
+        if value != EMBEDDING_DIMENSION:
+            raise ValueError(
+                f"EMBEDDING_DIMENSION stays {EMBEDDING_DIMENSION} to match "
+                "document_chunk.embedding. Change it only in a migration."
+            )
+        return value
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False

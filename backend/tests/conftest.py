@@ -8,7 +8,16 @@ import tests.configure as _configure_test_database  # noqa: F401
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import Item, User, Workspace, WorkspaceMembership
+from app.models import (
+    Document,
+    DocumentChunk,
+    GithubRepository,
+    Item,
+    ToolRegistry,
+    User,
+    Workspace,
+    WorkspaceMembership,
+)
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -22,8 +31,8 @@ def db() -> Generator[Session]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        statement = delete(Item)
-        session.execute(statement)
+        for model in (DocumentChunk, Document, ToolRegistry, GithubRepository, Item):
+            session.execute(delete(model))
         statement = delete(WorkspaceMembership)
         session.execute(statement)
         statement = delete(User)

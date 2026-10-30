@@ -15,7 +15,7 @@
 
 **Task:** Phase 2 data plane. Do not start Knowledge APIs yet.
 
-- `[ ]` Enable pgvector; add Document / DocumentChunk / ToolRegistry / GithubRepository (table only)
+- `[x]` Enable pgvector; add Document / DocumentChunk / ToolRegistry / GithubRepository (table only)
 - `[ ]` Add Redis to Compose and `REDIS_URL`
 - `[x]` Original uploads live on each VM’s ~80 GB boot volume (no object storage). See Phase 2.3
 
@@ -191,14 +191,14 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 ### 2.1 PostgreSQL + pgvector
 
-- `[ ]` Enable `pgvector` on the app database (image/extension in Docker; local + deploy docs)
-- `[ ]` Confirm vector dimension (OpenAI `text-embedding-3-small` = 1536 unless we choose otherwise) and document it in config
-- `[ ]` Add `Document` (`workspace_id`, `title`, `type` pdf/markdown/text, `status` processing/active/failed, `original_filename`, `error_message`, `created_at`)
-- `[ ]` Add `DocumentChunk` (`document_id`, `content`, `embedding` vector, `chunk_index`, optional `metadata` JSONB)
-- `[ ]` IVFFlat or HNSW index on `embedding` (start with a simple index; tune later)
-- `[ ]` Add `ToolRegistry` (`workspace_id`, `name` unique per workspace, `kind` http/js, `http_method`, `url`, `schema` JSONB, `requires_hitl`, `description`, `is_active`)
-- `[ ]` Add `GithubRepository` **table only** (`workspace_id`, `url`, `target_branch`, `last_sync`) — no OAuth, no workers
-- `[ ]` Alembic migrations + model tests
+- `[x]` Enable `pgvector` on the app database (image `pgvector/pgvector:pg18`, extension in the migration)
+- `[x]` Vector dimension: OpenAI `text-embedding-3-small` = **1536**, fixed in `app/core/embeddings.py` and settings
+- `[x]` Add `Document` (`workspace_id`, `title`, `type` pdf/markdown/text, `status` processing/active/failed, `original_filename`, `error_message`, `created_at`)
+- `[x]` Add `DocumentChunk` (`document_id`, `content`, `embedding` vector, `chunk_index`, optional `metadata` JSONB)
+- `[x]` HNSW index on `embedding` with cosine ops (tune later)
+- `[x]` Add `ToolRegistry` (`workspace_id`, `name` unique per workspace, `kind` http/js, `http_method`, `url`, `schema` JSONB, `requires_hitl`, `description`, `is_active`)
+- `[x]` Add `GithubRepository` **table only** (`workspace_id`, `url`, `target_branch`, `last_sync`) — no OAuth, no workers
+- `[x]` Alembic migration `b7e2a1c94d08` + model tests
 
 
 

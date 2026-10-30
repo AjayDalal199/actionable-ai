@@ -35,7 +35,7 @@ That is **one container image**, one public hostname per environment. Do not spl
 **Runtime today**
 
 - Traefik (HTTP → HTTPS, Let's Encrypt)
-- PostgreSQL 18
+- PostgreSQL 18 with pgvector (`pgvector/pgvector:pg18`)
 - FastAPI (`fastapi run --workers 4`)
 - Adminer (local / staging only)
 
@@ -43,7 +43,7 @@ That is **one container image**, one public hostname per environment. Do not spl
 
 | When | Add |
 | --- | --- |
-| Phase 2 | `pgvector` on Postgres; Redis; `REDIS_URL` |
+| Phase 2 | Redis; `REDIS_URL` (pgvector is already on Postgres) |
 | Phase 2–3 | Docker named volume for uploads on the VM boot disk (~80 GB). No object storage |
 | Reliable ingestion (after first Knowledge spike) | Worker process (ARQ / TaskIQ) sharing the backend image |
 | Phase 6 | Widget static file in the backend image (or Traefik file server) |

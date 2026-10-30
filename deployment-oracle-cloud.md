@@ -170,5 +170,6 @@ docker compose -f compose.yml -f compose.deploy.yml up -d
 - Let’s Encrypt fails if DNS does not already point at **that** VM, or if Traefik flaps (rate limits).
 - A timeout on ports 80 and 443 with SSH still working means the subnet security list is missing those ports, or the VM `iptables` ACCEPT rules sit below the REJECT rule. `sudo iptables -L INPUT --line-numbers` should show 80 and 443 before REJECT.
 - ARM `compose build` on 6 GB needs the 4 GB swap. Prune unused Docker images so the 80 GB boot volume does not fill. That disk also holds original uploads (10 MB cap). Leave room for the OS, images, and Postgres.
+- The database image is `pgvector/pgvector:pg18`, not stock Postgres. An existing Postgres 18 data volume can stay; recreate the container before migrating so `CREATE EXTENSION vector` succeeds.
 - Five Always Free volume backups + 20 GB Object Storage are for the **prod database dump**, not for application uploads. Copy the upload directory off-box before the first real client. Staging may be wiped.
 - Staging’s Docker socket cannot reach production. Still never put production secrets on the staging Environment.

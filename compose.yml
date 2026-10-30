@@ -18,7 +18,8 @@ services:
       - --log
 
   db:
-    image: postgres:18
+    # Postgres 18 plus pgvector. Existing Postgres 18 volumes can stay.
+    image: pgvector/pgvector:pg18
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
       interval: 10s

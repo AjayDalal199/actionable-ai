@@ -32,7 +32,7 @@ Split into real services (chat vs knowledge vs tools) only when a single process
 | ------------- | --------------------------------------------- | --------------------------------------------------------------- |
 | API           | FastAPI, Python ≥ 3.14                        | Sync route handlers (`def`, not `async def`) almost everywhere  |
 | ORM           | SQLModel                                      | Tables + request/response schemas in `app/models.py`            |
-| DB            | PostgreSQL 18 (Compose)                       | Alembic migrations. `create_all` is commented out               |
+| DB            | PostgreSQL 18 + pgvector (Compose)            | Image `pgvector/pgvector:pg18`. Alembic migrations. `create_all` is commented out |
 | Auth          | JWT (HS256), OAuth2 password form             | One token type: dashboard user id in `sub`                      |
 | Password      | pwdlib Argon2 (+ bcrypt verify)               |                                                                 |
 | Config        | `pydantic-settings` from root `.env`          |                                                                 |
@@ -42,7 +42,7 @@ Split into real services (chat vs knowledge vs tools) only when a single process
 | Serve UI      | `app.frontend("/", directory=FRONTEND_DIR)`   | Built SPA copied into `backend/app/frontend`                    |
 
 
-There is **no** pgvector, Redis, LangGraph, OpenAI client, object storage, or job queue in code yet. Compose services: Traefik, Postgres, Adminer, backend. Mailcatcher is in override.
+pgvector is enabled: extension `vector`, and `document_chunk.embedding` at 1536 dimensions. There is **no** Redis, LangGraph, OpenAI client, object storage, or job queue in code yet. Compose services: Traefik, Postgres, Adminer, backend. Mailcatcher is in override.
 
 ---
 

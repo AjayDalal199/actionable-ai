@@ -10,6 +10,9 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.base import get_datetime_utc
 
 if TYPE_CHECKING:
+    from app.models.document import Document
+    from app.models.github_repository import GithubRepository
+    from app.models.tool_registry import ToolRegistry
     from app.models.user import User
 
 
@@ -69,6 +72,15 @@ class Workspace(SQLModel, table=True):
         unique=True,
     )
     memberships: list[WorkspaceMembership] = Relationship(
+        back_populates="workspace", cascade_delete=True
+    )
+    documents: list["Document"] = Relationship(  # noqa: UP037
+        back_populates="workspace", cascade_delete=True
+    )
+    tools: list["ToolRegistry"] = Relationship(  # noqa: UP037
+        back_populates="workspace", cascade_delete=True
+    )
+    github_repositories: list["GithubRepository"] = Relationship(  # noqa: UP037
         back_populates="workspace", cascade_delete=True
     )
 

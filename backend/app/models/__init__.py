@@ -1,6 +1,8 @@
 from sqlmodel import SQLModel
 
 from app.models.auth import Message, NewPassword, Token, TokenPayload
+from app.models.document import Document, DocumentChunk, DocumentStatus, DocumentType
+from app.models.github_repository import GithubRepository
 from app.models.item import (
     Item,
     ItemBase,
@@ -9,6 +11,7 @@ from app.models.item import (
     ItemsPublic,
     ItemUpdate,
 )
+from app.models.tool_registry import HttpMethod, ToolKind, ToolRegistry
 from app.models.user import (
     UpdatePassword,
     User,
@@ -40,6 +43,12 @@ from app.models.workspace import (
 )
 
 __all__ = [
+    "Document",
+    "DocumentChunk",
+    "DocumentStatus",
+    "DocumentType",
+    "GithubRepository",
+    "HttpMethod",
     "InvitationStatus",
     "Item",
     "ItemBase",
@@ -52,6 +61,8 @@ __all__ = [
     "SQLModel",
     "Token",
     "TokenPayload",
+    "ToolKind",
+    "ToolRegistry",
     "UpdatePassword",
     "User",
     "UserBase",
