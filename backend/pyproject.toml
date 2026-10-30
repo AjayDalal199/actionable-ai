@@ -1,6 +1,6 @@
 [project]
 name = "app"
-version = "0.1.0"
+version = "0.1.1"
 description = "Actionable AI API"
 requires-python = ">=3.14,<4.0"
 dependencies = [
