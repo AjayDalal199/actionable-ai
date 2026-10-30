@@ -9,10 +9,10 @@ FastAPI modular monolith: JWT auth today; workspaces, knowledge, tools, and chat
 
 ## Local development
 
-From the repo root, start PostgreSQL and Mailcatcher:
+From the repo root, start PostgreSQL, Redis, and Mailcatcher:
 
 ```console
-$ docker compose up -d db mailcatcher
+$ docker compose up -d db redis mailcatcher
 ```
 
 From `./backend/`:

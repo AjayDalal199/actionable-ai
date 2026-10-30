@@ -32,6 +32,18 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Variable not set}
       - POSTGRES_DB=app
 
+  redis:
+    # Ephemeral. HITL pauses live here later; documents stay in Postgres.
+    # No host port in this file. compose.override.yml publishes 6380 for local pytest.
+    image: redis:8
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 5s
+
   adminer:
     image: adminer
     depends_on:
@@ -51,6 +63,9 @@ services:
       db:
         condition: service_healthy
         restart: true
+      redis:
+        condition: service_healthy
+        restart: true
     environment:
       PROJECT_NAME: ${PROJECT_NAME:?Variable not set}
       SECRET_KEY: ${SECRET_KEY:?Variable not set}
@@ -61,6 +76,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
+      REDIS_URL: redis://redis:6379/0
       SENTRY_DSN: ${SENTRY_DSN:-}
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
 

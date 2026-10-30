@@ -36,6 +36,7 @@ That is **one container image**, one public hostname per environment. Do not spl
 
 - Traefik (HTTP → HTTPS, Let's Encrypt)
 - PostgreSQL 18 with pgvector (`pgvector/pgvector:pg18`)
+- Redis 8 (ephemeral, Compose network only)
 - FastAPI (`fastapi run --workers 4`)
 - Adminer (local / staging only)
 
@@ -43,8 +44,7 @@ That is **one container image**, one public hostname per environment. Do not spl
 
 | When | Add |
 | --- | --- |
-| Phase 2 | Redis; `REDIS_URL` (pgvector is already on Postgres) |
-| Phase 2–3 | Docker named volume for uploads on the VM boot disk (~80 GB). No object storage |
+| Phase 3 | Docker named volume for uploads on the VM boot disk (~80 GB). No object storage |
 | Reliable ingestion (after first Knowledge spike) | Worker process (ARQ / TaskIQ) sharing the backend image |
 | Phase 6 | Widget static file in the backend image (or Traefik file server) |
 
@@ -228,7 +228,7 @@ Internet
       → adminer         (staging labels only)
 
 backend → Postgres (volume app-db-data)
-backend → Redis     (Phase 2)
+backend → Redis     (ephemeral, no volume)
 worker  → Postgres + Redis   (when ingestion leaves BackgroundTasks)
 backend → upload volume on the boot disk (Phase 2.3)
 ```
@@ -237,7 +237,7 @@ backend → upload volume on the boot disk (Phase 2.3)
 
 **Adminer in production:** omit the service or do not set `traefik.enable=true`. Inspect Postgres with an SSH tunnel (`kubectl` is not a substitute we have).
 
-**Health:** keep `/api/v1/utils/health-check/`. When Redis exists, that check must fail if Redis is down (task Phase 2.2). Traefik should not route to an unhealthy backend.
+**Health:** `/api/v1/utils/health-check/` pings Redis and returns 503 when Redis is down. Traefik should not route to an unhealthy backend.
 
 **Restarts:** `restart: always` on remote services (already in `compose.deploy.yml`). Unattended-upgrades / Docker restart on reboot.
 

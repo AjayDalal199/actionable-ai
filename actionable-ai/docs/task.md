@@ -13,15 +13,15 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 2 data plane. Do not start Knowledge APIs yet.
+**Task:** Phase 3 knowledge ingestion. Do not start tool APIs or the widget yet.
 
-- `[x]` Enable pgvector; add Document / DocumentChunk / ToolRegistry / GithubRepository (table only)
-- `[ ]` Add Redis to Compose and `REDIS_URL`
-- `[x]` Original uploads live on each VM’s ~80 GB boot volume (no object storage). See Phase 2.3
+- `[ ]` Persist original uploads on the boot-volume disk, keyed by `document_id` (10MB cap)
+- `[ ]` `POST /api/v1/knowledge/upload` returns `processing`; a background task extracts, chunks, and embeds
+- `[ ]` List and delete documents for the current workspace (Editor writes, Viewer reads)
 
-**Done when:** Postgres has pgvector, Redis is in Compose, and the schema in `02_Database_Schema.md` exists (including forward-looking `GithubRepository` with **no** sync logic). Dashboard UI can trail matching APIs.
+**Done when:** An Editor uploads a PDF or Markdown file, status goes Processing → Active (or Failed), and chunks are queryable with cosine similarity.
 
-**After that (not now):** Phase 3 knowledge ingestion.
+**After that (not now):** Phase 4 tool registry APIs.
 
 ---
 
@@ -204,10 +204,10 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 ### 2.2 Redis
 
-- `[ ]` Add Redis service to `compose.yml` / deploy compose
-- `[ ]` App settings: `REDIS_URL`
+- `[x]` Add Redis to `compose.yml` and `compose.deploy.yml` (ephemeral, Docker network only; local port 6380)
+- `[x]` App settings: `REDIS_URL` (required outside development; Compose sets `redis://redis:6379/0`)
 - `[ ]` Use Redis for: HITL pending-action state, SSE/pubsub if needed, and a **basic** rate-limit counter (Phase 8)
-- `[ ]` Health check includes Redis
+- `[x]` Health check pings Redis and returns 503 when it is down
 
 
 

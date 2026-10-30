@@ -2,7 +2,7 @@
 
 ## Local development
 
-Run PostgreSQL and Mailcatcher with Docker Compose, and run the FastAPI and Vite servers on your machine.
+Run PostgreSQL, Redis, and Mailcatcher with Docker Compose, and run the FastAPI and Vite servers on your machine.
 
 Copy env defaults if you do not already have a local file (`.env` is gitignored):
 
@@ -13,7 +13,7 @@ cp .env.example .env
 Start supporting services:
 
 ```bash
-docker compose up -d db mailcatcher
+docker compose up -d db redis mailcatcher
 ```
 
 From `backend/`, install dependencies and prepare the database:

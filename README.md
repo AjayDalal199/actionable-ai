@@ -12,7 +12,7 @@ A developer can sign up, upload docs, register a tool, paste one script tag, and
 | [`backend/`](./backend/) | One FastAPI app: API under `/api/v1`, built SPA served from the same origin. Modular monolith. |
 | [`packages/`](./packages/) | React Email templates today. Embeddable widget later (`packages/widget`). |
 | [`actionable-ai/docs/`](./actionable-ai/docs/) | Product, architecture, and the MVP task list. |
-| [`compose.yml`](./compose.yml) | Local and remote stack: Traefik, PostgreSQL, backend. |
+| [`compose.yml`](./compose.yml) | Local and remote stack: Traefik, PostgreSQL, Redis, backend. |
 
 **Status:** Auth and the marketing site work. Architecture is locked. Workspaces, knowledge (RAG), tools, chat, and the widget are not built yet. Track progress in [task.md](./actionable-ai/docs/task.md).
 
@@ -24,8 +24,8 @@ This repo started from the [Full Stack FastAPI Template](https://github.com/fast
 - **Dashboard:** Vite, React, TypeScript, TanStack Query / Router, Tailwind, shadcn/ui
 - **Emails:** React Email → Jinja HTML
 - **Local / deploy:** Docker Compose, Traefik (HTTPS in deploy), Playwright, Pytest
-- **Database:** PostgreSQL 18 with pgvector (`text-embedding-3-small`, 1536 dimensions)
-- **Coming for MVP:** Redis, LangGraph, embeddable Shadow DOM widget
+- **Database:** PostgreSQL 18 with pgvector (`text-embedding-3-small`, 1536 dimensions), Redis 8
+- **Coming for MVP:** LangGraph, embeddable Shadow DOM widget
 
 Architecture (locked): frontend [Option A](./actionable-ai/docs/5_Development_and_Execution/05_Frontend_Architecture.md) — keep `frontend/` as-is; widget in `packages/widget`. Backend [Option B](./actionable-ai/docs/5_Development_and_Execution/06_Backend_Architecture.md) — models package, services, thin routes. One deployable, not microservices.
 
@@ -48,7 +48,7 @@ Requirements: [Docker](https://www.docker.com/), [uv](https://docs.astral.sh/uv/
 
 ```bash
 cp .env.example .env   # if you do not already have a local .env
-docker compose up -d db mailcatcher
+docker compose up -d db redis mailcatcher
 cd backend && uv sync && uv run bash scripts/prestart.sh && uv run fastapi dev
 ```
 

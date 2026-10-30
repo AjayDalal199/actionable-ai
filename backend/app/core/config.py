@@ -5,6 +5,7 @@ from pydantic import (
     EmailStr,
     HttpUrl,
     PostgresDsn,
+    RedisDsn,
     computed_field,
     field_validator,
     model_validator,
@@ -65,6 +66,10 @@ class Settings(BaseSettings):
             )
         return value
 
+    # Compose sets redis://redis:6379/0. Host pytest uses localhost:6380.
+    # Required when FASTAPI_ENV is unset (staging and production).
+    REDIS_URL: RedisDsn | None = None
+
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     SMTP_PORT: int = 587
@@ -110,6 +115,14 @@ class Settings(BaseSettings):
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
+        if self.REDIS_URL is None:
+            if self.FASTAPI_ENV == "development":
+                self.REDIS_URL = RedisDsn("redis://localhost:6380/0")
+            else:
+                raise ValueError(
+                    "REDIS_URL is required. Point it at the Compose Redis, "
+                    "for example redis://redis:6379/0."
+                )
 
         return self
 

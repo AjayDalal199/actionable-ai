@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic.networks import EmailStr
+from redis.exceptions import RedisError
 
 from app.api.deps import get_current_active_superuser
+from app.core.redis import ping_redis
 from app.models import Message
 from app.utils import generate_test_email, send_email
 
@@ -28,4 +30,8 @@ def test_email(email_to: EmailStr) -> Message:
 
 @router.get("/health-check/")
 async def health_check() -> bool:
+    try:
+        await ping_redis()
+    except RedisError, OSError, TimeoutError:
+        raise HTTPException(status_code=503, detail="Redis unavailable") from None
     return True
