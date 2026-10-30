@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -24,6 +25,14 @@ from tests.utils.utils import get_superuser_token_headers
 
 def pytest_report_header() -> str:
     return f"test database: {str(settings.DATABASE_URL).rsplit('/', 1)[-1]}"
+
+
+@pytest.fixture(autouse=True)
+def knowledge_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    root = tmp_path / "knowledge"
+    root.mkdir()
+    monkeypatch.setattr(settings, "KNOWLEDGE_STORAGE_DIR", str(root))
+    return root
 
 
 @pytest.fixture(scope="session", autouse=True)

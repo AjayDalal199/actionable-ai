@@ -87,7 +87,7 @@ def test_embedding_dimension_rejects_override(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_embedding_model_rejects_override(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("EMBEDDING_MODEL", "text-embedding-3-large")
+    monkeypatch.setenv("EMBEDDING_MODEL", "gemini-embedding-001")
     with pytest.raises(ValidationError, match="document_chunk.embedding"):
         Settings()  # type: ignore[call-arg]
 

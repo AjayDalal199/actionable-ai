@@ -197,7 +197,7 @@ Add when those phases land (still unique per env):
 
 | Name | Phase | Notes |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | 3 | Staging can use a separate OpenAI project with a hard spend cap |
+| `GEMINI_API_KEY` | 3 | Gemini API key for embeddings now and chat later. Staging can use a separate key with a spend cap |
 | `REDIS_URL` | 2 | Internal Compose DNS, e.g. `redis://redis:6379/0` — not public |
 
 Workspace widget JWT secrets live **in the database per workspace**, not in env (backend B4). Env only holds *our* signing key for dashboard users.

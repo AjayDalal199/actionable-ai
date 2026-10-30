@@ -1,7 +1,15 @@
 from sqlmodel import SQLModel
 
 from app.models.auth import Message, NewPassword, Token, TokenPayload
-from app.models.document import Document, DocumentChunk, DocumentStatus, DocumentType
+from app.models.document import (
+    Document,
+    DocumentChunk,
+    DocumentPublic,
+    DocumentsPublic,
+    DocumentStatus,
+    DocumentType,
+    DocumentUploadResponse,
+)
 from app.models.github_repository import GithubRepository
 from app.models.item import (
     Item,
@@ -45,8 +53,11 @@ from app.models.workspace import (
 __all__ = [
     "Document",
     "DocumentChunk",
+    "DocumentPublic",
     "DocumentStatus",
     "DocumentType",
+    "DocumentUploadResponse",
+    "DocumentsPublic",
     "GithubRepository",
     "HttpMethod",
     "InvitationStatus",

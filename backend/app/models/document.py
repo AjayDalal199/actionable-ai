@@ -71,3 +71,24 @@ class DocumentChunk(SQLModel, table=True):
         sa_column=Column("metadata", JSONB, nullable=True),
     )
     document: Document | None = Relationship(back_populates="chunks")
+
+
+class DocumentPublic(SQLModel):
+    id: uuid.UUID
+    title: str
+    original_filename: str
+    type: DocumentType
+    status: DocumentStatus
+    error_message: str | None
+    created_at: datetime | None
+
+
+class DocumentsPublic(SQLModel):
+    data: list[DocumentPublic]
+    count: int
+
+
+class DocumentUploadResponse(SQLModel):
+    document_id: uuid.UUID
+    status: DocumentStatus
+    message: str

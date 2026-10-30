@@ -77,8 +77,14 @@ services:
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?Variable not set}@db:5432/app
       REDIS_URL: redis://redis:6379/0
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      CHAT_MODEL: ${CHAT_MODEL:-gemini-3.5-flash-lite}
+      KNOWLEDGE_STORAGE_DIR: /data/knowledge
       SENTRY_DSN: ${SENTRY_DSN:-}
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+    volumes:
+      # Original uploads on the VM boot disk. Docker's data root is already there.
+      - knowledge-uploads:/data/knowledge
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
@@ -98,3 +104,4 @@ services:
 
 volumes:
   app-db-data:
+  knowledge-uploads:

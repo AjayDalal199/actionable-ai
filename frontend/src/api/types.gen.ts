@@ -5,6 +5,16 @@ export type ClientOptions = {
 };
 
 /**
+ * Body_knowledge-upload_knowledge
+ */
+export type Body_knowledge_upload_knowledge = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * Body_login-login_access_token
  */
 export type Body_login_login_access_token = {
@@ -32,6 +42,73 @@ export type Body_login_login_access_token = {
      * Client Secret
      */
     client_secret?: string | null;
+};
+
+/**
+ * DocumentPublic
+ */
+export type DocumentPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Original Filename
+     */
+    original_filename: string;
+    type: DocumentType;
+    status: DocumentStatus;
+    /**
+     * Error Message
+     */
+    error_message: string | null;
+    /**
+     * Created At
+     */
+    created_at: string | null;
+};
+
+/**
+ * DocumentStatus
+ */
+export type DocumentStatus = 'processing' | 'active' | 'failed';
+
+/**
+ * DocumentType
+ */
+export type DocumentType = 'pdf' | 'markdown' | 'text';
+
+/**
+ * DocumentUploadResponse
+ */
+export type DocumentUploadResponse = {
+    /**
+     * Document Id
+     */
+    document_id: string;
+    status: DocumentStatus;
+    /**
+     * Message
+     */
+    message: string;
+};
+
+/**
+ * DocumentsPublic
+ */
+export type DocumentsPublic = {
+    /**
+     * Data
+     */
+    data: Array<DocumentPublic>;
+    /**
+     * Count
+     */
+    count: number;
 };
 
 /**
@@ -1388,6 +1465,125 @@ export type workspacesUpdateWorkspaceMemberResponses = {
 };
 
 export type workspacesUpdateWorkspaceMemberResponse = workspacesUpdateWorkspaceMemberResponses[keyof workspacesUpdateWorkspaceMemberResponses];
+
+export type knowledgeUploadKnowledgeData = {
+    body: Body_knowledge_upload_knowledge;
+    path?: never;
+    query?: never;
+    url: '/api/v1/knowledge/upload';
+};
+
+export type knowledgeUploadKnowledgeErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeUploadKnowledgeError = knowledgeUploadKnowledgeErrors[keyof knowledgeUploadKnowledgeErrors];
+
+export type knowledgeUploadKnowledgeResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentUploadResponse;
+};
+
+export type knowledgeUploadKnowledgeResponse = knowledgeUploadKnowledgeResponses[keyof knowledgeUploadKnowledgeResponses];
+
+export type knowledgeReadDocumentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/knowledge/documents';
+};
+
+export type knowledgeReadDocumentsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeReadDocumentsError = knowledgeReadDocumentsErrors[keyof knowledgeReadDocumentsErrors];
+
+export type knowledgeReadDocumentsResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentsPublic;
+};
+
+export type knowledgeReadDocumentsResponse = knowledgeReadDocumentsResponses[keyof knowledgeReadDocumentsResponses];
+
+export type knowledgeRemoveDocumentData = {
+    body?: never;
+    path: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    query?: never;
+    url: '/api/v1/knowledge/documents/{document_id}';
+};
+
+export type knowledgeRemoveDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeRemoveDocumentError = knowledgeRemoveDocumentErrors[keyof knowledgeRemoveDocumentErrors];
+
+export type knowledgeRemoveDocumentResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type knowledgeRemoveDocumentResponse = knowledgeRemoveDocumentResponses[keyof knowledgeRemoveDocumentResponses];
+
+export type knowledgeReadDocumentData = {
+    body?: never;
+    path: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    query?: never;
+    url: '/api/v1/knowledge/documents/{document_id}';
+};
+
+export type knowledgeReadDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeReadDocumentError = knowledgeReadDocumentErrors[keyof knowledgeReadDocumentErrors];
+
+export type knowledgeReadDocumentResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentPublic;
+};
+
+export type knowledgeReadDocumentResponse = knowledgeReadDocumentResponses[keyof knowledgeReadDocumentResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

@@ -24,7 +24,7 @@ This repo started from the [Full Stack FastAPI Template](https://github.com/fast
 - **Dashboard:** Vite, React, TypeScript, TanStack Query / Router, Tailwind, shadcn/ui
 - **Emails:** React Email → Jinja HTML
 - **Local / deploy:** Docker Compose, Traefik (HTTPS in deploy), Playwright, Pytest
-- **Database:** PostgreSQL 18 with pgvector (`text-embedding-3-small`, 1536 dimensions), Redis 8
+- **Database:** PostgreSQL 18 with pgvector (Gemini `gemini-embedding-2`, 1536 dimensions), Redis 8
 - **Coming for MVP:** LangGraph, embeddable Shadow DOM widget
 
 Architecture (locked): frontend [Option A](./actionable-ai/docs/5_Development_and_Execution/05_Frontend_Architecture.md) — keep `frontend/` as-is; widget in `packages/widget`. Backend [Option B](./actionable-ai/docs/5_Development_and_Execution/06_Backend_Architecture.md) — models package, services, thin routes. One deployable, not microservices.

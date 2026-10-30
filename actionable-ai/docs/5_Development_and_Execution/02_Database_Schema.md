@@ -77,7 +77,7 @@ The root tenant for a business utilizing the A²I platform.
 ### 2.2. `Document` & `DocumentChunk` (MVP)
 - **`Document`**: `workspace_id`, `title`, `type` (`pdf` / `markdown` / `text`), `status` (`processing` / `active` / `failed`), `original_filename`, `error_message`, `created_at`. Status drives the Processing and Active badges.
 - **`DocumentChunk`**: `document_id`, `content`, `embedding vector(1536)`, `chunk_index` (unique per document), optional `metadata` JSONB.
-- Embeddings are OpenAI `text-embedding-3-small` (1536). That size is fixed in `backend/app/core/embeddings.py`. Cosine HNSW index: `ix_document_chunk_embedding_hnsw`.
+- Embeddings are Gemini `gemini-embedding-2` at 1536 dimensions. That size is fixed in `backend/app/core/embeddings.py`. Cosine HNSW index: `ix_document_chunk_embedding_hnsw`.
 
 ### 2.3. `ToolRegistry` (MVP)
 - `workspace_id`, `name` (unique per workspace), `kind` (`http` / `js`), `http_method`, `url`, `schema` JSONB, `requires_hitl`, `description`, `is_active`.

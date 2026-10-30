@@ -42,7 +42,7 @@ Split into real services (chat vs knowledge vs tools) only when a single process
 | Serve UI      | `app.frontend("/", directory=FRONTEND_DIR)`   | Built SPA copied into `backend/app/frontend`                    |
 
 
-pgvector is enabled: extension `vector`, and `document_chunk.embedding` at 1536 dimensions. Redis is in Compose (`REDIS_URL`); the health check pings it. HITL state, rate limits, and a worker queue are not using it yet. There is **no** LangGraph, OpenAI client, object storage, or job queue in code yet. Compose services: Traefik, Postgres, Redis, Adminer, backend. Mailcatcher is in override.
+pgvector is enabled: extension `vector`, and `document_chunk.embedding` at 1536 dimensions. Redis is in Compose (`REDIS_URL`); the health check pings it. HITL state, rate limits, and a worker queue are not using it yet. Knowledge ingestion stores original files on a Docker named volume and embeds with the Gemini client inside a FastAPI `BackgroundTasks` job. There is still no LangGraph, object storage, or ARQ/TaskIQ queue. Compose services: Traefik, Postgres, Redis, Adminer, backend. Mailcatcher is in override.
 
 ---
 

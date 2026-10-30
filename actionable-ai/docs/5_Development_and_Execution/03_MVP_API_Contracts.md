@@ -3,7 +3,7 @@
 ## Document Metadata
 - **Status:** Approved
 - **Scope:** Strictly MVP (Phase 1)
-- **Last Updated:** 2026-08-23
+- **Last Updated:** 2026-10-30
 
 ---
 
@@ -16,10 +16,9 @@ These API contracts define the strict JSON boundaries between the React Dashboar
 
 ### 2.1. Upload Knowledge Base Document
 *   **Endpoint:** `POST /api/v1/knowledge/upload`
-*   **Description:** Accepts a multipart/form-data upload for PDFs or Markdown files.
+*   **Description:** Accepts a multipart/form-data upload for PDF, Markdown, or text files. The workspace is the logged-in member's current workspace. A client-supplied workspace id is not accepted.
 *   **Request:**
-    *   `workspace_id` (UUID - Header or Form Data)
-    *   `file` (multipart/form-data, max 50MB)
+    *   `file` (multipart/form-data, max 10MB)
 *   **Response (200 OK):**
 ```json
 {

@@ -51,8 +51,8 @@ class Settings(BaseSettings):
     def _embedding_model_matches_column(cls, value: str) -> str:
         if value != EMBEDDING_MODEL:
             raise ValueError(
-                f"EMBEDDING_MODEL stays {EMBEDDING_MODEL} until a migration "
-                "changes document_chunk.embedding."
+                f"EMBEDDING_MODEL stays {EMBEDDING_MODEL}, which emits "
+                f"{EMBEDDING_DIMENSION} floats for document_chunk.embedding."
             )
         return value
 
@@ -65,6 +65,36 @@ class Settings(BaseSettings):
                 "document_chunk.embedding. Change it only in a migration."
             )
         return value
+
+    # Blank locally. Ingestion marks the document failed when this is missing.
+    GEMINI_API_KEY: str | None = None
+    # Chat model for the later orchestrator. Ingestion does not call it.
+    CHAT_MODEL: str = "gemini-3.5-flash-lite"
+    # Compose mounts the knowledge-uploads volume here. Pytest overrides it.
+    KNOWLEDGE_STORAGE_DIR: str = "/data/knowledge"
+
+    @field_validator("GEMINI_API_KEY", mode="before")
+    @classmethod
+    def _blank_gemini_key_is_unset(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("CHAT_MODEL")
+    @classmethod
+    def _chat_model_not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("CHAT_MODEL cannot be empty.")
+        return stripped
+
+    @field_validator("KNOWLEDGE_STORAGE_DIR")
+    @classmethod
+    def _storage_dir_not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("KNOWLEDGE_STORAGE_DIR cannot be empty.")
+        return stripped
 
     # Compose sets redis://redis:6379/0. Host pytest uses localhost:6380.
     # Required when FASTAPI_ENV is unset (staging and production).

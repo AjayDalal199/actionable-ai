@@ -13,15 +13,15 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 3 knowledge ingestion. Do not start tool APIs or the widget yet.
+**Task:** Phase 4 tool registry APIs. Do not start the widget, the Knowledge dashboard UI, or the Tools UI yet.
 
-- `[ ]` Persist original uploads on the boot-volume disk, keyed by `document_id` (10MB cap)
-- `[ ]` `POST /api/v1/knowledge/upload` returns `processing`; a background task extracts, chunks, and embeds
-- `[ ]` List and delete documents for the current workspace (Editor writes, Viewer reads)
+- `[ ]` `POST /api/v1/tools/register` forces `requires_hitl=true` for POST/PUT/DELETE
+- `[ ]` List, get, update, and delete tools for the current workspace
+- `[ ]` Editor registers; Viewer cannot; duplicate names return 409
 
-**Done when:** An Editor uploads a PDF or Markdown file, status goes Processing → Active (or Failed), and chunks are queryable with cosine similarity.
+**Done when:** An Editor can register an HTTPS (or localhost) endpoint with a JSON schema, and a write method cannot be saved with HITL off.
 
-**After that (not now):** Phase 4 tool registry APIs.
+**After that (not now):** Phase 4.2 API Request Engine, then the chat orchestrator. Knowledge dashboard UI stays in Phase 3.3.
 
 ---
 
@@ -66,7 +66,7 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 ## Current state (as of 2026-08-25)
 
-Auth, workspaces, RBAC, and the dashboard shell are in place. Knowledge, tools, chat, and the widget are not built yet.
+Auth, workspaces, RBAC, the dashboard shell, and knowledge ingestion are in place. Tools, chat, and the widget are not built yet.
 
 **Already in place**
 
@@ -192,7 +192,7 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 ### 2.1 PostgreSQL + pgvector
 
 - `[x]` Enable `pgvector` on the app database (image `pgvector/pgvector:pg18`, extension in the migration)
-- `[x]` Vector dimension: OpenAI `text-embedding-3-small` = **1536**, fixed in `app/core/embeddings.py` and settings
+- `[x]` Vector dimension: Gemini `gemini-embedding-2` at **1536** (normalized by the model), fixed in `app/core/embeddings.py` and settings
 - `[x]` Add `Document` (`workspace_id`, `title`, `type` pdf/markdown/text, `status` processing/active/failed, `original_filename`, `error_message`, `created_at`)
 - `[x]` Add `DocumentChunk` (`document_id`, `content`, `embedding` vector, `chunk_index`, optional `metadata` JSONB)
 - `[x]` HNSW index on `embedding` with cosine ops (tune later)
@@ -220,8 +220,8 @@ The disk is shared with the OS, images, and Postgres. Keep the **10MB** upload c
 A later object store can replace the directory behind `services/knowledge/storage.py`. Routes must not assume a filesystem path.
 
 - `[x]` Store: boot-volume disk on each VM (this section, deployment strategy §9, Oracle guide)
-- `[ ]` Persist original file bytes keyed by `document_id` (needed to re-process on failure)
-- `[ ]` Max size **10MB** to match the Knowledge UI spec (API contract said 50MB — **implement 10MB** and update the API contract)
+- `[x]` Persist original file bytes keyed by `document_id` (needed to re-process on failure)
+- `[x]` Max size **10MB** to match the Knowledge UI spec (API contract said 50MB — implemented 10MB and updated the API contract)
 
 ---
 
@@ -235,14 +235,14 @@ A later object store can replace the directory behind `services/knowledge/storag
 
 ### 3.1 Embedding + chunking pipeline
 
-- `[ ]` Config: `OPENAI_API_KEY`, embedding model, chat model
-- `[ ]` Extract text: Markdown as-is; PDF via a maintained extractor (fail the document if extract is empty)
-- `[ ]` Chunk with overlap (document chosen sizes, e.g. ~500–800 tokens, overlap ~10–20%)
-- `[ ]` Embed chunks; store in `DocumentChunk`
-- `[ ]` Run ingestion **asynchronously** (background task / worker) so the upload API returns immediately with `status: processing`
-- `[ ]` Idempotent re-process: replacing a document deletes old chunks then re-embeds
-- `[ ]` Duplicate filenames: auto-append timestamp (UI spec decision)
-- `[ ]` Input token / file safety: skip empty files; cap pages/chars so one upload cannot melt the worker
+- `[x]` Config: `GEMINI_API_KEY`, embedding model `gemini-embedding-2`, chat model `gemini-3.5-flash-lite`
+- `[x]` Extract text: Markdown as-is; PDF via a maintained extractor (fail the document if extract is empty)
+- `[x]` Chunk with overlap (document chosen sizes, e.g. ~500–800 tokens, overlap ~10–20%)
+- `[x]` Embed chunks; store in `DocumentChunk`
+- `[x]` Run ingestion **asynchronously** (background task / worker) so the upload API returns immediately with `status: processing`
+- `[x]` Idempotent re-process: replacing a document deletes old chunks then re-embeds
+- `[x]` Duplicate filenames: auto-append timestamp (UI spec decision)
+- `[x]` Input token / file safety: skip empty files; cap pages/chars so one upload cannot melt the worker
 
 
 
@@ -250,13 +250,13 @@ A later object store can replace the directory behind `services/knowledge/storag
 
 Align with `03_MVP_API_Contracts.md`, plus list/status that the UI needs.
 
-- `[ ]` `POST /api/v1/knowledge/upload` — multipart, workspace from auth, returns `{ document_id, status: "processing" }`
-- `[ ]` `GET /api/v1/knowledge/documents` — list for the table (name, date, status)
-- `[ ]` `GET /api/v1/knowledge/documents/{id}` — detail + error message if failed
-- `[ ]` `DELETE /api/v1/knowledge/documents/{id}` — delete file + chunks
-- `[ ]` AuthZ: Editor+ to mutate; Viewer can list
-- `[ ]` Reject non-pdf / non-md / non-txt; reject > 10MB
-- `[ ]` Tests: upload happy path, isolation, invalid type, failed parse sets `failed`
+- `[x]` `POST /api/v1/knowledge/upload` — multipart, workspace from auth, returns `{ document_id, status: "processing" }`
+- `[x]` `GET /api/v1/knowledge/documents` — list for the table (name, date, status)
+- `[x]` `GET /api/v1/knowledge/documents/{id}` — detail + error message if failed
+- `[x]` `DELETE /api/v1/knowledge/documents/{id}` — delete file + chunks
+- `[x]` AuthZ: Editor+ to mutate; Viewer can list
+- `[x]` Reject non-pdf / non-md / non-txt; reject > 10MB
+- `[x]` Tests: upload happy path, isolation, invalid type, failed parse sets `failed`
 
 
 
