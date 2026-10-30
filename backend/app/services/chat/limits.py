@@ -1,0 +1,17 @@
+"""Caps for one internal chat turn."""
+
+from app.services.knowledge.limits import APPROX_CHARS_PER_TOKEN
+
+MAX_USER_TOKENS = 2_000
+MAX_TOOL_ITERATIONS = 5
+TOP_K = 5
+# Cosine similarity. Chunks below this are dropped so the model says it doesn't know.
+MIN_COSINE_SIMILARITY = 0.5
+MAX_CONTEXT_TOKENS = 6_000
+MAX_HISTORY_MESSAGES = 20
+MAX_HISTORY_TOKENS = 4_000
+HITL_TTL_SECONDS = 30 * 60
+MAX_TOOL_RESULT_CHARS = 4_000
+
+USER_CHAR_CAP = MAX_USER_TOKENS * APPROX_CHARS_PER_TOKEN
+CONTEXT_CHAR_CAP = MAX_CONTEXT_TOKENS * APPROX_CHARS_PER_TOKEN

@@ -10,6 +10,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.base import get_datetime_utc
 
 if TYPE_CHECKING:
+    from app.models.chat import ChatSession
     from app.models.document import Document
     from app.models.github_repository import GithubRepository
     from app.models.tool_registry import ToolRegistry
@@ -81,6 +82,9 @@ class Workspace(SQLModel, table=True):
         back_populates="workspace", cascade_delete=True
     )
     github_repositories: list["GithubRepository"] = Relationship(  # noqa: UP037
+        back_populates="workspace", cascade_delete=True
+    )
+    chat_sessions: list["ChatSession"] = Relationship(  # noqa: UP037
         back_populates="workspace", cascade_delete=True
     )
 

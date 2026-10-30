@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    chat,
     items,
     knowledge,
     login,
@@ -20,6 +21,7 @@ api_router.include_router(items.router)
 api_router.include_router(workspaces.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(tools.router)
+api_router.include_router(chat.router)
 
 
 if settings.FASTAPI_ENV == "development":

@@ -1,6 +1,12 @@
 from sqlmodel import SQLModel
 
 from app.models.auth import Message, NewPassword, Token, TokenPayload
+from app.models.chat import (
+    ChatMessage,
+    ChatSession,
+    ChatStreamRequest,
+    HitlConfirmRequest,
+)
 from app.models.document import (
     Document,
     DocumentChunk,
@@ -60,6 +66,9 @@ from app.models.workspace import (
 )
 
 __all__ = [
+    "ChatMessage",
+    "ChatSession",
+    "ChatStreamRequest",
     "Document",
     "DocumentChunk",
     "DocumentPublic",
@@ -68,6 +77,7 @@ __all__ = [
     "DocumentUploadResponse",
     "DocumentsPublic",
     "GithubRepository",
+    "HitlConfirmRequest",
     "HttpMethod",
     "InvitationStatus",
     "Item",

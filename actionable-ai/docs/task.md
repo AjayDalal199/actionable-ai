@@ -13,18 +13,15 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 5 chat orchestrator, internal channel only. Do not start the widget, the Knowledge dashboard UI, or the Tools dashboard UI yet.
+**Task:** Knowledge and Tools dashboard screens (3.3 and 4.3). Do not start the widget, the widget channel, JS tool execution (Phase 5.4), or sandbox chat (7.1 and 7.2).
 
-- `[ ]` Stream an internal chat answer for a logged-in workspace member
-- `[ ]` Retrieve active workspace documents into the prompt
-- `[ ]` Load registered tools and enforce HITL in code before a write runs
-- `[ ]` On approve, call the HTTP tool through the API request engine with the member's bearer
-- `[ ]` On reject, do not call the tool
-- `[ ]` Leave JS tools and the widget channel for Phase 6
+- `[ ]` Knowledge screen at `/dashboard/knowledge`: list, upload, and status for workspace documents
+- `[ ]` Tools screen at `/dashboard/tools`: list and register HTTP and JS tools, with HITL locked for writes
+- `[ ]` Leave the widget channel, `tool_js`, and the embeddable widget for Phase 6
 
-**Done when:** A logged-in member can stream an answer from workspace documents, a write tool pauses for HITL, confirm runs the HTTP tool, and reject aborts.
+**Done when:** An Editor can upload a document and register a tool from the dashboard. Asking a question still uses the API; the sandbox UI is the slice after this.
 
-**After that (not now):** the Knowledge and Tools screens (3.3 and 4.3), then sandbox and `/dashboard/chat` (7.1 and 7.2). The embeddable widget (Phase 6), its snippet, and the widget preview (7.3) wait until that internal chat works. See [Path to MVP](#path-to-mvp).
+**After that (not now):** sandbox and `/dashboard/chat` (7.1 and 7.2). The embeddable widget (Phase 6), its snippet, JS tool execution (5.4), and the widget preview (7.3) wait until those screens and the sandbox work. See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -69,7 +66,7 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 ## Current state (as of 2026-10-30)
 
-Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, and the API request engine are in place. Chat, the Knowledge and Tools screens, and the widget are not built yet.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, and the internal chat orchestrator are in place. The Knowledge and Tools screens, sandbox chat, and the widget are not built yet. JS tools stay stored; the orchestrator does not emit `tool_js` or run them.
 
 **Already in place**
 
@@ -109,9 +106,9 @@ Work in this order. Phase numbers stay as they are so older notes still point at
         ↓
 4.2 API Request Engine                      done
         ↓
-5. Chat orchestrator, internal channel only  ← next
+5. Chat orchestrator, internal channel only  done
         ↓
-3.3 Knowledge screen  +  4.3 Tools screen
+3.3 Knowledge screen  +  4.3 Tools screen    ← next
         ↓
 7.1 Sandbox  +  7.2 Internal chat
         ↓
@@ -354,41 +351,41 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
 ### 5.1 Session and streaming API
 
-- `[ ]` `ChatSession` (or Redis-backed session) keyed by `session_id` + `workspace_id`
-- `[ ]` Persist messages enough to resume HITL and to attach a transcript on escalation
-- `[ ]` `POST /api/v1/chat/stream` — `text/event-stream`
-  - Request: `{ session_id, message, channel?: "widget" | "internal" }`
-  - Events: `message` (token/text), `hitl_required`, `tool_js` (client-side function), `error`, `done`
-- `[ ]` `POST /api/v1/chat/hitl-confirm` — `{ pending_action_id, decision: "approved" | "rejected" }` → resume or abort
+- `[x]` `ChatSession` (or Redis-backed session) keyed by `session_id` + `workspace_id`
+- `[x]` Persist messages enough to resume HITL and to attach a transcript on escalation
+- `[x]` `POST /api/v1/chat/stream` — `text/event-stream` for channel `internal`
+  - Request: `{ session_id, message, channel: "internal" }`
+  - Events: `message` (token/text), `hitl_required`, `error`, `done`. Do not emit `tool_js` until 5.4.
+- `[x]` `POST /api/v1/chat/hitl-confirm` — `{ pending_action_id, decision: "approved" | "rejected" }` streams the outcome or aborts
 - `[ ]` Widget channel: require **host end-user JWT**, not the integrator’s dashboard JWT. Build this with Phase 6, not with the internal channel.
-- `[ ]` Internal/sandbox channel: require logged-in workspace member
-- `[ ]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
-- `[ ]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
+- `[x]` Internal/sandbox channel: require logged-in workspace member
+- `[x]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
+- `[x]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
 
 
 
 ### 5.2 RAG retrieval (read path)
 
-- `[ ]` Embed the query with the same model as ingestion
-- `[ ]` Top-k similarity search **scoped to workspace_id** (join through Document)
-- `[ ]` Only `status=active` documents
-- `[ ]` Wrap retrieved text in delimiters; system prompt: retrieved text is data, never instructions (cheap anti-injection for MVP)
-- `[ ]` If similarity is below a threshold, prefer “I don’t know” / handoff rather than guessing
-- `[ ]` Input token truncation of the *context pack* so the prompt cannot blow the model window
+- `[x]` Embed the query with the same model as ingestion
+- `[x]` Top-k similarity search **scoped to workspace_id** (join through Document)
+- `[x]` Only `status=active` documents
+- `[x]` Wrap retrieved text in delimiters; system prompt: retrieved text is data, never instructions (cheap anti-injection for MVP)
+- `[x]` If similarity is below a threshold, prefer “I don’t know” / handoff rather than guessing
+- `[x]` Input token truncation of the *context pack* so the prompt cannot blow the model window
 
 
 
 ### 5.3 LangGraph agent
 
-- `[ ]` Graph nodes: retrieve → reason → tool or answer → (HITL interrupt) → execute → answer
-- `[ ]` Load workspace tools as LLM functions from `ToolRegistry`
-- `[ ]` Inject `request_hitl_approval` schema from `04_MVP_LLM_Prompts.md`
-- `[ ]` **Code-enforced** HITL: if tool `requires_hitl` and the model tries to call it directly, intercept and convert to HITL (do not trust the model)
-- `[ ]` On HITL: pause graph, store state in Redis under `pending_action_id`, emit `hitl_required` with **plain-language** title/summary only (no HTTP method, path, tool id, or “API”)
-- `[ ]` On approve: execute HTTP tool or emit JS tool event; stream success/failure
-- `[ ]` On reject: stream “No problem, I won’t do that.”; do not retry the same write quietly
-- `[ ]` System prompt from `04_MVP_LLM_Prompts.md` (tune voice: customer widget vs internal dashboard)
-- `[ ]` Graceful LLM/provider errors → stable `error` SSE event
+- `[x]` Graph nodes: retrieve → reason → tool or answer → (HITL interrupt) → execute → answer
+- `[x]` Load workspace tools as LLM functions from `ToolRegistry`
+- `[x]` Inject `request_hitl_approval` schema from `04_MVP_LLM_Prompts.md`
+- `[x]` **Code-enforced** HITL: if tool `requires_hitl` and the model tries to call it directly, intercept and convert to HITL (do not trust the model)
+- `[x]` On HITL: pause graph, store state in Redis under `pending_action_id`, emit `hitl_required` with **plain-language** title/summary only (no HTTP method, path, tool id, or “API”)
+- `[x]` On approve: execute the HTTP tool through the API request engine and stream success or the structured error. JS tool events wait for 5.4.
+- `[x]` On reject: stream “No problem, I won’t do that.”; do not retry the same write quietly
+- `[x]` System prompt from `04_MVP_LLM_Prompts.md` (tune voice: customer widget vs internal dashboard)
+- `[x]` Graceful LLM/provider errors → stable `error` SSE event
 
 
 
@@ -608,7 +605,7 @@ Use this if you want a calendar-shaped path. Durations assume a small team; adju
 | **A0** | Phase 1.0: `app/models/` package split                                | **Done** — imports and tests green; DB schema unchanged     |
 | **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema                   | **Done** — isolated tenants, product tables                 |
 | **B**  | Phase 3.1–3.2: ingestion API                                          | **Done** — upload → Active chunks. Knowledge screen is C2   |
-| **C1** | Phase 4.2 + Phase 5 internal channel                                  | **4.2 done.** Stream an internal answer                     |
+| **C1** | Phase 4.2 + Phase 5 internal channel                                  | **Done** — internal stream, HITL, and HTTP tool confirm     |
 | **C2** | Phase 3.3 + 4.3: Knowledge and Tools screens                          | Upload and register from the dashboard                       |
 | **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | Internal Q&A and HITL against a registered HTTP tool        |
 | **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | Script tag on an example host                               |

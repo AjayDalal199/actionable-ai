@@ -10,6 +10,8 @@ from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
 from app.models import (
+    ChatMessage,
+    ChatSession,
     Document,
     DocumentChunk,
     GithubRepository,
@@ -40,7 +42,15 @@ def db() -> Generator[Session]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        for model in (DocumentChunk, Document, ToolRegistry, GithubRepository, Item):
+        for model in (
+            ChatMessage,
+            ChatSession,
+            DocumentChunk,
+            Document,
+            ToolRegistry,
+            GithubRepository,
+            Item,
+        ):
             session.execute(delete(model))
         statement = delete(WorkspaceMembership)
         session.execute(statement)
