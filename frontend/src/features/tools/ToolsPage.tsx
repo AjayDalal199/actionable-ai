@@ -1,27 +1,57 @@
-import { Wrench } from "lucide-react"
+import { useState } from "react"
 
+import type { ToolPublic } from "@/api"
+import { useAuth } from "@/features/auth/useAuth"
+import { RegisterToolButton, ToolsBrowser } from "@/features/tools/ToolsBrowser"
+import { canEditWorkspace } from "@/features/workspace/permissions"
+import { useCurrentWorkspace } from "@/features/workspace/queries"
 import { WorkspaceGate } from "@/features/workspace/WorkspaceGate"
 
 export function ToolsPage() {
+  const { user } = useAuth()
+  const { data: workspace } = useCurrentWorkspace()
+  const canEdit = canEditWorkspace(user?.role)
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [editing, setEditing] = useState<ToolPublic | null>(null)
+
+  const openCreate = () => {
+    setEditing(null)
+    setPanelOpen(true)
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Tools</h1>
-        <p className="text-muted-foreground">
-          Actions the agent can take, with confirmation on writes
-        </p>
-      </div>
-      <WorkspaceGate feature="Tools">
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="bg-muted mb-4 rounded-full p-4">
-            <Wrench className="text-muted-foreground h-8 w-8" />
-          </div>
-          <h2 className="text-lg font-semibold">No tools registered yet</h2>
-          <p className="text-muted-foreground mt-1 max-w-md">
-            Point the agent at an HTTPS endpoint or a client-side function.
-            Writes will ask the user to confirm first.
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Tools</h1>
+          <p className="text-muted-foreground">
+            Actions the agent can take, with confirmation on writes
           </p>
         </div>
+        {workspace && canEdit ? (
+          <RegisterToolButton
+            testId="register-tool-button"
+            onClick={openCreate}
+          />
+        ) : null}
+      </div>
+      <WorkspaceGate feature="Tools">
+        <ToolsBrowser
+          canEdit={canEdit}
+          panelOpen={panelOpen}
+          editing={editing}
+          onCreate={openCreate}
+          onEdit={(tool) => {
+            setEditing(tool)
+            setPanelOpen(true)
+          }}
+          onPanelOpenChange={(open) => {
+            setPanelOpen(open)
+            if (!open) {
+              setEditing(null)
+            }
+          }}
+        />
       </WorkspaceGate>
     </div>
   )

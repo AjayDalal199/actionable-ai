@@ -13,15 +13,15 @@
 
 ## Next up (do this only)
 
-**Task:** Knowledge and Tools dashboard screens (3.3 and 4.3). Do not start the widget, the widget channel, JS tool execution (Phase 5.4), or sandbox chat (7.1 and 7.2).
+**Task:** Sandbox and internal chat (7.1 and 7.2). Do not start the widget, the widget channel, JS tool execution (Phase 5.4), or the widget preview (7.3).
 
-- `[ ]` Knowledge screen at `/dashboard/knowledge`: list, upload, and status for workspace documents
-- `[ ]` Tools screen at `/dashboard/tools`: list and register HTTP and JS tools, with HITL locked for writes
+- `[ ]` Sandbox chat on the dashboard using the internal orchestrator (`channel: internal`)
+- `[ ]` Route `/dashboard/chat`: full-page chat with workspace RAG, tools, and HITL on writes
 - `[ ]` Leave the widget channel, `tool_js`, and the embeddable widget for Phase 6
 
-**Done when:** An Editor can upload a document and register a tool from the dashboard. Asking a question still uses the API; the sandbox UI is the slice after this.
+**Done when:** A member can ask the sandbox a question answered from an uploaded document, and confirm or reject a write tool without leaving the dashboard.
 
-**After that (not now):** sandbox and `/dashboard/chat` (7.1 and 7.2). The embeddable widget (Phase 6), its snippet, JS tool execution (5.4), and the widget preview (7.3) wait until those screens and the sandbox work. See [Path to MVP](#path-to-mvp).
+**After that (not now):** the embeddable widget (Phase 6), its snippet, JS tool execution (5.4), and the widget preview (7.3). See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -66,7 +66,7 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 ## Current state (as of 2026-10-30)
 
-Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, and the internal chat orchestrator are in place. The Knowledge and Tools screens, sandbox chat, and the widget are not built yet. JS tools stay stored; the orchestrator does not emit `tool_js` or run them.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, the internal chat orchestrator, and the Knowledge and Tools screens are in place. Sandbox chat and the widget are not built yet. JS tools stay stored; the orchestrator does not emit `tool_js` or run them.
 
 **Already in place**
 
@@ -108,9 +108,9 @@ Work in this order. Phase numbers stay as they are so older notes still point at
         ↓
 5. Chat orchestrator, internal channel only  done
         ↓
-3.3 Knowledge screen  +  4.3 Tools screen    ← next
+3.3 Knowledge screen  +  4.3 Tools screen    done
         ↓
-7.1 Sandbox  +  7.2 Internal chat
+7.1 Sandbox  +  7.2 Internal chat           ← next
         ↓
 6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet
         ↓
@@ -274,15 +274,15 @@ Build this after the internal orchestrator (Phase 5), together with the Tools sc
 
 Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.md`
 
-- `[ ]` Route `/dashboard/knowledge`
-- `[ ]` Table: file name, date, status badges (Active / Processing / Failed)
-- `[ ]` Empty state + CTA “Upload Data”
-- `[ ]` Side panel: drag-and-drop, click to browse, determinate progress
-- `[ ]` Client-side type/size validation; toast on network interrupt
-- `[ ]` Multi-file upload in one drop
-- `[ ]` Poll (or lightweight SSE) so status flips without refresh
-- `[ ]` Failed row: tooltip with `error_message`
-- `[ ]` Keyboard + `sr-only` status text (spec §11)
+- `[x]` Route `/dashboard/knowledge`
+- `[x]` Table: file name, date, status badges (Active / Processing / Failed)
+- `[x]` Empty state + CTA “Upload Data”
+- `[x]` Side panel: drag-and-drop, click to browse, determinate progress
+- `[x]` Client-side type/size validation; toast on network interrupt
+- `[x]` Multi-file upload in one drop
+- `[x]` Poll (or lightweight SSE) so status flips without refresh
+- `[x]` Failed row: tooltip with `error_message`
+- `[x]` Keyboard + `sr-only` status text (spec §11)
 
 ---
 
@@ -329,13 +329,13 @@ Build this after the internal orchestrator (Phase 5), together with the Knowledg
 
 Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/02_Tool_Registration_Flow.md`
 
-- `[ ]` Route `/dashboard/tools`
-- `[ ]` Table: name, type (GET / JS / …), safety (Read only vs HITL)
-- `[ ]` Side panel: name, URL (HTTP), method, description, Monaco JSON schema editor
-- `[ ]` Changing method to POST/PUT/DELETE: HITL toggle ON and **disabled**
-- `[ ]` Save disabled on invalid JSON or invalid name
-- `[ ]` Unsaved-changes confirm when closing the panel
-- `[ ]` Duplicate-name inline error from 409
+- `[x]` Route `/dashboard/tools`
+- `[x]` Table: name, type (GET / JS / …), safety (Read only vs HITL)
+- `[x]` Side panel: name, URL (HTTP), method, description, Monaco JSON schema editor
+- `[x]` Changing method to POST/PUT/DELETE: HITL toggle ON and **disabled**
+- `[x]` Save disabled on invalid JSON or invalid name
+- `[x]` Unsaved-changes confirm when closing the panel
+- `[x]` Duplicate-name inline error from 409
 
 ---
 
