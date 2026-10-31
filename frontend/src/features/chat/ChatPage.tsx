@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router"
 import { MessageSquare } from "lucide-react"
 import { useEffect, useRef } from "react"
 
+import { AssistantTurn } from "@/features/chat/AssistantTurn"
 import type { ChatTurn } from "@/features/chat/useInternalChat"
 import { useInternalChat } from "@/features/chat/useInternalChat"
 import { documentsQueryOptions } from "@/features/knowledge/queries"
@@ -211,17 +212,7 @@ function ChatTurnView({
     )
   }
   if (turn.kind === "assistant") {
-    return (
-      <div className="flex justify-start">
-        <p className="bg-muted max-w-[85%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap">
-          {turn.streaming && turn.text.length === 0 ? (
-            <span data-testid="chat-pending">Thinking…</span>
-          ) : (
-            turn.text
-          )}
-        </p>
-      </div>
-    )
+    return <AssistantTurn text={turn.text} streaming={turn.streaming} />
   }
   if (turn.kind === "error") {
     return (
