@@ -67,15 +67,14 @@ PendingActionDep = Annotated[PendingAction, Depends(get_pending_action)]
 async def stream_chat(
     prepared: PreparedTurnDep,
     token: TokenDep,
+    user: CurrentUser,
 ) -> AsyncIterable[ServerSentEvent]:
     """Stream an internal chat turn for a logged-in workspace member.
 
     The member's access token is the bearer for HTTP tools. Writes pause for
     confirmation before the API request engine is called.
     """
-    async for event in run_turn_for_member(
-        prepared, bearer=token, user_id=prepared.user_id
-    ):
+    async for event in run_turn_for_member(prepared, bearer=token, user_id=user.id):
         yield ServerSentEvent(data=event.data, event=event.event)
 
 
