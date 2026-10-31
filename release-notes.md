@@ -2,6 +2,8 @@
 
 ## Latest Changes
 
+## 0.2.0 (2026-10-31)
+
 ### Features
 
 * Embed a customer widget from one script. End users stream answers in a Shadow DOM chat and confirm writes in plain language. JavaScript tools run on the host page.
