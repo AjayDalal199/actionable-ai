@@ -10,6 +10,7 @@ from google.genai import types
 
 from app.core.config import settings
 
+
 def gemini_client() -> genai.Client:
     # Four tries, about 0.5s then 1s then 2s apart. Long enough for a demand
     # spike to clear, short enough that chat does not sit on a dead model.
