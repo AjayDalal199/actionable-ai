@@ -80,7 +80,7 @@ export function useInternalChat(workspaceId: string) {
         ...settleAssistant(current, assistantId),
         {
           kind: "hitl",
-          id: crypto.randomUUID(),
+          id: randomUuid(),
           pendingActionId: event.pendingActionId,
           title: event.title,
           summary: event.summary,
@@ -94,7 +94,7 @@ export function useInternalChat(workspaceId: string) {
       assistantIdRef.current = null
       setTurns((current) => [
         ...settleAssistant(current, assistantId),
-        { kind: "error", id: crypto.randomUUID(), text: event.message },
+        { kind: "error", id: randomUuid(), text: event.message },
       ])
       return
     }
@@ -104,7 +104,7 @@ export function useInternalChat(workspaceId: string) {
   }
 
   const beginAssistant = () => {
-    const assistantId = crypto.randomUUID()
+    const assistantId = randomUuid()
     assistantIdRef.current = assistantId
     return assistantId
   }
@@ -141,7 +141,7 @@ export function useInternalChat(workspaceId: string) {
       }),
       {
         kind: "error",
-        id: crypto.randomUUID(),
+        id: randomUuid(),
         text: failureCopy(error, kind),
       },
     ])
@@ -170,7 +170,7 @@ export function useInternalChat(workspaceId: string) {
     const assistantId = beginAssistant()
     setTurns((current) => [
       ...current,
-      { kind: "user", id: crypto.randomUUID(), text: message },
+      { kind: "user", id: randomUuid(), text: message },
       { kind: "assistant", id: assistantId, text: "", streaming: true },
     ])
     void streamInternalChat(
@@ -252,7 +252,7 @@ export function useInternalChat(workspaceId: string) {
     }
     requestRef.current += 1
     abortRef.current?.abort()
-    const next = crypto.randomUUID()
+    const next = randomUuid()
     storeSession(workspaceId, next)
     setSessionId(next)
     setTurns([])
@@ -305,12 +305,27 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError"
 }
 
+/** UUID v4. `crypto.randomUUID` is missing on plain HTTP, which is how CI serves the app. */
+function randomUuid(): string {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("")
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
 function chatSessionId(workspaceId: string): string {
   const existing = readSession(workspaceId)
   if (existing) {
     return existing
   }
-  const created = crypto.randomUUID()
+  const created = randomUuid()
   storeSession(workspaceId, created)
   return created
 }
