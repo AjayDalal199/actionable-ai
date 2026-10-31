@@ -45,6 +45,24 @@ export type Body_login_login_access_token = {
 };
 
 /**
+ * ChatStreamRequest
+ */
+export type ChatStreamRequest = {
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Channel
+     */
+    channel: 'internal';
+};
+
+/**
  * DocumentPublic
  */
 export type DocumentPublic = {
@@ -119,6 +137,20 @@ export type HTTPValidationError = {
      * Detail
      */
     detail?: Array<ValidationError>;
+};
+
+/**
+ * HitlConfirmRequest
+ */
+export type HitlConfirmRequest = {
+    /**
+     * Pending Action Id
+     */
+    pending_action_id: string;
+    /**
+     * Decision
+     */
+    decision: 'approved' | 'rejected';
 };
 
 /**
@@ -562,6 +594,96 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WidgetChatRequest
+ */
+export type WidgetChatRequest = {
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
+ * WidgetHitlRequest
+ */
+export type WidgetHitlRequest = {
+    /**
+     * Pending Action Id
+     */
+    pending_action_id: string;
+    /**
+     * Decision
+     */
+    decision: 'approved' | 'rejected';
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
+ * WidgetInstallPublic
+ */
+export type WidgetInstallPublic = {
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+    /**
+     * Secret
+     */
+    secret?: string | null;
+};
+
+/**
+ * WidgetPreviewToken
+ */
+export type WidgetPreviewToken = {
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Expires In
+     */
+    expires_in: number;
+};
+
+/**
+ * WidgetToolResultRequest
+ */
+export type WidgetToolResultRequest = {
+    /**
+     * Call Id
+     */
+    call_id: string;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Result
+     */
+    result?: unknown;
+    /**
+     * Error
+     */
+    error?: string | null;
 };
 
 /**
@@ -1597,6 +1719,54 @@ export type workspacesUpdateWorkspaceMemberResponses = {
 
 export type workspacesUpdateWorkspaceMemberResponse = workspacesUpdateWorkspaceMemberResponses[keyof workspacesUpdateWorkspaceMemberResponses];
 
+export type workspacesReadWidgetInstallData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/widget';
+};
+
+export type workspacesReadWidgetInstallResponses = {
+    /**
+     * Successful Response
+     */
+    200: WidgetInstallPublic;
+};
+
+export type workspacesReadWidgetInstallResponse = workspacesReadWidgetInstallResponses[keyof workspacesReadWidgetInstallResponses];
+
+export type workspacesRotateWidgetInstallData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/widget/rotate';
+};
+
+export type workspacesRotateWidgetInstallResponses = {
+    /**
+     * Successful Response
+     */
+    200: WidgetInstallPublic;
+};
+
+export type workspacesRotateWidgetInstallResponse = workspacesRotateWidgetInstallResponses[keyof workspacesRotateWidgetInstallResponses];
+
+export type workspacesIssueWidgetPreviewTokenData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/widget/preview-token';
+};
+
+export type workspacesIssueWidgetPreviewTokenResponses = {
+    /**
+     * Successful Response
+     */
+    200: WidgetPreviewToken;
+};
+
+export type workspacesIssueWidgetPreviewTokenResponse = workspacesIssueWidgetPreviewTokenResponses[keyof workspacesIssueWidgetPreviewTokenResponses];
+
 export type knowledgeUploadKnowledgeData = {
     body: Body_knowledge_upload_knowledge;
     path?: never;
@@ -1864,6 +2034,121 @@ export type toolsUpdateToolResponses = {
 };
 
 export type toolsUpdateToolResponse = toolsUpdateToolResponses[keyof toolsUpdateToolResponses];
+
+export type chatStreamChatData = {
+    body: ChatStreamRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/chat/stream';
+};
+
+export type chatStreamChatErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatStreamChatError = chatStreamChatErrors[keyof chatStreamChatErrors];
+
+export type chatStreamChatResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type chatConfirmHitlData = {
+    body: HitlConfirmRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/chat/hitl-confirm';
+};
+
+export type chatConfirmHitlErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatConfirmHitlError = chatConfirmHitlErrors[keyof chatConfirmHitlErrors];
+
+export type chatConfirmHitlResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type widgetStreamWidgetChatData = {
+    body: WidgetChatRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/widget/chat/stream';
+};
+
+export type widgetStreamWidgetChatErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type widgetStreamWidgetChatError = widgetStreamWidgetChatErrors[keyof widgetStreamWidgetChatErrors];
+
+export type widgetStreamWidgetChatResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type widgetConfirmWidgetHitlData = {
+    body: WidgetHitlRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/widget/chat/hitl-confirm';
+};
+
+export type widgetConfirmWidgetHitlErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type widgetConfirmWidgetHitlError = widgetConfirmWidgetHitlErrors[keyof widgetConfirmWidgetHitlErrors];
+
+export type widgetConfirmWidgetHitlResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type widgetSubmitWidgetToolResultData = {
+    body: WidgetToolResultRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/widget/chat/tool-result';
+};
+
+export type widgetSubmitWidgetToolResultErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type widgetSubmitWidgetToolResultError = widgetSubmitWidgetToolResultErrors[keyof widgetSubmitWidgetToolResultErrors];
+
+export type widgetSubmitWidgetToolResultResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from app.api.deps import (
+    CurrentMembership,
     CurrentUser,
     CurrentWorkspace,
     CurrentWorkspaceAdmin,
@@ -12,6 +13,8 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.models import (
+    WidgetInstallPublic,
+    WidgetPreviewToken,
     WorkspaceCreate,
     WorkspaceInvite,
     WorkspaceInviteAction,
@@ -20,10 +23,12 @@ from app.models import (
     WorkspaceMembersPublic,
     WorkspaceMemberUpdate,
     WorkspacePublic,
+    WorkspaceRole,
     WorkspaceSelect,
     WorkspacesPublic,
     WorkspaceUpdate,
 )
+from app.services.widget_auth import PREVIEW_TOKEN_MINUTES, issue_widget_token
 from app.services.workspaces import (
     CannotModifyLastAdminError,
     InviteAlreadyAcceptedError,
@@ -42,6 +47,7 @@ from app.services.workspaces import (
     member_public,
     preview_invite,
     rename_workspace,
+    rotate_widget_secret,
     set_current_workspace,
     update_member,
 )
@@ -287,3 +293,41 @@ def update_workspace_member(
             detail="Cannot demote or deactivate the last admin",
         )
     return member_public(member, membership)
+
+
+@router.get("/me/widget", response_model=WidgetInstallPublic)
+def read_widget_install(
+    workspace: CurrentWorkspace, membership: CurrentMembership
+) -> WidgetInstallPublic:
+    """Public widget key. Editors and admins also receive the signing secret."""
+    secret = None
+    if membership.role in (WorkspaceRole.ADMIN, WorkspaceRole.EDITOR):
+        secret = workspace.widget_secret
+    return WidgetInstallPublic(workspace_key=workspace.widget_key, secret=secret)
+
+
+@router.post("/me/widget/rotate", response_model=WidgetInstallPublic)
+def rotate_widget_install(
+    *,
+    session: SessionDep,
+    _: CurrentWorkspaceAdmin,
+    workspace: CurrentWorkspace,
+) -> WidgetInstallPublic:
+    """Replace the end-user JWT secret. Existing widget tokens stop working."""
+    updated = rotate_widget_secret(session=session, workspace=workspace)
+    return WidgetInstallPublic(
+        workspace_key=updated.widget_key, secret=updated.widget_secret
+    )
+
+
+@router.post("/me/widget/preview-token", response_model=WidgetPreviewToken)
+def issue_widget_preview_token(
+    current_user: CurrentUser, workspace: CurrentWorkspace
+) -> WidgetPreviewToken:
+    """Mint a short-lived end-user JWT so the dashboard can mount the real widget."""
+    token = issue_widget_token(
+        secret=workspace.widget_secret,
+        subject=str(current_user.id),
+        email=current_user.email,
+    )
+    return WidgetPreviewToken(token=token, expires_in=PREVIEW_TOKEN_MINUTES * 60)

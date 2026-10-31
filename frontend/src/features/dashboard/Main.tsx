@@ -18,6 +18,7 @@ export type Item = {
     | "/dashboard/knowledge"
     | "/dashboard/tools"
     | "/dashboard/chat"
+    | "/dashboard/widget"
     | "/dashboard/members"
     | "/dashboard/admin"
 }

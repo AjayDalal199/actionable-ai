@@ -57,6 +57,14 @@ bun run build
 
 The build is written to `backend/app/frontend` and served at <http://localhost:8000>. Rebuild after frontend changes.
 
+Build the embeddable widget into `backend/app/widget/widget.js` (the build fails if the script exceeds 80 KB gzipped):
+
+```bash
+bun run widget:build
+```
+
+FastAPI serves that file at <http://localhost:8000/widget.js>. The dashboard preview and <http://localhost:8000/examples/host> need it.
+
 ## Full stack with Docker Compose
 
 To run the backend and the built frontend in Compose (no local Vite):

@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from datetime import datetime
 from enum import StrEnum
@@ -27,6 +28,10 @@ class InvitationStatus(StrEnum):
     PENDING = "pending"
     ACCEPTED = "accepted"
     DECLINED = "declined"
+
+
+def new_widget_secret() -> str:
+    return secrets.token_urlsafe(32)
 
 
 def normalize_workspace_name(value: str) -> str:
@@ -72,6 +77,8 @@ class Workspace(SQLModel, table=True):
         ondelete="SET NULL",
         unique=True,
     )
+    widget_key: uuid.UUID = Field(default_factory=uuid.uuid4, unique=True, index=True)
+    widget_secret: str = Field(default_factory=new_widget_secret, max_length=128)
     memberships: list[WorkspaceMembership] = Relationship(
         back_populates="workspace", cascade_delete=True
     )

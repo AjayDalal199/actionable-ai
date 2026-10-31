@@ -61,6 +61,9 @@ class ChatState(TypedDict, total=False):
     error_code: str | None
     tool_error: dict[str, Any] | None
     answer: str
+    js_call: dict[str, Any] | None
+    resume_answer: bool
+    audience: str
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -78,6 +81,8 @@ def _route(**updates: Any) -> ChatState:
         "finished": False,
         "error_code": None,
         "tool_error": None,
+        "js_call": None,
+        "resume_answer": False,
     }
     state.update(cast(ChatState, updates))
     return state
@@ -104,7 +109,9 @@ async def reason(state: ChatState) -> ChatState:
     calls: list[ToolRequest] = []
     try:
         async for event in stream_model(
-            system_prompt=system_prompt(state.get("context")),
+            system_prompt=system_prompt(
+                state.get("context"), audience=str(state.get("audience") or "internal")
+            ),
             contents=build_contents(state.get("transcript", [])),
             tools=function_declarations(state.get("tools", [])),
         ):
@@ -158,6 +165,12 @@ async def execute(state: ChatState) -> ChatState:
     call = state.get("tool_call")
     if not call:
         return _route(error_code="provider_error")
+    if call.get("kind") == ToolKind.JS.value:
+        return _route(
+            js_call=dict(call),
+            visible=state.get("visible", ""),
+            transcript=list(state.get("transcript", [])),
+        )
     outcome = await asyncify(invoke_tool)(
         tool_id=str(call["tool_id"]),
         workspace_id=state["workspace_id"],
@@ -213,7 +226,9 @@ async def answer(state: ChatState) -> ChatState:
     text_parts: list[str] = []
     try:
         async for event in stream_model(
-            system_prompt=system_prompt(context),
+            system_prompt=system_prompt(
+                context, audience=str(state.get("audience") or "internal")
+            ),
             contents=build_contents(transcript),
             tools=None,
         ):
@@ -301,6 +316,8 @@ def _pending(state: ChatState, decision: RunTool, model_text: str) -> dict[str, 
         "function_name": decision.function_name,
         "function_args": decision.function_args,
         "model_text": model_text,
+        "kind": decision.kind,
+        "tool_name": decision.tool_name,
     }
 
 
@@ -310,13 +327,19 @@ def _pending_from_pause(
     function_args = call.get("function_args")
     args = function_args if isinstance(function_args, dict) else {}
     arguments = call.get("arguments")
+    function_name = str(call.get("function_name") or "")
+    tool_name = call.get("tool_name")
     decision = RunTool(
         tool_id=str(call.get("tool_id") or ""),
         arguments=arguments if isinstance(arguments, dict) else {},
-        function_name=str(call.get("function_name") or ""),
+        function_name=function_name,
         function_args=args,
         requires_hitl=True,
         description=description,
+        kind=str(call.get("kind") or "http"),
+        tool_name=tool_name
+        if isinstance(tool_name, str) and tool_name
+        else function_name,
     )
     model_text = ""
     for turn in reversed(state.get("transcript", [])):
@@ -339,6 +362,9 @@ def _tool_call(decision: RunTool) -> dict[str, Any]:
         "arguments": decision.arguments,
         "function_name": decision.function_name,
         "function_args": decision.function_args,
+        "kind": decision.kind,
+        "tool_name": decision.tool_name,
+        "requires_hitl": decision.requires_hitl,
     }
 
 
@@ -361,7 +387,9 @@ def _bounded(body: object) -> object:
     return encoded[:MAX_TOOL_RESULT_CHARS]
 
 
-def route_start(state: ChatState) -> Literal["retrieve", "execute"]:
+def route_start(state: ChatState) -> Literal["retrieve", "execute", "answer"]:
+    if state.get("resume_answer"):
+        return "answer"
     if state.get("approved"):
         return "execute"
     return "retrieve"
@@ -388,7 +416,12 @@ def route_after_reason(
 
 
 def route_after_execute(state: ChatState) -> Literal["answer", "reason"] | str:
-    if state.get("error_code") or state.get("pending") or state.get("tool_error"):
+    if (
+        state.get("error_code")
+        or state.get("pending")
+        or state.get("tool_error")
+        or state.get("js_call")
+    ):
         return END
     if state.get("force_answer"):
         return "answer"
@@ -404,7 +437,7 @@ def build_graph() -> Any:
     graph.add_conditional_edges(
         START,
         route_start,
-        {"retrieve": "retrieve", "execute": "execute"},
+        {"retrieve": "retrieve", "execute": "execute", "answer": "answer"},
     )
     graph.add_conditional_edges(
         "retrieve",

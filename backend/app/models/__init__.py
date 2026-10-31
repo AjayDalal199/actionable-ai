@@ -46,6 +46,13 @@ from app.models.user import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.models.widget import (
+    WidgetChatRequest,
+    WidgetHitlRequest,
+    WidgetInstallPublic,
+    WidgetPreviewToken,
+    WidgetToolResultRequest,
+)
 from app.models.workspace import (
     InvitationStatus,
     Workspace,
@@ -107,6 +114,11 @@ __all__ = [
     "UserUpdate",
     "UserUpdateMe",
     "UsersPublic",
+    "WidgetChatRequest",
+    "WidgetHitlRequest",
+    "WidgetInstallPublic",
+    "WidgetPreviewToken",
+    "WidgetToolResultRequest",
     "Workspace",
     "WorkspaceCreate",
     "WorkspaceInvite",

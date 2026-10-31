@@ -148,6 +148,42 @@ def test_approved_write_calls_the_engine_with_the_raw_bearer(
     assert called[0]["tool_id"] == tool.id
 
 
+def test_js_execute_does_not_call_the_engine(
+    db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = _workspace(db)
+    tool = _tool(
+        db, workspace, name="page_helper", kind=ToolKind.JS, requires_hitl=False
+    )
+    called: list[object] = []
+    monkeypatch.setattr(
+        "app.services.chat.graph.execute_http_tool",
+        lambda **kwargs: called.append(kwargs),
+    )
+    result = asyncio.run(
+        execute(
+            {
+                "workspace_id": str(workspace.id),
+                "approved": True,
+                "visible": "",
+                "transcript": [],
+                "tool_call": {
+                    "tool_id": str(tool.id),
+                    "arguments": {"id": "ada"},
+                    "function_name": "page_helper",
+                    "function_args": {"id": "ada"},
+                    "kind": "js",
+                    "tool_name": "page_helper",
+                    "requires_hitl": False,
+                },
+            }
+        )
+    )
+    assert called == []
+    assert result["js_call"]["tool_name"] == "page_helper"
+    assert result["pending"] is None
+
+
 def test_js_tools_are_not_sent_to_the_engine(
     db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:

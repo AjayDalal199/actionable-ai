@@ -18,6 +18,7 @@ from app.models import (
     WorkspaceRole,
     WorkspacesPublic,
 )
+from app.models.workspace import new_widget_secret
 
 
 class UserAlreadyCreatedWorkspaceError(Exception):
@@ -205,6 +206,14 @@ def create_and_attach_workspace(
     session.commit()
     session.refresh(workspace)
     session.refresh(locked_user)
+    return workspace
+
+
+def rotate_widget_secret(*, session: Session, workspace: Workspace) -> Workspace:
+    workspace.widget_secret = new_widget_secret()
+    session.add(workspace)
+    session.commit()
+    session.refresh(workspace)
     return workspace
 
 

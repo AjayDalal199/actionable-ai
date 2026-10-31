@@ -39,7 +39,7 @@ export function DashboardHome() {
         </p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">Quick Start</h1>
         <p className="text-muted-foreground mt-1">
-          Name your workspace → upload a doc → ask a question
+          Name your workspace → upload a doc → ask a question → add the widget
         </p>
       </div>
 
@@ -113,6 +113,22 @@ export function DashboardHome() {
               </Button>
             )}
           </QuickStartStep>
+          <QuickStartStep
+            disabled={!workspace}
+            n={4}
+            title="Add the widget"
+            description="Copy one script tag and preview the real widget on your workspace."
+          >
+            {workspace ? (
+              <Button asChild variant="outline">
+                <Link to="/dashboard/widget">Open the widget</Link>
+              </Button>
+            ) : (
+              <Button disabled variant="outline">
+                Open the widget
+              </Button>
+            )}
+          </QuickStartStep>
         </ol>
       )}
     </div>
@@ -122,7 +138,7 @@ export function DashboardHome() {
 function QuickStartSkeleton() {
   return (
     <div className="grid gap-4">
-      {Array.from({ length: 3 }).map((_, index) => (
+      {Array.from({ length: 4 }).map((_, index) => (
         <Skeleton className="h-28 w-full rounded-xl" key={index} />
       ))}
     </div>

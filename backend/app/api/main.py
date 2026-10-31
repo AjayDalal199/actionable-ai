@@ -9,6 +9,7 @@ from app.api.routes import (
     tools,
     users,
     utils,
+    widget,
     workspaces,
 )
 from app.core.config import settings
@@ -22,6 +23,7 @@ api_router.include_router(workspaces.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(tools.router)
 api_router.include_router(chat.router)
+api_router.include_router(widget.router)
 
 
 if settings.FASTAPI_ENV == "development":

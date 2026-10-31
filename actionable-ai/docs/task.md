@@ -13,15 +13,11 @@
 
 ## Next up (do this only)
 
-**Task:** Embeddable customer widget (Phase 6). Include the widget channel, JS tool execution (Phase 5.4), the snippet (6.5), and the widget preview (7.3). Do not run JS tools from the internal sandbox.
+**Task:** Handoff and launch safety (Phase 8). The widget channel, JS tool bridge, snippet, and preview are in place. Do not run JS tools from the internal sandbox.
 
-- `[ ]` Package `packages/widget`: Shadow DOM chat, end-user JWT, and the JS tool bridge
-- `[ ]` Dashboard snippet export (6.5) and the widget preview (7.3)
-- `[ ]` Leave `tool_js` execution out of `/dashboard/chat`
+**Done when:** Low-confidence or “talk to a human” collects an email, sends the transcript, and the service cannot be trivially bankrupted or SSRF’d.
 
-**Done when:** A host page loads one script, opens a Shadow DOM chat, streams answers, and confirms or rejects a write in plain language.
-
-**After that (not now):** handoff and launch safety (Phase 8). See [Path to MVP](#path-to-mvp).
+**After that (not now):** integration docs (Phase 9). See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -66,7 +62,7 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 ## Current state (as of 2026-10-31)
 
-Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, the internal chat orchestrator, the Knowledge and Tools screens, and sandbox chat are in place. The widget is not built yet. JS tools stay stored; the orchestrator does not emit `tool_js` or run them.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, the internal chat orchestrator, the Knowledge and Tools screens, sandbox chat, and the embeddable widget are in place. JS tools run only on the widget channel. Internal chat does not emit `tool_js`.
 
 Known gap, fix before relying on the post-approve reply: Gemini 3.5 Flash Lite rejects the follow-up turn because the replayed function call has no thought signature. The HTTP tool still runs on approval. Rejection does not call the tool.
 
@@ -114,9 +110,9 @@ Work in this order. Phase numbers stay as they are so older notes still point at
         ↓
 7.1 Sandbox  +  7.2 Internal chat           done
         ↓
-6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet  ← next
+6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet  done
         ↓
-8. Handoff + launch safety
+8. Handoff + launch safety                  ← next
         ↓
 9. Integration docs
         ↓
@@ -359,7 +355,7 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
   - Request: `{ session_id, message, channel: "internal" }`
   - Events: `message` (token/text), `hitl_required`, `error`, `done`. Do not emit `tool_js` until 5.4.
 - `[x]` `POST /api/v1/chat/hitl-confirm` — `{ pending_action_id, decision: "approved" | "rejected" }` streams the outcome or aborts
-- `[ ]` Widget channel: require **host end-user JWT**, not the integrator’s dashboard JWT. Build this with Phase 6, not with the internal channel.
+- `[x]` Widget channel: require **host end-user JWT**, not the integrator’s dashboard JWT. Build this with Phase 6, not with the internal channel.
 - `[x]` Internal/sandbox channel: require logged-in workspace member
 - `[x]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
 - `[x]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
@@ -395,9 +391,9 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
 JS tools can already be stored. Host-page execution waits for the widget. Do not build this in the internal-channel slice. HTTP tools run through the Phase 4.2 engine.
 
-- `[ ]` Registry entry has no URL; widget is told `{ name, arguments }`
-- `[ ]` Widget looks up `window`/`registerTool` map; on missing/throw, show fallback text (do not crash)
-- `[ ]` Writes still go through HITL **before** the widget invokes the JS function
+- `[x]` Registry entry has no URL; widget is told `{ name, arguments }`
+- `[x]` Widget looks up `window`/`registerTool` map; on missing/throw, show fallback text (do not crash)
+- `[x]` Writes still go through HITL **before** the widget invokes the JS function
 
 ---
 
@@ -413,49 +409,49 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 
 ### 6.1 Package and isolation
 
-- `[ ]` New package `packages/widget` (Option A) — Vanilla JS or Preact, **not** the full dashboard React app; no import from `frontend/src` or `@/shared/ui`
-- `[ ]` Web Component + **Shadow DOM** (host `button { }` must not restyle us)
-- `[ ]` Sanitize rendered Markdown (`marked` + **DOMPurify**)
-- `[ ]` Async loader / small bundle; document a target size and fail CI if we explode it
-- `[ ]` Public script URL (CDN or `/widget.js` from our origin) + snippet with `data-workspace` / public key
+- `[x]` New package `packages/widget` (Option A) — Vanilla JS or Preact, **not** the full dashboard React app; no import from `frontend/src` or `@/shared/ui`
+- `[x]` Web Component + **Shadow DOM** (host `button { }` must not restyle us)
+- `[x]` Sanitize rendered Markdown (`marked` + **DOMPurify**)
+- `[x]` Async loader / small bundle; document a target size and fail CI if we explode it
+- `[x]` Public script URL (CDN or `/widget.js` from our origin) + snippet with `data-workspace` / public key
 
 
 
 ### 6.2 Secure agent authorization
 
-- `[ ]` Integrator initializes with a **signed JWT from their backend** representing the *end-user*
-- `[ ]` Document the claims we require (sub, expiry, optional email); we verify signature with the workspace’s configured secret/JWKS
-- `[ ]` No JWT → chat may answer RAG **read-only** or show “sign in” — **no write tools**
-- `[ ]` Expired/invalid JWT → refuse tools; explain in the widget
-- `[ ]` Never accept the integrator dashboard token as end-user identity
+- `[x]` Integrator initializes with a **signed JWT from their backend** representing the *end-user*
+- `[x]` Document the claims we require (sub, expiry, optional email); we verify signature with the workspace’s configured secret/JWKS
+- `[x]` No JWT → chat may answer RAG **read-only** or show “sign in” — **no write tools**
+- `[x]` Expired/invalid JWT → refuse tools; explain in the widget
+- `[x]` Never accept the integrator dashboard token as end-user identity
 
 
 
 ### 6.3 Chat UX
 
-- `[ ]` FAB bottom-right; modal open/close; session history kept in memory while the tab lives
-- `[ ]` Composer: Enter send, Shift+Enter newline, 2000-char truncate
-- `[ ]` Optimistic 3-dot loader the moment Send is pressed; drop it on first SSE chunk
-- `[ ]` SSE buffering so partial JSON does not flicker
-- `[ ]` HITL card: action title, consequence, optional “Cannot be undone”, **Go back** / **Confirm** — never endpoints
-- `[ ]` Confirm/Go back disable that card permanently
-- `[ ]` Desktop ~380×700; mobile full viewport
-- `[ ]` `role="log"` / `aria-live` for messages; HITL `assertive`
-- `[ ]` Connection loss copy from spec; timeouts do not freeze the composer forever
+- `[x]` FAB bottom-right; modal open/close; session history kept in memory while the tab lives
+- `[x]` Composer: Enter send, Shift+Enter newline, 2000-char truncate
+- `[x]` Optimistic 3-dot loader the moment Send is pressed; drop it on first SSE chunk
+- `[x]` SSE buffering so partial JSON does not flicker
+- `[x]` HITL card: action title, consequence, optional “Cannot be undone”, **Go back** / **Confirm** — never endpoints
+- `[x]` Confirm/Go back disable that card permanently
+- `[x]` Desktop ~380×700; mobile full viewport
+- `[x]` `role="log"` / `aria-live` for messages; HITL `assertive`
+- `[x]` Connection loss copy from spec; timeouts do not freeze the composer forever
 
 
 
 ### 6.4 JS tool bridge + failure
 
-- `[ ]` `A2I.registerTool(name, fn)` (or equivalent) on the host
-- `[ ]` Catch throws / missing fn → user-visible fallback, widget stays up
+- `[x]` `A2I.registerTool(name, fn)` (or equivalent) on the host
+- `[x]` Catch throws / missing fn → user-visible fallback, widget stays up
 
 
 
 ### 6.5 Dashboard: snippet export
 
-- `[ ]` Settings or Quick Start: copy `<script src="…">` + init example
-- `[ ]` Show workspace public id and how to mint the end-user JWT (short integration guide)
+- `[x]` Settings or Quick Start: copy `<script src="…">` + init example
+- `[x]` Show workspace public id and how to mint the end-user JWT (short integration guide)
 
 ---
 
@@ -492,7 +488,7 @@ PRD: internal chatbot is MVP (Marcus / sales-support).
 
 Do not start this with sandbox chat. It mounts the real widget from Phase 6.
 
-- `[ ]` Dashboard page that mounts the real widget against the current workspace (staging key) so David does not need a second app on day one
+- `[x]` Dashboard page that mounts the real widget against the current workspace (staging key) so David does not need a second app on day one
 
 ---
 
@@ -610,7 +606,7 @@ Use this if you want a calendar-shaped path. Durations assume a small team; adju
 | **C1** | Phase 4.2 + Phase 5 internal channel                                  | **Done** — internal stream, HITL, and HTTP tool confirm     |
 | **C2** | Phase 3.3 + 4.3: Knowledge and Tools screens                          | Upload and register from the dashboard                       |
 | **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | **Done** — internal Q&A and HITL against a registered HTTP tool |
-| **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | Script tag on an example host                               |
+| **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | **Done** — script tag, Shadow DOM chat, JS tools, preview   |
 | **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run          | MVP acceptance checklist all green                           |
 
 

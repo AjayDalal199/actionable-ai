@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, knowledgeReadDocumentData, knowledgeReadDocumentErrors, knowledgeReadDocumentResponses, knowledgeReadDocumentsData, knowledgeReadDocumentsErrors, knowledgeReadDocumentsResponses, knowledgeRemoveDocumentData, knowledgeRemoveDocumentErrors, knowledgeRemoveDocumentResponses, knowledgeUploadKnowledgeData, knowledgeUploadKnowledgeErrors, knowledgeUploadKnowledgeResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, toolsReadToolData, toolsReadToolErrors, toolsReadToolResponses, toolsReadToolsData, toolsReadToolsErrors, toolsReadToolsResponses, toolsRegisterToolData, toolsRegisterToolErrors, toolsRegisterToolResponses, toolsRemoveToolData, toolsRemoveToolErrors, toolsRemoveToolResponses, toolsUpdateToolData, toolsUpdateToolErrors, toolsUpdateToolResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspaceMeResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMeResponses } from './types.gen';
+import type { chatConfirmHitlData, chatConfirmHitlErrors, chatConfirmHitlResponses, chatStreamChatData, chatStreamChatErrors, chatStreamChatResponses, itemsCreateItemData, itemsCreateItemErrors, itemsCreateItemResponses, itemsDeleteItemData, itemsDeleteItemErrors, itemsDeleteItemResponses, itemsReadItemData, itemsReadItemErrors, itemsReadItemResponses, itemsReadItemsData, itemsReadItemsErrors, itemsReadItemsResponses, itemsUpdateItemData, itemsUpdateItemErrors, itemsUpdateItemResponses, knowledgeReadDocumentData, knowledgeReadDocumentErrors, knowledgeReadDocumentResponses, knowledgeReadDocumentsData, knowledgeReadDocumentsErrors, knowledgeReadDocumentsResponses, knowledgeRemoveDocumentData, knowledgeRemoveDocumentErrors, knowledgeRemoveDocumentResponses, knowledgeUploadKnowledgeData, knowledgeUploadKnowledgeErrors, knowledgeUploadKnowledgeResponses, loginLoginAccessTokenData, loginLoginAccessTokenErrors, loginLoginAccessTokenResponses, loginRecoverPasswordData, loginRecoverPasswordErrors, loginRecoverPasswordHtmlContentData, loginRecoverPasswordHtmlContentErrors, loginRecoverPasswordHtmlContentResponses, loginRecoverPasswordResponses, loginResetPasswordData, loginResetPasswordErrors, loginResetPasswordResponses, loginTestTokenData, loginTestTokenResponses, privateCreateUserData, privateCreateUserErrors, privateCreateUserResponses, toolsReadToolData, toolsReadToolErrors, toolsReadToolResponses, toolsReadToolsData, toolsReadToolsErrors, toolsReadToolsResponses, toolsRegisterToolData, toolsRegisterToolErrors, toolsRegisterToolResponses, toolsRemoveToolData, toolsRemoveToolErrors, toolsRemoveToolResponses, toolsUpdateToolData, toolsUpdateToolErrors, toolsUpdateToolResponses, usersCreateUserData, usersCreateUserErrors, usersCreateUserResponses, usersDeleteUserData, usersDeleteUserErrors, usersDeleteUserMeData, usersDeleteUserMeResponses, usersDeleteUserResponses, usersReadUserByIdData, usersReadUserByIdErrors, usersReadUserByIdResponses, usersReadUserMeData, usersReadUserMeResponses, usersReadUsersData, usersReadUsersErrors, usersReadUsersResponses, usersRegisterUserData, usersRegisterUserErrors, usersRegisterUserResponses, usersUpdatePasswordMeData, usersUpdatePasswordMeErrors, usersUpdatePasswordMeResponses, usersUpdateUserData, usersUpdateUserErrors, usersUpdateUserMeData, usersUpdateUserMeErrors, usersUpdateUserMeResponses, usersUpdateUserResponses, utilsHealthCheckData, utilsHealthCheckResponses, utilsTestEmailData, utilsTestEmailErrors, utilsTestEmailResponses, widgetConfirmWidgetHitlData, widgetConfirmWidgetHitlErrors, widgetConfirmWidgetHitlResponses, widgetStreamWidgetChatData, widgetStreamWidgetChatErrors, widgetStreamWidgetChatResponses, widgetSubmitWidgetToolResultData, widgetSubmitWidgetToolResultErrors, widgetSubmitWidgetToolResultResponses, workspacesAcceptWorkspaceInviteData, workspacesAcceptWorkspaceInviteErrors, workspacesAcceptWorkspaceInviteResponses, workspacesCreateWorkspaceData, workspacesCreateWorkspaceErrors, workspacesCreateWorkspaceResponses, workspacesDeclineWorkspaceInviteData, workspacesDeclineWorkspaceInviteErrors, workspacesDeclineWorkspaceInviteResponses, workspacesInviteWorkspaceMemberData, workspacesInviteWorkspaceMemberErrors, workspacesInviteWorkspaceMemberResponses, workspacesIssueWidgetPreviewTokenData, workspacesIssueWidgetPreviewTokenResponses, workspacesReadWidgetInstallData, workspacesReadWidgetInstallResponses, workspacesReadWorkspaceInviteData, workspacesReadWorkspaceInviteErrors, workspacesReadWorkspaceInviteResponses, workspacesReadWorkspaceMeData, workspacesReadWorkspaceMembersData, workspacesReadWorkspaceMembersResponses, workspacesReadWorkspaceMeResponses, workspacesReadWorkspacesData, workspacesReadWorkspacesResponses, workspacesRotateWidgetInstallData, workspacesRotateWidgetInstallResponses, workspacesSelectCurrentWorkspaceData, workspacesSelectCurrentWorkspaceErrors, workspacesSelectCurrentWorkspaceResponses, workspacesUpdateWorkspaceMeData, workspacesUpdateWorkspaceMeErrors, workspacesUpdateWorkspaceMemberData, workspacesUpdateWorkspaceMemberErrors, workspacesUpdateWorkspaceMemberResponses, workspacesUpdateWorkspaceMeResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -545,6 +545,48 @@ export class WorkspacesService {
             }
         });
     }
+    
+    /**
+     * Read Widget Install
+     *
+     * Public widget key. Editors and admins also receive the signing secret.
+     */
+    public static readWidgetInstall<ThrowOnError extends boolean = true>(options?: Options<workspacesReadWidgetInstallData, ThrowOnError>) {
+        return (options?.client ?? client).get<workspacesReadWidgetInstallResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/me/widget',
+            ...options
+        });
+    }
+    
+    /**
+     * Rotate Widget Install
+     *
+     * Replace the end-user JWT secret. Existing widget tokens stop working.
+     */
+    public static rotateWidgetInstall<ThrowOnError extends boolean = true>(options?: Options<workspacesRotateWidgetInstallData, ThrowOnError>) {
+        return (options?.client ?? client).post<workspacesRotateWidgetInstallResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/me/widget/rotate',
+            ...options
+        });
+    }
+    
+    /**
+     * Issue Widget Preview Token
+     *
+     * Mint a short-lived end-user JWT so the dashboard can mount the real widget.
+     */
+    public static issueWidgetPreviewToken<ThrowOnError extends boolean = true>(options?: Options<workspacesIssueWidgetPreviewTokenData, ThrowOnError>) {
+        return (options?.client ?? client).post<workspacesIssueWidgetPreviewTokenResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/workspaces/me/widget/preview-token',
+            ...options
+        });
+    }
 }
 
 export class KnowledgeService {
@@ -685,6 +727,108 @@ export class ToolsService {
             responseType: 'json',
             security: [{ scheme: 'bearer', type: 'http' }],
             url: '/api/v1/tools/{tool_id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class ChatService {
+    /**
+     * Stream Chat
+     *
+     * Stream an internal chat turn for a logged-in workspace member.
+     *
+     * The member's access token is the bearer for HTTP tools. Writes pause for
+     * confirmation before the API request engine is called.
+     */
+    public static streamChat<ThrowOnError extends boolean = true>(options: Options<chatStreamChatData, ThrowOnError, unknown>) {
+        return (options.client ?? client).sse.post<chatStreamChatResponses, chatStreamChatErrors, ThrowOnError>({
+            responseType: 'text',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/chat/stream',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Confirm Hitl
+     *
+     * Approve or reject a paused action for the current workspace.
+     *
+     * Approval calls the registered HTTP tool with this member's token and
+     * streams the outcome. Rejection does not call the tool.
+     */
+    public static confirmHitl<ThrowOnError extends boolean = true>(options: Options<chatConfirmHitlData, ThrowOnError, unknown>) {
+        return (options.client ?? client).sse.post<chatConfirmHitlResponses, chatConfirmHitlErrors, ThrowOnError>({
+            responseType: 'text',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/chat/hitl-confirm',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class WidgetService {
+    /**
+     * Stream Widget Chat
+     *
+     * Stream a widget turn. A missing or invalid end-user JWT stays read-only.
+     */
+    public static streamWidgetChat<ThrowOnError extends boolean = true>(options: Options<widgetStreamWidgetChatData, ThrowOnError, unknown>) {
+        return (options.client ?? client).sse.post<widgetStreamWidgetChatResponses, widgetStreamWidgetChatErrors, ThrowOnError>({
+            responseType: 'text',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/widget/chat/stream',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Confirm Widget Hitl
+     *
+     * Approve or reject a paused widget action.
+     *
+     * Approval needs a valid end-user JWT. Rejection does not call the tool.
+     */
+    public static confirmWidgetHitl<ThrowOnError extends boolean = true>(options: Options<widgetConfirmWidgetHitlData, ThrowOnError, unknown>) {
+        return (options.client ?? client).sse.post<widgetConfirmWidgetHitlResponses, widgetConfirmWidgetHitlErrors, ThrowOnError>({
+            responseType: 'text',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/widget/chat/hitl-confirm',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Submit Widget Tool Result
+     *
+     * Resume after the host page runs a JavaScript tool.
+     */
+    public static submitWidgetToolResult<ThrowOnError extends boolean = true>(options: Options<widgetSubmitWidgetToolResultData, ThrowOnError, unknown>) {
+        return (options.client ?? client).sse.post<widgetSubmitWidgetToolResultResponses, widgetSubmitWidgetToolResultErrors, ThrowOnError>({
+            responseType: 'text',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/widget/chat/tool-result',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

@@ -52,6 +52,7 @@ class ToolView:
     description: str
     requires_hitl: bool
     schema: dict[str, Any]
+    kind: str
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -60,6 +61,7 @@ class ToolView:
             "description": self.description,
             "requires_hitl": self.requires_hitl,
             "schema": self.schema,
+            "kind": self.kind,
         }
 
 
@@ -71,6 +73,8 @@ class RunTool:
     function_args: dict[str, Any]
     requires_hitl: bool
     description: str
+    kind: str
+    tool_name: str
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -81,14 +85,27 @@ class RejectCall:
 
 
 def load_http_tools(*, session: Session, workspace_id: uuid.UUID) -> list[ToolView]:
-    """Active HTTP tools only. JS tools stay in the registry and are not offered."""
-    rows = session.exec(
+    """Active HTTP tools only. The internal channel does not offer JS tools."""
+    return load_chat_tools(session=session, workspace_id=workspace_id, include_js=False)
+
+
+def load_chat_tools(
+    *, session: Session, workspace_id: uuid.UUID, include_js: bool
+) -> list[ToolView]:
+    """Active tools for one turn. JS tools are offered only on the widget channel."""
+    statement = (
         select(ToolRegistry)
         .where(ToolRegistry.workspace_id == workspace_id)
         .where(ToolRegistry.is_active == true())
-        .where(ToolRegistry.kind == ToolKind.HTTP)
         .order_by(col(ToolRegistry.name))
-    ).all()
+    )
+    if include_js:
+        statement = statement.where(
+            col(ToolRegistry.kind).in_([ToolKind.HTTP, ToolKind.JS])
+        )
+    else:
+        statement = statement.where(ToolRegistry.kind == ToolKind.HTTP)
+    rows = session.exec(statement).all()
     return [
         ToolView(
             id=str(row.id),
@@ -96,6 +113,7 @@ def load_http_tools(*, session: Session, workspace_id: uuid.UUID) -> list[ToolVi
             description=row.description,
             requires_hitl=row.requires_hitl,
             schema=row.tool_schema,
+            kind=str(row.kind),
         )
         for row in rows
     ]
@@ -164,6 +182,8 @@ def interpret(
         function_args=args,
         requires_hitl=bool(tool["requires_hitl"]),
         description=tool["description"],
+        kind=_kind(tool),
+        tool_name=str(tool["name"]),
     )
 
 
@@ -201,7 +221,16 @@ def _interpret_hitl(
         function_args=args,
         requires_hitl=bool(tool["requires_hitl"]),
         description=tool["description"],
+        kind=_kind(tool),
+        tool_name=str(tool["name"]),
     )
+
+
+def _kind(tool: dict[str, Any]) -> str:
+    kind = tool.get("kind")
+    if kind == ToolKind.JS or kind == ToolKind.JS.value:
+        return ToolKind.JS.value
+    return ToolKind.HTTP.value
 
 
 def _object(value: object) -> dict[str, Any] | None:

@@ -8,7 +8,7 @@ from sqlmodel import Session, col, select
 
 from app.core.db import engine
 from app.models import ChatMessage, ChatSession
-from app.services.chat.catalog import ToolView, load_http_tools
+from app.services.chat.catalog import ToolView, load_chat_tools
 from app.services.chat.errors import ChatSessionNotFound, InvalidChatMessage
 from app.services.chat.limits import MAX_HISTORY_MESSAGES, MAX_HISTORY_TOKENS
 from app.services.chat.plain import truncate_user_text
@@ -25,18 +25,22 @@ class TranscriptTurn:
 class PreparedTurn:
     session_id: uuid.UUID
     workspace_id: uuid.UUID
-    user_id: uuid.UUID
+    user_id: uuid.UUID | None
     text: str
     history: list[TranscriptTurn]
     tools: list[ToolView]
+    channel: str
 
 
 def prepare_turn(
     *,
     workspace_id: uuid.UUID,
-    user_id: uuid.UUID,
+    user_id: uuid.UUID | None,
     session_id: uuid.UUID,
     message: str,
+    channel: str = "internal",
+    include_js: bool = False,
+    writes: bool = True,
 ) -> PreparedTurn:
     text = truncate_user_text(message)
     if not text:
@@ -47,6 +51,7 @@ def prepare_turn(
             session_id=session_id,
             workspace_id=workspace_id,
             user_id=user_id,
+            channel=channel,
         )
         _record(
             session,
@@ -56,7 +61,11 @@ def prepare_turn(
             content=text,
         )
         history = _history(session, session_id=session_id, workspace_id=workspace_id)
-        tools = load_http_tools(session=session, workspace_id=workspace_id)
+        tools = load_chat_tools(
+            session=session, workspace_id=workspace_id, include_js=include_js
+        )
+    if not writes:
+        tools = [tool for tool in tools if not tool.requires_hitl]
     return PreparedTurn(
         session_id=session_id,
         workspace_id=workspace_id,
@@ -64,6 +73,7 @@ def prepare_turn(
         text=text,
         history=history,
         tools=tools,
+        channel=channel,
     )
 
 
@@ -104,18 +114,19 @@ def _open_session(
     *,
     session_id: uuid.UUID,
     workspace_id: uuid.UUID,
-    user_id: uuid.UUID,
+    user_id: uuid.UUID | None,
+    channel: str,
 ) -> ChatSession:
     existing = session.get(ChatSession, session_id)
     if existing is not None:
-        if existing.workspace_id != workspace_id:
+        if existing.workspace_id != workspace_id or existing.channel != channel:
             raise ChatSessionNotFound("Chat session not found")
         return existing
     created = ChatSession(
         id=session_id,
         workspace_id=workspace_id,
         user_id=user_id,
-        channel="internal",
+        channel=channel,
     )
     session.add(created)
     try:
