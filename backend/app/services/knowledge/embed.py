@@ -5,11 +5,11 @@ Each chunk is sent as its own content object so the response has one
 1536-float vector per chunk. The model normalizes that size itself.
 """
 
-from google import genai
 from google.genai import types
 
 from app.core.config import settings
 from app.core.embeddings import EMBEDDING_DIMENSION, EMBEDDING_MODEL
+from app.services.gemini import gemini_client
 from app.services.knowledge.errors import IngestError
 from app.services.knowledge.limits import EMBEDDING_BATCH_SIZE
 
@@ -30,7 +30,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
         return []
     if not settings.GEMINI_API_KEY:
         raise IngestError("Embedding is not configured.")
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    client = gemini_client()
     vectors: list[list[float]] = []
     for start in range(0, len(texts), EMBEDDING_BATCH_SIZE):
         batch = texts[start : start + EMBEDDING_BATCH_SIZE]

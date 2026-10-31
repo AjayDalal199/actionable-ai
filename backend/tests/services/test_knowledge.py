@@ -370,12 +370,13 @@ def test_embed_texts_orders_batches_and_checks_width(
             return SimpleNamespace(embeddings=embeddings)
 
     class _Client:
-        def __init__(self, *, api_key: str) -> None:
+        def __init__(self, *, api_key: str, http_options: object = None) -> None:
             assert api_key == "test-key"
+            assert http_options is not None
             self.models = _Models()
 
     monkeypatch.setattr(settings, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr("app.services.knowledge.embed.genai.Client", _Client)
+    monkeypatch.setattr("app.services.gemini.genai.Client", _Client)
     monkeypatch.setattr("app.services.knowledge.embed.EMBEDDING_BATCH_SIZE", 2)
     assert EMBEDDING_BATCH_SIZE == 64
     vectors = embed_texts(["one", "two", "three"])
@@ -396,11 +397,11 @@ def test_embed_texts_rejects_the_wrong_dimension(
             return SimpleNamespace(embeddings=[SimpleNamespace(values=[1.0, 0.0])])
 
     class _Client:
-        def __init__(self, *, api_key: str) -> None:
+        def __init__(self, *, api_key: str, http_options: object = None) -> None:
             self.models = _Models()
 
     monkeypatch.setattr(settings, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr("app.services.knowledge.embed.genai.Client", _Client)
+    monkeypatch.setattr("app.services.gemini.genai.Client", _Client)
     with pytest.raises(RuntimeError, match="1536"):
         embed_texts(["hello"])
 

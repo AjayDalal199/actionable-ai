@@ -91,6 +91,27 @@ def test_provider_errors_hide_the_exception_text(
     assert "secret-key-boom" not in str(caught.value)
 
 
+def test_gemini_client_retries_overloaded_responses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: dict[str, object] = {}
+
+    class Client:
+        def __init__(self, **kwargs: object) -> None:
+            seen.update(kwargs)
+
+    monkeypatch.setattr("app.services.gemini.genai.Client", Client)
+    monkeypatch.setattr(settings, "GEMINI_API_KEY", "test-key")
+
+    from app.services.gemini import gemini_client
+
+    gemini_client()
+    retry = seen["http_options"].retry_options  # type: ignore[attr-defined]
+    assert retry.attempts == 4
+    assert retry.initial_delay == 0.5
+    assert retry.max_delay == 4.0
+
+
 def test_missing_gemini_key_is_a_provider_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

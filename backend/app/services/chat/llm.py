@@ -15,6 +15,7 @@ from google.genai import types
 
 from app.core.config import settings
 from app.services.chat.errors import PROVIDER_MESSAGE, ProviderError
+from app.services.gemini import gemini_client
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ async def stream_model(
 def _client() -> genai.Client:
     if not settings.GEMINI_API_KEY:
         raise ProviderError(PROVIDER_MESSAGE)
-    return genai.Client(api_key=settings.GEMINI_API_KEY)
+    return gemini_client()
 
 
 def _content(turn: dict[str, Any]) -> types.Content | None:
