@@ -5,11 +5,14 @@ from pydantic import (
     EmailStr,
     HttpUrl,
     PostgresDsn,
+    RedisDsn,
     computed_field,
     field_validator,
     model_validator,
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.embeddings import EMBEDDING_DIMENSION, EMBEDDING_MODEL
 
 
 class Settings(BaseSettings):
@@ -38,6 +41,64 @@ class Settings(BaseSettings):
             if database_url.startswith(scheme):
                 return database_url.replace(scheme, "postgresql+psycopg://", 1)
         return database_url
+
+    # Fixed to match document_chunk.embedding. A change needs a migration.
+    EMBEDDING_MODEL: str = EMBEDDING_MODEL
+    EMBEDDING_DIMENSION: int = EMBEDDING_DIMENSION
+
+    @field_validator("EMBEDDING_MODEL")
+    @classmethod
+    def _embedding_model_matches_column(cls, value: str) -> str:
+        if value != EMBEDDING_MODEL:
+            raise ValueError(
+                f"EMBEDDING_MODEL stays {EMBEDDING_MODEL}, which emits "
+                f"{EMBEDDING_DIMENSION} floats for document_chunk.embedding."
+            )
+        return value
+
+    @field_validator("EMBEDDING_DIMENSION")
+    @classmethod
+    def _embedding_dimension_matches_column(cls, value: int) -> int:
+        if value != EMBEDDING_DIMENSION:
+            raise ValueError(
+                f"EMBEDDING_DIMENSION stays {EMBEDDING_DIMENSION} to match "
+                "document_chunk.embedding. Change it only in a migration."
+            )
+        return value
+
+    # Blank locally. Ingestion marks the document failed when this is missing.
+    GEMINI_API_KEY: str | None = None
+    # Chat model for the later orchestrator. Ingestion does not call it.
+    CHAT_MODEL: str = "gemini-3.5-flash-lite"
+    # Compose mounts the knowledge-uploads volume here. Pytest overrides it.
+    KNOWLEDGE_STORAGE_DIR: str = "/data/knowledge"
+
+    @field_validator("GEMINI_API_KEY", mode="before")
+    @classmethod
+    def _blank_gemini_key_is_unset(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("CHAT_MODEL")
+    @classmethod
+    def _chat_model_not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("CHAT_MODEL cannot be empty.")
+        return stripped
+
+    @field_validator("KNOWLEDGE_STORAGE_DIR")
+    @classmethod
+    def _storage_dir_not_blank(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("KNOWLEDGE_STORAGE_DIR cannot be empty.")
+        return stripped
+
+    # Compose sets redis://redis:6379/0. Host pytest uses localhost:6380.
+    # Required when FASTAPI_ENV is unset (staging and production).
+    REDIS_URL: RedisDsn | None = None
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
@@ -84,6 +145,14 @@ class Settings(BaseSettings):
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
+        if self.REDIS_URL is None:
+            if self.FASTAPI_ENV == "development":
+                self.REDIS_URL = RedisDsn("redis://localhost:6380/0")
+            else:
+                raise ValueError(
+                    "REDIS_URL is required. Point it at the Compose Redis, "
+                    "for example redis://redis:6379/0."
+                )
 
         return self
 

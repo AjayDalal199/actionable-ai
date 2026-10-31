@@ -1,0 +1,18 @@
+{
+  "name": "widget",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build && node scripts/check-size.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.0",
+    "marked": "^16.4.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2",
+    "vite": "^8.3.1"
+  }
+}

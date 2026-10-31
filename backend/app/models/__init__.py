@@ -1,6 +1,22 @@
 from sqlmodel import SQLModel
 
 from app.models.auth import Message, NewPassword, Token, TokenPayload
+from app.models.chat import (
+    ChatMessage,
+    ChatSession,
+    ChatStreamRequest,
+    HitlConfirmRequest,
+)
+from app.models.document import (
+    Document,
+    DocumentChunk,
+    DocumentPublic,
+    DocumentsPublic,
+    DocumentStatus,
+    DocumentType,
+    DocumentUploadResponse,
+)
+from app.models.github_repository import GithubRepository
 from app.models.item import (
     Item,
     ItemBase,
@@ -8,6 +24,16 @@ from app.models.item import (
     ItemPublic,
     ItemsPublic,
     ItemUpdate,
+)
+from app.models.tool_registry import (
+    HttpMethod,
+    ToolKind,
+    ToolPublic,
+    ToolRegister,
+    ToolRegisterResponse,
+    ToolRegistry,
+    ToolsPublic,
+    ToolUpdate,
 )
 from app.models.user import (
     UpdatePassword,
@@ -19,6 +45,13 @@ from app.models.user import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+)
+from app.models.widget import (
+    WidgetChatRequest,
+    WidgetHitlRequest,
+    WidgetInstallPublic,
+    WidgetPreviewToken,
+    WidgetToolResultRequest,
 )
 from app.models.workspace import (
     InvitationStatus,
@@ -40,6 +73,19 @@ from app.models.workspace import (
 )
 
 __all__ = [
+    "ChatMessage",
+    "ChatSession",
+    "ChatStreamRequest",
+    "Document",
+    "DocumentChunk",
+    "DocumentPublic",
+    "DocumentStatus",
+    "DocumentType",
+    "DocumentUploadResponse",
+    "DocumentsPublic",
+    "GithubRepository",
+    "HitlConfirmRequest",
+    "HttpMethod",
     "InvitationStatus",
     "Item",
     "ItemBase",
@@ -52,6 +98,13 @@ __all__ = [
     "SQLModel",
     "Token",
     "TokenPayload",
+    "ToolKind",
+    "ToolPublic",
+    "ToolRegister",
+    "ToolRegisterResponse",
+    "ToolRegistry",
+    "ToolUpdate",
+    "ToolsPublic",
     "UpdatePassword",
     "User",
     "UserBase",
@@ -61,6 +114,11 @@ __all__ = [
     "UserUpdate",
     "UserUpdateMe",
     "UsersPublic",
+    "WidgetChatRequest",
+    "WidgetHitlRequest",
+    "WidgetInstallPublic",
+    "WidgetPreviewToken",
+    "WidgetToolResultRequest",
     "Workspace",
     "WorkspaceCreate",
     "WorkspaceInvite",

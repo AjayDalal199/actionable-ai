@@ -7,9 +7,9 @@ setup:
     /home/azzu199/.bun/bin/bun install
     cd backend && uv sync
 
-# Start only the database and mailcatcher services in Docker
+# Start Postgres, Redis, and Mailcatcher in Docker
 db:
-    docker compose up -d db mailcatcher
+    docker compose up -d db redis mailcatcher
 
 # Run database migrations and prepare the database
 prestart: db

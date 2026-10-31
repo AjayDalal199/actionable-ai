@@ -35,7 +35,8 @@ That is **one container image**, one public hostname per environment. Do not spl
 **Runtime today**
 
 - Traefik (HTTP → HTTPS, Let's Encrypt)
-- PostgreSQL 18
+- PostgreSQL 18 with pgvector (`pgvector/pgvector:pg18`)
+- Redis 8 (ephemeral, Compose network only)
 - FastAPI (`fastapi run --workers 4`)
 - Adminer (local / staging only)
 
@@ -43,8 +44,7 @@ That is **one container image**, one public hostname per environment. Do not spl
 
 | When | Add |
 | --- | --- |
-| Phase 2 | `pgvector` on Postgres; Redis; `REDIS_URL` |
-| Phase 2–3 | Persistent volume for uploaded files (local disk; S3-compatible later) |
+| Phase 3 | Docker named volume for uploads on the VM boot disk (~80 GB). No object storage |
 | Reliable ingestion (after first Knowledge spike) | Worker process (ARQ / TaskIQ) sharing the backend image |
 | Phase 6 | Widget static file in the backend image (or Traefik file server) |
 
@@ -192,14 +192,14 @@ The repo is public: **no self-hosted runner on either VM**. Self-hosted runners 
 | `SECRET_KEY` | **yes** | Unique per env. Rotating it logs everyone out |
 | `FIRST_SUPERUSER_PASSWORD` | **yes** | Unique per env |
 | `SMTP_PASSWORD` | **yes** | If the provider requires it |
+| `GEMINI_API_KEY` | **yes** | Embeddings and chat. Staging can use a separate key with a spend cap |
+| `CHAT_MODEL` | no | Default `gemini-3.5-flash-lite` when unset |
 
 Add when those phases land (still unique per env):
 
 | Name | Phase | Notes |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | 3 | Staging can use a separate OpenAI project with a hard spend cap |
 | `REDIS_URL` | 2 | Internal Compose DNS, e.g. `redis://redis:6379/0` — not public |
-| Object-storage credentials | when S3 replaces local volume | |
 
 Workspace widget JWT secrets live **in the database per workspace**, not in env (backend B4). Env only holds *our* signing key for dashboard users.
 
@@ -229,16 +229,16 @@ Internet
       → adminer         (staging labels only)
 
 backend → Postgres (volume app-db-data)
-backend → Redis     (Phase 2)
+backend → Redis     (ephemeral, no volume)
 worker  → Postgres + Redis   (when ingestion leaves BackgroundTasks)
-backend → disk volume for uploads (Phase 2.3)
+backend → upload volume on the boot disk (Phase 2.3)
 ```
 
 **Project name** must include the environment (`COMPOSE_PROJECT_NAME=a2i-staging` / `a2i-prod`).
 
 **Adminer in production:** omit the service or do not set `traefik.enable=true`. Inspect Postgres with an SSH tunnel (`kubectl` is not a substitute we have).
 
-**Health:** keep `/api/v1/utils/health-check/`. When Redis exists, that check must fail if Redis is down (task Phase 2.2). Traefik should not route to an unhealthy backend.
+**Health:** `/api/v1/utils/health-check/` pings Redis and returns 503 when Redis is down. Traefik should not route to an unhealthy backend.
 
 **Restarts:** `restart: always` on remote services (already in `compose.deploy.yml`). Unattended-upgrades / Docker restart on reboot.
 
@@ -261,9 +261,11 @@ backend → disk volume for uploads (Phase 2.3)
 | | Staging | Production |
 | --- | --- | --- |
 | Postgres volume | Persistent, but wipeable | Persistent |
-| Backups | Optional | **Required before first real client:** nightly `pg_dump` (or volume snapshot) off-box, tested restore quarterly |
-| Uploaded files | Local volume | Local volume until S3; then bucket with versioning |
+| Backups | Optional | **Required before first real client:** nightly `pg_dump` (or volume snapshot) off-box, tested restore quarterly. Also copy the upload directory; a database dump does not contain the files |
+| Uploaded files | Docker volume on the ~80 GB boot disk. Wipeable with the VM | Same disk. Shared with the OS, images, and Postgres |
 | Redis | Ephemeral OK (HITL state is short-lived) | Ephemeral OK for MVP; losing Redis aborts in-flight HITL, not the document corpus |
+
+Uploads do not use object storage. Each VM’s boot volume is the store (about 80 GB). At a 10 MB cap that holds a small beta after leaving room for the OS, images, and Postgres. Prune unused images so the disk does not fill. Revisit only when free space on either VM gets tight.
 
 Never point a local laptop at the production `DATABASE_URL`. Never copy production dumps into Slack.
 

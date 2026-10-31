@@ -23,6 +23,9 @@ services:
   db:
     restart: always
 
+  redis:
+    restart: always
+
   adminer:
     profiles:
       - adminer

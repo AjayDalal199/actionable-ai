@@ -26,6 +26,7 @@ import { Route as DashboardKnowledgeRouteImport } from './routes/dashboard/knowl
 import { Route as DashboardMembersRouteImport } from './routes/dashboard/members'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardToolsRouteImport } from './routes/dashboard/tools'
+import { Route as DashboardWidgetRouteImport } from './routes/dashboard/widget'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -112,6 +113,11 @@ const DashboardToolsRoute = DashboardToolsRouteImport.update({
   path: '/tools',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardWidgetRoute = DashboardWidgetRouteImport.update({
+  id: '/widget',
+  path: '/widget',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/members': typeof DashboardMembersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/tools': typeof DashboardToolsRoute
+  '/dashboard/widget': typeof DashboardWidgetRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/dashboard/members': typeof DashboardMembersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/tools': typeof DashboardToolsRoute
+  '/dashboard/widget': typeof DashboardWidgetRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/dashboard/members': typeof DashboardMembersRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/tools': typeof DashboardToolsRoute
+  '/dashboard/widget': typeof DashboardWidgetRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/dashboard/members'
     | '/dashboard/settings'
     | '/dashboard/tools'
+    | '/dashboard/widget'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/dashboard/members'
     | '/dashboard/settings'
     | '/dashboard/tools'
+    | '/dashboard/widget'
     | '/dashboard'
   id:
     | '__root__'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/dashboard/members'
     | '/dashboard/settings'
     | '/dashboard/tools'
+    | '/dashboard/widget'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -362,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardToolsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/widget': {
+      id: '/dashboard/widget'
+      path: '/widget'
+      fullPath: '/dashboard/widget'
+      preLoaderRoute: typeof DashboardWidgetRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -373,6 +392,7 @@ interface DashboardRouteChildren {
   DashboardMembersRoute: typeof DashboardMembersRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardToolsRoute: typeof DashboardToolsRoute
+  DashboardWidgetRoute: typeof DashboardWidgetRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -384,6 +404,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardMembersRoute: DashboardMembersRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardToolsRoute: DashboardToolsRoute,
+  DashboardWidgetRoute: DashboardWidgetRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 

@@ -24,7 +24,7 @@ export FIRST_SUPERUSER=ops@dactionlabs.com
 export COMPOSE_PROJECT_NAME="$STACK_NAME"
 ```
 
-Optional: `SMTP_HOST`, `SMTP_USER`, `EMAILS_FROM_EMAIL`, `SENTRY_DSN`, `LETSENCRYPT_EMAIL`, `WEB_CONCURRENCY` (keep **1** on the 6 GB VMs).
+Optional: `SMTP_HOST`, `SMTP_USER`, `EMAILS_FROM_EMAIL`, `SENTRY_DSN`, `LETSENCRYPT_EMAIL`, `WEB_CONCURRENCY` (keep **1** on the 6 GB VMs), `GEMINI_API_KEY`, `CHAT_MODEL` (default `gemini-3.5-flash-lite`).
 
 Do **not** set `FASTAPI_ENV=development` on a server. Default secrets (`changethis`) must fail boot.
 

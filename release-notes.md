@@ -2,6 +2,26 @@
 
 ## Latest Changes
 
+## 0.2.0 (2026-10-31)
+
+### Features
+
+* Embed a customer widget from one script. End users stream answers in a Shadow DOM chat and confirm writes in plain language. JavaScript tools run on the host page.
+* Let members ask from uploaded documents in dashboard chat, with replies streaming as markdown, and confirm write tools before they run.
+* Let editors upload documents and register HTTP tools. Write methods always pause for confirmation.
+* Ingest uploads in the background and embed them with Gemini.
+
+### Fixes
+
+* Keep a single CORS origin on widget responses so the dashboard preview can stream.
+* Retry Gemini when the model is overloaded, and forward the API key and chat model on deploy.
+* Keep chat session ids working when the page is served over plain HTTP.
+* Fail the health check when Redis is unreachable.
+
+### Internal
+
+* Add pgvector tables for documents, tools, and repositories.
+
 ## 0.1.1 (2026-10-29)
 
 ### Features

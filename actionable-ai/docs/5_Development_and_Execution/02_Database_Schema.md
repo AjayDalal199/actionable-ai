@@ -4,13 +4,13 @@
 - **Status:** Approved
 - **Scope:** Forward-Looking (Supports MVP & V1)
 - **ORM:** SQLModel (PostgreSQL)
-- **Last Updated:** 2026-08-23
+- **Last Updated:** 2026-10-30
 
 ---
 
 ## 1. Schema Overview
 
-This schema is designed to be multi-tenant (using `workspace_id` on all core tables) and forward-looking. We are establishing the structure for V1 features (like GitHub Repositories) now, even though we will only implement the backend logic for them in Phase 2.
+This schema is designed to be multi-tenant (using `workspace_id` on all core tables) and forward-looking. `GithubRepository` exists as a table only. Sync stays out of the MVP.
 
 ```mermaid
 erDiagram
@@ -75,14 +75,15 @@ The root tenant for a business utilizing the A²I platform.
 - Every subsequent table (except users mapping to it) *must* contain a `workspace_id` to ensure strict tenant isolation during queries.
 
 ### 2.2. `Document` & `DocumentChunk` (MVP)
-- **`Document`**: Tracks the metadata of the uploaded file. The `status` field is critical for the UI to display the "Processing" (Yellow) or "Active" (Green) badges.
-- **`DocumentChunk`**: Utilizes the `pgvector` extension. The `embedding` column will store floats (typically dimension 1536 for OpenAI models).
+- **`Document`**: `workspace_id`, `title`, `type` (`pdf` / `markdown` / `text`), `status` (`processing` / `active` / `failed`), `original_filename`, `error_message`, `created_at`. Status drives the Processing and Active badges.
+- **`DocumentChunk`**: `document_id`, `content`, `embedding vector(1536)`, `chunk_index` (unique per document), optional `metadata` JSONB.
+- Embeddings are Gemini `gemini-embedding-2` at 1536 dimensions. That size is fixed in `backend/app/core/embeddings.py`. Cosine HNSW index: `ix_document_chunk_embedding_hnsw`.
 
 ### 2.3. `ToolRegistry` (MVP)
-- Stores the developer configurations for agent tools.
-- The `schema` column uses PostgreSQL's native `JSONB` to store the strict API parameters.
-- The `requires_hitl` boolean is the hard-lock security measure preventing LLMs from executing destructive actions without the user clicking the "Confirm" button in the widget.
+- `workspace_id`, `name` (unique per workspace), `kind` (`http` / `js`), `http_method`, `url`, `schema` JSONB, `requires_hitl`, `description`, `is_active`.
+- The `schema` column uses PostgreSQL `JSONB` for the tool parameters.
+- `requires_hitl` is the hard-lock that stops a write until the user confirms it in the widget. The API will force it on for POST, PUT, and DELETE.
 
-### 2.4. `GithubRepository` (V1 - Forward Looking)
-- Established now to prevent future database migrations.
-- Used in Phase 2 to automatically trigger knowledge-base re-indexing when a developer pushes code to the `target_branch`.
+### 2.4. `GithubRepository` (V1 - table only)
+- `workspace_id`, `url`, `target_branch`, `last_sync`.
+- No OAuth, webhooks, or sync workers until V1.

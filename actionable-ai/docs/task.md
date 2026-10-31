@@ -13,15 +13,11 @@
 
 ## Next up (do this only)
 
-**Task:** Phase 2 data plane. Do not start Knowledge APIs yet.
+**Task:** Handoff and launch safety (Phase 8). The widget channel, JS tool bridge, snippet, and preview are in place. Do not run JS tools from the internal sandbox.
 
-- `[ ]` Enable pgvector; add Document / DocumentChunk / ToolRegistry / GithubRepository (table only)
-- `[ ]` Add Redis to Compose and `REDIS_URL`
-- `[ ]` Decide local volume vs S3 for original uploads (document the choice)
+**Done when:** Low-confidence or “talk to a human” collects an email, sends the transcript, and the service cannot be trivially bankrupted or SSRF’d.
 
-**Done when:** Postgres has pgvector, Redis is in Compose, and the schema in `02_Database_Schema.md` exists (including forward-looking `GithubRepository` with **no** sync logic). Dashboard UI can trail matching APIs.
-
-**After that (not now):** Phase 3 knowledge ingestion.
+**After that (not now):** integration docs (Phase 9). See [Path to MVP](#path-to-mvp).
 
 ---
 
@@ -64,15 +60,17 @@ Do not start these until MVP ships. They are documented so they do not leak into
 
 
 
-## Current state (as of 2026-08-25)
+## Current state (as of 2026-10-31)
 
-Auth, workspaces, RBAC, and the dashboard shell are in place. Knowledge, tools, chat, and the widget are not built yet.
+Auth, workspaces, RBAC, the dashboard shell, knowledge ingestion, the tool registry, the API request engine, the internal chat orchestrator, the Knowledge and Tools screens, sandbox chat, and the embeddable widget are in place. JS tools run only on the widget channel. Internal chat does not emit `tool_js`.
+
+Known gap, fix before relying on the post-approve reply: Gemini 3.5 Flash Lite rejects the follow-up turn because the replayed function call has no thought signature. The HTTP tool still runs on approval. Rejection does not call the tool.
 
 **Already in place**
 
 - `[x]` FastAPI backend in `./backend` (users, login, JWT, password recovery)
 - `[x]` React / Vite dashboard in `./frontend` (TanStack Router, shadcn/ui, Tailwind)
-- `[x]` PostgreSQL + SQLModel + Alembic (no pgvector yet)
+- `[x]` PostgreSQL + SQLModel + Alembic + pgvector
 - `[x]` Public landing page at `/` (ember brand, HITL artifact, logged-in redirect to `/dashboard`)
 - `[x]` `/signup`, `/login`, `/recover-password`, `/terms`, `/privacy`
 - `[x]` Wordmark **Actionable AI** in chrome
@@ -84,7 +82,7 @@ Auth, workspaces, RBAC, and the dashboard shell are in place. Knowledge, tools, 
 **Still template leftovers (must be replaced, not shipped as product)**
 
 - `[ ]` Remove demo **Items** CRUD from dashboard and API (or hide it) once Knowledge / Tools exist
-- `[x]` Replace template dashboard home with the Quick Start empty state (sandbox chat still Phase 7)
+- `[x]` Replace template dashboard home with the Quick Start empty state
 - `[x]` Hide Items from the sidebar (Phase 1.3) — Items API and `/dashboard/items` remain until Knowledge exists
 
 ---
@@ -93,24 +91,32 @@ Auth, workspaces, RBAC, and the dashboard shell are in place. Knowledge, tools, 
 
 ## Path to MVP
 
-Work in this order. Later phases depend on earlier ones. Dashboard UI can trail its matching API by a sprint, but do not start the widget until chat streaming exists.
+Work in this order. Phase numbers stay as they are so older notes still point at the same work. **Build order changed 2026-10-30:** make chat usable inside the dashboard before building the embeddable widget. The widget channel, the host-page JS tool bridge (5.4), the snippet, and the widget preview (7.3) ship with Phase 6.
 
 ```text
-1. Workspace + RBAC
+1. Workspace + RBAC                         done
         ↓
-2. Data plane (pgvector, Redis, core tables)
+2. Data plane (pgvector, Redis, tables)     done
         ↓
-3. Knowledge ingestion  ──┐
-        ↓                 │
-4. Tool registry          ├── 5. Chat orchestrator (RAG + tools + HITL + SSE)
-        ↓                 │
-6. Embeddable widget  ←───┘
+3.1–3.2 Knowledge ingestion API             done
         ↓
-7. Dashboard product (upload UI, tools UI, sandbox, snippet, internal chat)
+4.1 Tool registry APIs                      done
         ↓
-8. Handoff + launch safety + QA
+4.2 API Request Engine                      done
         ↓
-     MVP ship
+5. Chat orchestrator, internal channel only  done
+        ↓
+3.3 Knowledge screen  +  4.3 Tools screen    done
+        ↓
+7.1 Sandbox  +  7.2 Internal chat           done
+        ↓
+6. Embeddable widget  +  5.4 JS tools  +  7.3 preview  +  snippet  done
+        ↓
+8. Handoff + launch safety                  ← next
+        ↓
+9. Integration docs
+        ↓
+10. QA and MVP acceptance
 ```
 
 ---
@@ -191,31 +197,37 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 ### 2.1 PostgreSQL + pgvector
 
-- `[ ]` Enable `pgvector` on the app database (image/extension in Docker; local + deploy docs)
-- `[ ]` Confirm vector dimension (OpenAI `text-embedding-3-small` = 1536 unless we choose otherwise) and document it in config
-- `[ ]` Add `Document` (`workspace_id`, `title`, `type` pdf/markdown/text, `status` processing/active/failed, `original_filename`, `error_message`, `created_at`)
-- `[ ]` Add `DocumentChunk` (`document_id`, `content`, `embedding` vector, `chunk_index`, optional `metadata` JSONB)
-- `[ ]` IVFFlat or HNSW index on `embedding` (start with a simple index; tune later)
-- `[ ]` Add `ToolRegistry` (`workspace_id`, `name` unique per workspace, `kind` http/js, `http_method`, `url`, `schema` JSONB, `requires_hitl`, `description`, `is_active`)
-- `[ ]` Add `GithubRepository` **table only** (`workspace_id`, `url`, `target_branch`, `last_sync`) — no OAuth, no workers
-- `[ ]` Alembic migrations + model tests
+- `[x]` Enable `pgvector` on the app database (image `pgvector/pgvector:pg18`, extension in the migration)
+- `[x]` Vector dimension: Gemini `gemini-embedding-2` at **1536** (normalized by the model), fixed in `app/core/embeddings.py` and settings
+- `[x]` Add `Document` (`workspace_id`, `title`, `type` pdf/markdown/text, `status` processing/active/failed, `original_filename`, `error_message`, `created_at`)
+- `[x]` Add `DocumentChunk` (`document_id`, `content`, `embedding` vector, `chunk_index`, optional `metadata` JSONB)
+- `[x]` HNSW index on `embedding` with cosine ops (tune later)
+- `[x]` Add `ToolRegistry` (`workspace_id`, `name` unique per workspace, `kind` http/js, `http_method`, `url`, `schema` JSONB, `requires_hitl`, `description`, `is_active`)
+- `[x]` Add `GithubRepository` **table only** (`workspace_id`, `url`, `target_branch`, `last_sync`) — no OAuth, no workers
+- `[x]` Alembic migration `b7e2a1c94d08` + model tests
 
 
 
 ### 2.2 Redis
 
-- `[ ]` Add Redis service to `compose.yml` / deploy compose
-- `[ ]` App settings: `REDIS_URL`
+- `[x]` Add Redis to `compose.yml` and `compose.deploy.yml` (ephemeral, Docker network only; local port 6380)
+- `[x]` App settings: `REDIS_URL` (required outside development; Compose sets `redis://redis:6379/0`)
 - `[ ]` Use Redis for: HITL pending-action state, SSE/pubsub if needed, and a **basic** rate-limit counter (Phase 8)
-- `[ ]` Health check includes Redis
+- `[x]` Health check pings Redis and returns 503 when it is down
 
 
 
 ### 2.3 Object / file storage for uploads
 
-- `[ ]` Decide store: local volume for MVP Docker, S3-compatible later — document the choice
-- `[ ]` Persist original file bytes keyed by `document_id` (needed to re-process on failure)
-- `[ ]` Max size **10MB** to match the Knowledge UI spec (API contract said 50MB — **implement 10MB** and update the API contract)
+**Decided (2026-10-30):** Original files live on the VM boot volume. Staging and production each have about **80 GB** and no object storage. A Docker named volume on that disk holds the bytes (Docker’s data root is already there). Local Compose uses the same kind of volume. Do not add a separate block volume for MVP.
+
+The disk is shared with the OS, images, and Postgres. Keep the **10MB** upload cap and prune unused images so the volume does not fill. A container recreate keeps the files; deleting the VM or the Docker volume does not. `pg_dump` does not include them — before the first real production client, the off-box backup must copy this directory too. Staging may still be wiped.
+
+A later object store can replace the directory behind `services/knowledge/storage.py`. Routes must not assume a filesystem path.
+
+- `[x]` Store: boot-volume disk on each VM (this section, deployment strategy §9, Oracle guide)
+- `[x]` Persist original file bytes keyed by `document_id` (needed to re-process on failure)
+- `[x]` Max size **10MB** to match the Knowledge UI spec (API contract said 50MB — implemented 10MB and updated the API contract)
 
 ---
 
@@ -229,14 +241,14 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 ### 3.1 Embedding + chunking pipeline
 
-- `[ ]` Config: `OPENAI_API_KEY`, embedding model, chat model
-- `[ ]` Extract text: Markdown as-is; PDF via a maintained extractor (fail the document if extract is empty)
-- `[ ]` Chunk with overlap (document chosen sizes, e.g. ~500–800 tokens, overlap ~10–20%)
-- `[ ]` Embed chunks; store in `DocumentChunk`
-- `[ ]` Run ingestion **asynchronously** (background task / worker) so the upload API returns immediately with `status: processing`
-- `[ ]` Idempotent re-process: replacing a document deletes old chunks then re-embeds
-- `[ ]` Duplicate filenames: auto-append timestamp (UI spec decision)
-- `[ ]` Input token / file safety: skip empty files; cap pages/chars so one upload cannot melt the worker
+- `[x]` Config: `GEMINI_API_KEY`, embedding model `gemini-embedding-2`, chat model `gemini-3.5-flash-lite`
+- `[x]` Extract text: Markdown as-is; PDF via a maintained extractor (fail the document if extract is empty)
+- `[x]` Chunk with overlap (document chosen sizes, e.g. ~500–800 tokens, overlap ~10–20%)
+- `[x]` Embed chunks; store in `DocumentChunk`
+- `[x]` Run ingestion **asynchronously** (background task / worker) so the upload API returns immediately with `status: processing`
+- `[x]` Idempotent re-process: replacing a document deletes old chunks then re-embeds
+- `[x]` Duplicate filenames: auto-append timestamp (UI spec decision)
+- `[x]` Input token / file safety: skip empty files; cap pages/chars so one upload cannot melt the worker
 
 
 
@@ -244,29 +256,31 @@ MVP roles (from PRD): **Admin**, **Editor**, **Viewer**.
 
 Align with `03_MVP_API_Contracts.md`, plus list/status that the UI needs.
 
-- `[ ]` `POST /api/v1/knowledge/upload` — multipart, workspace from auth, returns `{ document_id, status: "processing" }`
-- `[ ]` `GET /api/v1/knowledge/documents` — list for the table (name, date, status)
-- `[ ]` `GET /api/v1/knowledge/documents/{id}` — detail + error message if failed
-- `[ ]` `DELETE /api/v1/knowledge/documents/{id}` — delete file + chunks
-- `[ ]` AuthZ: Editor+ to mutate; Viewer can list
-- `[ ]` Reject non-pdf / non-md / non-txt; reject > 10MB
-- `[ ]` Tests: upload happy path, isolation, invalid type, failed parse sets `failed`
+- `[x]` `POST /api/v1/knowledge/upload` — multipart, workspace from auth, returns `{ document_id, status: "processing" }`
+- `[x]` `GET /api/v1/knowledge/documents` — list for the table (name, date, status)
+- `[x]` `GET /api/v1/knowledge/documents/{id}` — detail + error message if failed
+- `[x]` `DELETE /api/v1/knowledge/documents/{id}` — delete file + chunks
+- `[x]` AuthZ: Editor+ to mutate; Viewer can list
+- `[x]` Reject non-pdf / non-md / non-txt; reject > 10MB
+- `[x]` Tests: upload happy path, isolation, invalid type, failed parse sets `failed`
 
 
 
 ### 3.3 Knowledge Base UI (dashboard)
 
+Build this after the internal orchestrator (Phase 5), together with the Tools screen (4.3), and before sandbox chat (7.1). The upload API already exists.
+
 Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.md`
 
-- `[ ]` Route `/dashboard/knowledge`
-- `[ ]` Table: file name, date, status badges (Active / Processing / Failed)
-- `[ ]` Empty state + CTA “Upload Data”
-- `[ ]` Side panel: drag-and-drop, click to browse, determinate progress
-- `[ ]` Client-side type/size validation; toast on network interrupt
-- `[ ]` Multi-file upload in one drop
-- `[ ]` Poll (or lightweight SSE) so status flips without refresh
-- `[ ]` Failed row: tooltip with `error_message`
-- `[ ]` Keyboard + `sr-only` status text (spec §11)
+- `[x]` Route `/dashboard/knowledge`
+- `[x]` Table: file name, date, status badges (Active / Processing / Failed)
+- `[x]` Empty state + CTA “Upload Data”
+- `[x]` Side panel: drag-and-drop, click to browse, determinate progress
+- `[x]` Client-side type/size validation; toast on network interrupt
+- `[x]` Multi-file upload in one drop
+- `[x]` Poll (or lightweight SSE) so status flips without refresh
+- `[x]` Failed row: tooltip with `error_message`
+- `[x]` Keyboard + `sr-only` status text (spec §11)
 
 ---
 
@@ -280,17 +294,17 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.
 
 ### 4.1 Tool APIs
 
-- `[ ]` `POST /api/v1/tools/register` — body per API contract; force `requires_hitl=true` for POST/PUT/DELETE even if client sends false
-- `[ ]` `GET /api/v1/tools` — list
-- `[ ]` `GET /api/v1/tools/{id}`
-- `[ ]` `PATCH /api/v1/tools/{id}` — edit schema/url/description
-- `[ ]` `DELETE /api/v1/tools/{id}` (or deactivate)
-- `[ ]` Validate: `name` snake_case `^[a-z0-9_]+$`; unique per workspace (409)
-- `[ ]` Validate JSON Schema is an object with `type` / `properties`
-- `[ ]` Tool kinds for MVP:
+- `[x]` `POST /api/v1/tools/register` — body per API contract; force `requires_hitl=true` for POST/PUT/DELETE even if client sends false
+- `[x]` `GET /api/v1/tools` — list
+- `[x]` `GET /api/v1/tools/{id}`
+- `[x]` `PATCH /api/v1/tools/{id}` — edit schema/url/description
+- `[x]` `DELETE /api/v1/tools/{id}` (or deactivate)
+- `[x]` Validate: `name` snake_case `^[a-z0-9_]+$`; unique per workspace (409)
+- `[x]` Validate JSON Schema is an object with `type` / `properties`
+- `[x]` Tool kinds for MVP:
   - **HTTP:** method + URL + schema (server-side execution via our API Request Engine)
   - **JS:** name + schema only (execution happens in the host page; we emit a tool-call event to the widget)
-- `[ ]` Tests: HITL hard-lock, 409 duplicate, Viewer cannot register
+- `[x]` Tests: HITL hard-lock, 409 duplicate, Viewer cannot register
 
 
 
@@ -298,26 +312,28 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/01_Quick_Start_and_Ingestion.
 
 MVP needs real HTTP calls. Full SSRF hardening is V1; **do the minimum now** so we do not fetch metadata IPs.
 
-- `[ ]` HTTP client with timeouts
-- `[ ]` Block obvious SSRF: localhost, link-local, private RFC1918, AWS/GCP metadata hosts (expand in V1)
-- `[ ]` HTTPS required except `localhost` for integrator testing
-- `[ ]` Pass through the **end-user JWT** (Phase 6) as `Authorization: Bearer` (or a documented header) to the client API — we do not invent permissions
-- `[ ]` Map non-2xx to a structured error the LLM can explain (no fake success)
-- `[ ]` Simple retry: once on 502/503; no infinite loops
+- `[x]` HTTP client with timeouts
+- `[x]` Block obvious SSRF: link-local, private RFC1918, and AWS/GCP metadata hosts (full SSRF hardening is V1). `localhost`, `127.0.0.1`, and `::1` stay allowed
+- `[x]` HTTPS required except `localhost`, `127.0.0.1`, and `::1` for integrator testing
+- `[x]` Pass through a caller-supplied bearer as `Authorization: Bearer` — we do not invent permissions. Internal chat passes the dashboard member’s token. The host end-user JWT arrives with Phase 6.
+- `[x]` Map non-2xx to a structured error the LLM can explain (no fake success)
+- `[x]` Simple retry: once on 502/503; no infinite loops
 
 
 
 ### 4.3 Tools & Actions UI (dashboard)
 
+Build this after the internal orchestrator (Phase 5), together with the Knowledge screen (3.3), and before sandbox chat (7.1). The registry API already exists.
+
 Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/02_Tool_Registration_Flow.md`
 
-- `[ ]` Route `/dashboard/tools`
-- `[ ]` Table: name, type (GET / JS / …), safety (Read only vs HITL)
-- `[ ]` Side panel: name, URL (HTTP), method, description, Monaco JSON schema editor
-- `[ ]` Changing method to POST/PUT/DELETE: HITL toggle ON and **disabled**
-- `[ ]` Save disabled on invalid JSON or invalid name
-- `[ ]` Unsaved-changes confirm when closing the panel
-- `[ ]` Duplicate-name inline error from 409
+- `[x]` Route `/dashboard/tools`
+- `[x]` Table: name, type (GET / JS / …), safety (Read only vs HITL)
+- `[x]` Side panel: name, URL (HTTP), method, description, Monaco JSON schema editor
+- `[x]` Changing method to POST/PUT/DELETE: HITL toggle ON and **disabled**
+- `[x]` Save disabled on invalid JSON or invalid name
+- `[x]` Unsaved-changes confirm when closing the panel
+- `[x]` Duplicate-name inline error from 409
 
 ---
 
@@ -325,57 +341,59 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Dashboard/02_Tool_Registration_Flow.md`
 
 ## Phase 5 — Chat orchestrator (the product brain)
 
-**Why now:** Sandbox, internal chat, and the widget all share one streaming API.
+**Why now:** Sandbox and `/dashboard/chat` need one streaming API. Build the `internal` channel here. Leave the widget channel and the host-page JS bridge (5.4) for Phase 6, after internal chat is usable.
 
-**Done when:** A message streams tokens; questions hit RAG; write tools pause for HITL; confirm resumes and completes; reject aborts.
+**Done when:** A logged-in member can stream an answer from workspace documents, a write tool pauses for HITL, confirm runs the HTTP tool, and reject aborts. Widget auth is not part of this slice.
 
 Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
 ### 5.1 Session and streaming API
 
-- `[ ]` `ChatSession` (or Redis-backed session) keyed by `session_id` + `workspace_id`
-- `[ ]` Persist messages enough to resume HITL and to attach a transcript on escalation
-- `[ ]` `POST /api/v1/chat/stream` — `text/event-stream`
-  - Request: `{ session_id, message, channel?: "widget" | "internal" }`
-  - Events: `message` (token/text), `hitl_required`, `tool_js` (client-side function), `error`, `done`
-- `[ ]` `POST /api/v1/chat/hitl-confirm` — `{ pending_action_id, decision: "approved" | "rejected" }` → resume or abort
-- `[ ]` Widget channel: require **host end-user JWT** (Phase 6), not only the integrator’s dashboard JWT
-- `[ ]` Internal/sandbox channel: require logged-in workspace member
-- `[ ]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
-- `[ ]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
+- `[x]` `ChatSession` (or Redis-backed session) keyed by `session_id` + `workspace_id`
+- `[x]` Persist messages enough to resume HITL and to attach a transcript on escalation
+- `[x]` `POST /api/v1/chat/stream` — `text/event-stream` for channel `internal`
+  - Request: `{ session_id, message, channel: "internal" }`
+  - Events: `message` (token/text), `hitl_required`, `error`, `done`. Do not emit `tool_js` until 5.4.
+- `[x]` `POST /api/v1/chat/hitl-confirm` — `{ pending_action_id, decision: "approved" | "rejected" }` streams the outcome or aborts
+- `[x]` Widget channel: require **host end-user JWT**, not the integrator’s dashboard JWT. Build this with Phase 6, not with the internal channel.
+- `[x]` Internal/sandbox channel: require logged-in workspace member
+- `[x]` Truncate user text (UI ~2000 chars; backend hard cap ~2000 tokens) **before** embed/LLM
+- `[x]` Max tool iterations per turn (e.g. 5) so the graph cannot loop
 
 
 
 ### 5.2 RAG retrieval (read path)
 
-- `[ ]` Embed the query with the same model as ingestion
-- `[ ]` Top-k similarity search **scoped to workspace_id** (join through Document)
-- `[ ]` Only `status=active` documents
-- `[ ]` Wrap retrieved text in delimiters; system prompt: retrieved text is data, never instructions (cheap anti-injection for MVP)
-- `[ ]` If similarity is below a threshold, prefer “I don’t know” / handoff rather than guessing
-- `[ ]` Input token truncation of the *context pack* so the prompt cannot blow the model window
+- `[x]` Embed the query with the same model as ingestion
+- `[x]` Top-k similarity search **scoped to workspace_id** (join through Document)
+- `[x]` Only `status=active` documents
+- `[x]` Wrap retrieved text in delimiters; system prompt: retrieved text is data, never instructions (cheap anti-injection for MVP)
+- `[x]` If similarity is below a threshold, prefer “I don’t know” / handoff rather than guessing
+- `[x]` Input token truncation of the *context pack* so the prompt cannot blow the model window
 
 
 
 ### 5.3 LangGraph agent
 
-- `[ ]` Graph nodes: retrieve → reason → tool or answer → (HITL interrupt) → execute → answer
-- `[ ]` Load workspace tools as LLM functions from `ToolRegistry`
-- `[ ]` Inject `request_hitl_approval` schema from `04_MVP_LLM_Prompts.md`
-- `[ ]` **Code-enforced** HITL: if tool `requires_hitl` and the model tries to call it directly, intercept and convert to HITL (do not trust the model)
-- `[ ]` On HITL: pause graph, store state in Redis under `pending_action_id`, emit `hitl_required` with **plain-language** title/summary only (no HTTP method, path, tool id, or “API”)
-- `[ ]` On approve: execute HTTP tool or emit JS tool event; stream success/failure
-- `[ ]` On reject: stream “No problem, I won’t do that.”; do not retry the same write quietly
-- `[ ]` System prompt from `04_MVP_LLM_Prompts.md` (tune voice: customer widget vs internal dashboard)
-- `[ ]` Graceful LLM/provider errors → stable `error` SSE event
+- `[x]` Graph nodes: retrieve → reason → tool or answer → (HITL interrupt) → execute → answer
+- `[x]` Load workspace tools as LLM functions from `ToolRegistry`
+- `[x]` Inject `request_hitl_approval` schema from `04_MVP_LLM_Prompts.md`
+- `[x]` **Code-enforced** HITL: if tool `requires_hitl` and the model tries to call it directly, intercept and convert to HITL (do not trust the model)
+- `[x]` On HITL: pause graph, store state in Redis under `pending_action_id`, emit `hitl_required` with **plain-language** title/summary only (no HTTP method, path, tool id, or “API”)
+- `[x]` On approve: execute the HTTP tool through the API request engine and stream success or the structured error. JS tool events wait for 5.4.
+- `[x]` On reject: stream “No problem, I won’t do that.”; do not retry the same write quietly
+- `[x]` System prompt from `04_MVP_LLM_Prompts.md` (tune voice: customer widget vs internal dashboard)
+- `[x]` Graceful LLM/provider errors → stable `error` SSE event
 
 
 
-### 5.4 Client-side (JS) tools
+### 5.4 Client-side (JS) tools — with Phase 6
 
-- `[ ]` Registry entry has no URL; widget is told `{ name, arguments }`
-- `[ ]` Widget looks up `window`/`registerTool` map; on missing/throw, show fallback text (do not crash)
-- `[ ]` Writes still go through HITL **before** the widget invokes the JS function
+JS tools can already be stored. Host-page execution waits for the widget. Do not build this in the internal-channel slice. HTTP tools run through the Phase 4.2 engine.
+
+- `[x]` Registry entry has no URL; widget is told `{ name, arguments }`
+- `[x]` Widget looks up `window`/`registerTool` map; on missing/throw, show fallback text (do not crash)
+- `[x]` Writes still go through HITL **before** the widget invokes the JS function
 
 ---
 
@@ -383,7 +401,7 @@ Specs: architecture §3.2, `03_MVP_API_Contracts.md`, `04_MVP_LLM_Prompts.md`.
 
 ## Phase 6 — Embeddable customer widget
 
-**Why now:** This is the surface beta clients actually ship. It consumes Phase 5.
+**When:** After sandbox and internal chat (Phase 7.1 and 7.2) work. This is the surface beta clients ship on their own site. It consumes the Phase 5 orchestrator. Build the widget channel’s end-user JWT check and the JS tool bridge (5.4) here, plus the snippet (6.5) and the dashboard widget preview (7.3).
 
 **Done when:** A host page loads one script, opens a Shadow DOM chat, streams answers, shows HITL in plain language, and confirms/rejects safely.
 
@@ -391,49 +409,49 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 
 ### 6.1 Package and isolation
 
-- `[ ]` New package `packages/widget` (Option A) — Vanilla JS or Preact, **not** the full dashboard React app; no import from `frontend/src` or `@/shared/ui`
-- `[ ]` Web Component + **Shadow DOM** (host `button { }` must not restyle us)
-- `[ ]` Sanitize rendered Markdown (`marked` + **DOMPurify**)
-- `[ ]` Async loader / small bundle; document a target size and fail CI if we explode it
-- `[ ]` Public script URL (CDN or `/widget.js` from our origin) + snippet with `data-workspace` / public key
+- `[x]` New package `packages/widget` (Option A) — Vanilla JS or Preact, **not** the full dashboard React app; no import from `frontend/src` or `@/shared/ui`
+- `[x]` Web Component + **Shadow DOM** (host `button { }` must not restyle us)
+- `[x]` Sanitize rendered Markdown (`marked` + **DOMPurify**)
+- `[x]` Async loader / small bundle; document a target size and fail CI if we explode it
+- `[x]` Public script URL (CDN or `/widget.js` from our origin) + snippet with `data-workspace` / public key
 
 
 
 ### 6.2 Secure agent authorization
 
-- `[ ]` Integrator initializes with a **signed JWT from their backend** representing the *end-user*
-- `[ ]` Document the claims we require (sub, expiry, optional email); we verify signature with the workspace’s configured secret/JWKS
-- `[ ]` No JWT → chat may answer RAG **read-only** or show “sign in” — **no write tools**
-- `[ ]` Expired/invalid JWT → refuse tools; explain in the widget
-- `[ ]` Never accept the integrator dashboard token as end-user identity
+- `[x]` Integrator initializes with a **signed JWT from their backend** representing the *end-user*
+- `[x]` Document the claims we require (sub, expiry, optional email); we verify signature with the workspace’s configured secret/JWKS
+- `[x]` No JWT → chat may answer RAG **read-only** or show “sign in” — **no write tools**
+- `[x]` Expired/invalid JWT → refuse tools; explain in the widget
+- `[x]` Never accept the integrator dashboard token as end-user identity
 
 
 
 ### 6.3 Chat UX
 
-- `[ ]` FAB bottom-right; modal open/close; session history kept in memory while the tab lives
-- `[ ]` Composer: Enter send, Shift+Enter newline, 2000-char truncate
-- `[ ]` Optimistic 3-dot loader the moment Send is pressed; drop it on first SSE chunk
-- `[ ]` SSE buffering so partial JSON does not flicker
-- `[ ]` HITL card: action title, consequence, optional “Cannot be undone”, **Go back** / **Confirm** — never endpoints
-- `[ ]` Confirm/Go back disable that card permanently
-- `[ ]` Desktop ~380×700; mobile full viewport
-- `[ ]` `role="log"` / `aria-live` for messages; HITL `assertive`
-- `[ ]` Connection loss copy from spec; timeouts do not freeze the composer forever
+- `[x]` FAB bottom-right; modal open/close; session history kept in memory while the tab lives
+- `[x]` Composer: Enter send, Shift+Enter newline, 2000-char truncate
+- `[x]` Optimistic 3-dot loader the moment Send is pressed; drop it on first SSE chunk
+- `[x]` SSE buffering so partial JSON does not flicker
+- `[x]` HITL card: action title, consequence, optional “Cannot be undone”, **Go back** / **Confirm** — never endpoints
+- `[x]` Confirm/Go back disable that card permanently
+- `[x]` Desktop ~380×700; mobile full viewport
+- `[x]` `role="log"` / `aria-live` for messages; HITL `assertive`
+- `[x]` Connection loss copy from spec; timeouts do not freeze the composer forever
 
 
 
 ### 6.4 JS tool bridge + failure
 
-- `[ ]` `A2I.registerTool(name, fn)` (or equivalent) on the host
-- `[ ]` Catch throws / missing fn → user-visible fallback, widget stays up
+- `[x]` `A2I.registerTool(name, fn)` (or equivalent) on the host
+- `[x]` Catch throws / missing fn → user-visible fallback, widget stays up
 
 
 
 ### 6.5 Dashboard: snippet export
 
-- `[ ]` Settings or Quick Start: copy `<script src="…">` + init example
-- `[ ]` Show workspace public id and how to mint the end-user JWT (short integration guide)
+- `[x]` Settings or Quick Start: copy `<script src="…">` + init example
+- `[x]` Show workspace public id and how to mint the end-user JWT (short integration guide)
 
 ---
 
@@ -441,18 +459,18 @@ Spec: `docs/4_Design_and_Prototyping/MVP/Widget/01_Core_Chat_and_HITL_Flow.md`
 
 ## Phase 7 — Dashboard product complete (Quick Start loop)
 
-**Why now:** TTV is measured here: signup → upload → sandbox question → copy snippet.
+**When:** Build 7.1 and 7.2 after the Knowledge and Tools screens, and before the widget. Internal time-to-value is signup → upload → sandbox question → HITL confirm. Copy-snippet and 7.3 wait for Phase 6.
 
-**Done when:** A new Admin can finish that loop without leaving the app or reading a separate PDF.
+**Done when:** A new Admin can upload a document, ask the sandbox a question, and confirm or reject a write tool without leaving the dashboard. Pasting a script tag is Phase 6, not this slice.
 
 ### 7.1 Quick Start + sandbox
 
 Journey 1 in `User_Journeys.md`.
 
-- `[ ]` After first workspace: guided steps (upload → ask → copy snippet)
-- `[ ]` **Sandbox chat** on dashboard using the same orchestrator as the widget (`channel: internal` or `sandbox`)
-- `[ ]` Redirect/focus sandbox when the first document becomes Active (target: usable within ~60s of upload)
-- `[ ]` Sandbox may use the dashboard user as identity; label it clearly as a test surface
+- `[x]` After first workspace: guided steps (upload → ask). Copy-snippet is Phase 6.5.
+- `[x]` **Sandbox chat** on the dashboard using the internal orchestrator (`channel: internal`). This is dashboard UI, not the embeddable widget.
+- `[x]` Redirect/focus sandbox when the first document becomes Active (target: usable within ~60s of upload)
+- `[x]` Sandbox may use the dashboard user as identity; label it clearly as a test surface
 
 
 
@@ -460,15 +478,17 @@ Journey 1 in `User_Journeys.md`.
 
 PRD: internal chatbot is MVP (Marcus / sales-support).
 
-- `[ ]` Route `/dashboard/chat` — full-page chat, same APIs, workspace RAG + tools
-- `[ ]` Default to read-heavy behavior; still HITL if someone tests a write tool
-- `[ ]` Empty state if no documents: point to Knowledge upload
+- `[x]` Route `/dashboard/chat` — full-page chat, same APIs, workspace RAG + tools
+- `[x]` Default to read-heavy behavior; still HITL if someone tests a write tool
+- `[x]` Empty state if no documents: point to Knowledge upload
 
 
 
-### 7.3 Widget preview (optional but useful)
+### 7.3 Widget preview — with Phase 6
 
-- `[ ]` Dashboard page that mounts the real widget against the current workspace (staging key) so David does not need a second app on day one
+Do not start this with sandbox chat. It mounts the real widget from Phase 6.
+
+- `[x]` Dashboard page that mounts the real widget against the current workspace (staging key) so David does not need a second app on day one
 
 ---
 
@@ -502,7 +522,7 @@ Product Scope puts full rate limits / semantic cache / SSRF / DoW in V1. MVP sti
 - `[ ]` Daily or monthly **soft LLM budget** per workspace (env-configured) so a viral page cannot create a surprise five-figure bill
 - `[ ]` HITL hard-lock tested as a security test, not only a UX test
 - `[ ]` Tenant isolation tests on chat, knowledge, tools
-- `[ ]` Minimum SSRF denylist on the API Request Engine (Phase 4.2)
+- `[x]` Minimum SSRF denylist on the API Request Engine (Phase 4.2)
 - `[ ]` Max graph iterations (Phase 5.1)
 - `[ ]` Do **not** claim SOC2/GDPR/LlamaGuard on the marketing site (already specified)
 
@@ -578,14 +598,16 @@ A stranger (or us pretending to be David) can:
 Use this if you want a calendar-shaped path. Durations assume a small team; adjust, do not skip dependencies.
 
 
-| Sprint | Focus                                                             | Exit                                                    |
-| ------ | ----------------------------------------------------------------- | ------------------------------------------------------- |
-| **A0** | Phase 1.0: `app/models/` package split                            | **Done** — imports and tests green; DB schema unchanged |
-| **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema               | Isolated tenants, empty product tables                  |
-| **B**  | Phase 3: ingestion API + Knowledge UI                             | Upload → Active chunks                                  |
-| **C**  | Phase 4 + 5 without widget: tools API/UI + orchestrator + sandbox | Sandbox Q&A + HITL against a mock HTTP tool             |
-| **D**  | Phase 6–7: `packages/widget`, JWT, snippet, internal chat         | Script tag on example host                              |
-| **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run      | MVP acceptance checklist all green                      |
+| Sprint | Focus                                                                 | Exit                                                         |
+| ------ | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **A0** | Phase 1.0: `app/models/` package split                                | **Done** — imports and tests green; DB schema unchanged     |
+| **A**  | Phase 1–2: workspace, RBAC, pgvector, Redis, schema                   | **Done** — isolated tenants, product tables                 |
+| **B**  | Phase 3.1–3.2: ingestion API                                          | **Done** — upload → Active chunks. Knowledge screen is C2   |
+| **C1** | Phase 4.2 + Phase 5 internal channel                                  | **Done** — internal stream, HITL, and HTTP tool confirm     |
+| **C2** | Phase 3.3 + 4.3: Knowledge and Tools screens                          | Upload and register from the dashboard                       |
+| **C3** | Phase 7.1 + 7.2: sandbox and `/dashboard/chat`                        | **Done** — internal Q&A and HITL against a registered HTTP tool |
+| **D**  | Phase 6 + 5.4 + 6.5 + 7.3: widget, JS tools, snippet, preview         | **Done** — script tag, Shadow DOM chat, JS tools, preview   |
+| **E**  | Phase 8–10: handoff, caps, tests, remove Items, beta dry-run          | MVP acceptance checklist all green                           |
 
 
 ---

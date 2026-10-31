@@ -5,6 +5,16 @@ export type ClientOptions = {
 };
 
 /**
+ * Body_knowledge-upload_knowledge
+ */
+export type Body_knowledge_upload_knowledge = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * Body_login-login_access_token
  */
 export type Body_login_login_access_token = {
@@ -35,6 +45,91 @@ export type Body_login_login_access_token = {
 };
 
 /**
+ * ChatStreamRequest
+ */
+export type ChatStreamRequest = {
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Channel
+     */
+    channel: 'internal';
+};
+
+/**
+ * DocumentPublic
+ */
+export type DocumentPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Original Filename
+     */
+    original_filename: string;
+    type: DocumentType;
+    status: DocumentStatus;
+    /**
+     * Error Message
+     */
+    error_message: string | null;
+    /**
+     * Created At
+     */
+    created_at: string | null;
+};
+
+/**
+ * DocumentStatus
+ */
+export type DocumentStatus = 'processing' | 'active' | 'failed';
+
+/**
+ * DocumentType
+ */
+export type DocumentType = 'pdf' | 'markdown' | 'text';
+
+/**
+ * DocumentUploadResponse
+ */
+export type DocumentUploadResponse = {
+    /**
+     * Document Id
+     */
+    document_id: string;
+    status: DocumentStatus;
+    /**
+     * Message
+     */
+    message: string;
+};
+
+/**
+ * DocumentsPublic
+ */
+export type DocumentsPublic = {
+    /**
+     * Data
+     */
+    data: Array<DocumentPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * HTTPValidationError
  */
 export type HTTPValidationError = {
@@ -43,6 +138,25 @@ export type HTTPValidationError = {
      */
     detail?: Array<ValidationError>;
 };
+
+/**
+ * HitlConfirmRequest
+ */
+export type HitlConfirmRequest = {
+    /**
+     * Pending Action Id
+     */
+    pending_action_id: string;
+    /**
+     * Decision
+     */
+    decision: 'approved' | 'rejected';
+};
+
+/**
+ * HttpMethod
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 /**
  * InvitationStatus
@@ -175,6 +289,132 @@ export type Token = {
      * Token Type
      */
     token_type?: string;
+};
+
+/**
+ * ToolKind
+ */
+export type ToolKind = 'http' | 'js';
+
+/**
+ * ToolPublic
+ */
+export type ToolPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    kind: ToolKind;
+    http_method: HttpMethod | null;
+    /**
+     * Url
+     */
+    url: string | null;
+    /**
+     * Schema
+     */
+    schema: {
+        [key: string]: unknown;
+    };
+    /**
+     * Requires Hitl
+     */
+    requires_hitl: boolean;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Is Active
+     */
+    is_active: boolean;
+};
+
+/**
+ * ToolRegister
+ */
+export type ToolRegister = {
+    /**
+     * Name
+     */
+    name: string;
+    kind?: ToolKind | null;
+    http_method?: HttpMethod | null;
+    /**
+     * Url
+     */
+    url?: string | null;
+    /**
+     * Requires Hitl
+     */
+    requires_hitl?: boolean;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Schema
+     */
+    schema: {
+        [key: string]: unknown;
+    };
+};
+
+/**
+ * ToolRegisterResponse
+ */
+export type ToolRegisterResponse = {
+    /**
+     * Tool Id
+     */
+    tool_id: string;
+    /**
+     * Status
+     */
+    status: 'active';
+};
+
+/**
+ * ToolUpdate
+ */
+export type ToolUpdate = {
+    http_method?: HttpMethod | null;
+    /**
+     * Url
+     */
+    url?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Requires Hitl
+     */
+    requires_hitl?: boolean | null;
+    /**
+     * Schema
+     */
+    schema?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
+ * ToolsPublic
+ */
+export type ToolsPublic = {
+    /**
+     * Data
+     */
+    data: Array<ToolPublic>;
+    /**
+     * Count
+     */
+    count: number;
 };
 
 /**
@@ -354,6 +594,96 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WidgetChatRequest
+ */
+export type WidgetChatRequest = {
+    /**
+     * Session Id
+     */
+    session_id: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
+ * WidgetHitlRequest
+ */
+export type WidgetHitlRequest = {
+    /**
+     * Pending Action Id
+     */
+    pending_action_id: string;
+    /**
+     * Decision
+     */
+    decision: 'approved' | 'rejected';
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
+ * WidgetInstallPublic
+ */
+export type WidgetInstallPublic = {
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+    /**
+     * Secret
+     */
+    secret?: string | null;
+};
+
+/**
+ * WidgetPreviewToken
+ */
+export type WidgetPreviewToken = {
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Expires In
+     */
+    expires_in: number;
+};
+
+/**
+ * WidgetToolResultRequest
+ */
+export type WidgetToolResultRequest = {
+    /**
+     * Call Id
+     */
+    call_id: string;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+    /**
+     * Ok
+     */
+    ok: boolean;
+    /**
+     * Result
+     */
+    result?: unknown;
+    /**
+     * Error
+     */
+    error?: string | null;
 };
 
 /**
@@ -1388,6 +1718,437 @@ export type workspacesUpdateWorkspaceMemberResponses = {
 };
 
 export type workspacesUpdateWorkspaceMemberResponse = workspacesUpdateWorkspaceMemberResponses[keyof workspacesUpdateWorkspaceMemberResponses];
+
+export type workspacesReadWidgetInstallData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/widget';
+};
+
+export type workspacesReadWidgetInstallResponses = {
+    /**
+     * Successful Response
+     */
+    200: WidgetInstallPublic;
+};
+
+export type workspacesReadWidgetInstallResponse = workspacesReadWidgetInstallResponses[keyof workspacesReadWidgetInstallResponses];
+
+export type workspacesRotateWidgetInstallData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/widget/rotate';
+};
+
+export type workspacesRotateWidgetInstallResponses = {
+    /**
+     * Successful Response
+     */
+    200: WidgetInstallPublic;
+};
+
+export type workspacesRotateWidgetInstallResponse = workspacesRotateWidgetInstallResponses[keyof workspacesRotateWidgetInstallResponses];
+
+export type workspacesIssueWidgetPreviewTokenData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workspaces/me/widget/preview-token';
+};
+
+export type workspacesIssueWidgetPreviewTokenResponses = {
+    /**
+     * Successful Response
+     */
+    200: WidgetPreviewToken;
+};
+
+export type workspacesIssueWidgetPreviewTokenResponse = workspacesIssueWidgetPreviewTokenResponses[keyof workspacesIssueWidgetPreviewTokenResponses];
+
+export type knowledgeUploadKnowledgeData = {
+    body: Body_knowledge_upload_knowledge;
+    path?: never;
+    query?: never;
+    url: '/api/v1/knowledge/upload';
+};
+
+export type knowledgeUploadKnowledgeErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeUploadKnowledgeError = knowledgeUploadKnowledgeErrors[keyof knowledgeUploadKnowledgeErrors];
+
+export type knowledgeUploadKnowledgeResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentUploadResponse;
+};
+
+export type knowledgeUploadKnowledgeResponse = knowledgeUploadKnowledgeResponses[keyof knowledgeUploadKnowledgeResponses];
+
+export type knowledgeReadDocumentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/knowledge/documents';
+};
+
+export type knowledgeReadDocumentsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeReadDocumentsError = knowledgeReadDocumentsErrors[keyof knowledgeReadDocumentsErrors];
+
+export type knowledgeReadDocumentsResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentsPublic;
+};
+
+export type knowledgeReadDocumentsResponse = knowledgeReadDocumentsResponses[keyof knowledgeReadDocumentsResponses];
+
+export type knowledgeRemoveDocumentData = {
+    body?: never;
+    path: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    query?: never;
+    url: '/api/v1/knowledge/documents/{document_id}';
+};
+
+export type knowledgeRemoveDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeRemoveDocumentError = knowledgeRemoveDocumentErrors[keyof knowledgeRemoveDocumentErrors];
+
+export type knowledgeRemoveDocumentResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type knowledgeRemoveDocumentResponse = knowledgeRemoveDocumentResponses[keyof knowledgeRemoveDocumentResponses];
+
+export type knowledgeReadDocumentData = {
+    body?: never;
+    path: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    query?: never;
+    url: '/api/v1/knowledge/documents/{document_id}';
+};
+
+export type knowledgeReadDocumentErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type knowledgeReadDocumentError = knowledgeReadDocumentErrors[keyof knowledgeReadDocumentErrors];
+
+export type knowledgeReadDocumentResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentPublic;
+};
+
+export type knowledgeReadDocumentResponse = knowledgeReadDocumentResponses[keyof knowledgeReadDocumentResponses];
+
+export type toolsRegisterToolData = {
+    body: ToolRegister;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tools/register';
+};
+
+export type toolsRegisterToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsRegisterToolError = toolsRegisterToolErrors[keyof toolsRegisterToolErrors];
+
+export type toolsRegisterToolResponses = {
+    /**
+     * Successful Response
+     */
+    201: ToolRegisterResponse;
+};
+
+export type toolsRegisterToolResponse = toolsRegisterToolResponses[keyof toolsRegisterToolResponses];
+
+export type toolsReadToolsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/tools';
+};
+
+export type toolsReadToolsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsReadToolsError = toolsReadToolsErrors[keyof toolsReadToolsErrors];
+
+export type toolsReadToolsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToolsPublic;
+};
+
+export type toolsReadToolsResponse = toolsReadToolsResponses[keyof toolsReadToolsResponses];
+
+export type toolsRemoveToolData = {
+    body?: never;
+    path: {
+        /**
+         * Tool Id
+         */
+        tool_id: string;
+    };
+    query?: never;
+    url: '/api/v1/tools/{tool_id}';
+};
+
+export type toolsRemoveToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsRemoveToolError = toolsRemoveToolErrors[keyof toolsRemoveToolErrors];
+
+export type toolsRemoveToolResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type toolsRemoveToolResponse = toolsRemoveToolResponses[keyof toolsRemoveToolResponses];
+
+export type toolsReadToolData = {
+    body?: never;
+    path: {
+        /**
+         * Tool Id
+         */
+        tool_id: string;
+    };
+    query?: never;
+    url: '/api/v1/tools/{tool_id}';
+};
+
+export type toolsReadToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsReadToolError = toolsReadToolErrors[keyof toolsReadToolErrors];
+
+export type toolsReadToolResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToolPublic;
+};
+
+export type toolsReadToolResponse = toolsReadToolResponses[keyof toolsReadToolResponses];
+
+export type toolsUpdateToolData = {
+    body: ToolUpdate;
+    path: {
+        /**
+         * Tool Id
+         */
+        tool_id: string;
+    };
+    query?: never;
+    url: '/api/v1/tools/{tool_id}';
+};
+
+export type toolsUpdateToolErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type toolsUpdateToolError = toolsUpdateToolErrors[keyof toolsUpdateToolErrors];
+
+export type toolsUpdateToolResponses = {
+    /**
+     * Successful Response
+     */
+    200: ToolPublic;
+};
+
+export type toolsUpdateToolResponse = toolsUpdateToolResponses[keyof toolsUpdateToolResponses];
+
+export type chatStreamChatData = {
+    body: ChatStreamRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/chat/stream';
+};
+
+export type chatStreamChatErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatStreamChatError = chatStreamChatErrors[keyof chatStreamChatErrors];
+
+export type chatStreamChatResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type chatConfirmHitlData = {
+    body: HitlConfirmRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/chat/hitl-confirm';
+};
+
+export type chatConfirmHitlErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type chatConfirmHitlError = chatConfirmHitlErrors[keyof chatConfirmHitlErrors];
+
+export type chatConfirmHitlResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type widgetStreamWidgetChatData = {
+    body: WidgetChatRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/widget/chat/stream';
+};
+
+export type widgetStreamWidgetChatErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type widgetStreamWidgetChatError = widgetStreamWidgetChatErrors[keyof widgetStreamWidgetChatErrors];
+
+export type widgetStreamWidgetChatResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type widgetConfirmWidgetHitlData = {
+    body: WidgetHitlRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/widget/chat/hitl-confirm';
+};
+
+export type widgetConfirmWidgetHitlErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type widgetConfirmWidgetHitlError = widgetConfirmWidgetHitlErrors[keyof widgetConfirmWidgetHitlErrors];
+
+export type widgetConfirmWidgetHitlResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type widgetSubmitWidgetToolResultData = {
+    body: WidgetToolResultRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/widget/chat/tool-result';
+};
+
+export type widgetSubmitWidgetToolResultErrors = {
+    /**
+     * Validation Error
+     */
+    422: HTTPValidationError;
+};
+
+export type widgetSubmitWidgetToolResultError = widgetSubmitWidgetToolResultErrors[keyof widgetSubmitWidgetToolResultErrors];
+
+export type widgetSubmitWidgetToolResultResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

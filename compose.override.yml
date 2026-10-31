@@ -27,6 +27,10 @@ services:
     ports:
       - "5433:5432"
 
+  redis:
+    ports:
+      - "6380:6379"
+
   adminer:
     ports:
       - "8080:8080"

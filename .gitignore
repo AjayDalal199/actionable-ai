@@ -2,6 +2,7 @@
 !.vscode/extensions.json
 node_modules/
 backend/app/frontend/
+backend/app/widget/
 /test-results/
 /playwright-report/
 /blob-report/

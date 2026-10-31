@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -8,7 +9,18 @@ import tests.configure as _configure_test_database  # noqa: F401
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import Item, User, Workspace, WorkspaceMembership
+from app.models import (
+    ChatMessage,
+    ChatSession,
+    Document,
+    DocumentChunk,
+    GithubRepository,
+    Item,
+    ToolRegistry,
+    User,
+    Workspace,
+    WorkspaceMembership,
+)
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -17,13 +29,29 @@ def pytest_report_header() -> str:
     return f"test database: {str(settings.DATABASE_URL).rsplit('/', 1)[-1]}"
 
 
+@pytest.fixture(autouse=True)
+def knowledge_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    root = tmp_path / "knowledge"
+    root.mkdir()
+    monkeypatch.setattr(settings, "KNOWLEDGE_STORAGE_DIR", str(root))
+    return root
+
+
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        statement = delete(Item)
-        session.execute(statement)
+        for model in (
+            ChatMessage,
+            ChatSession,
+            DocumentChunk,
+            Document,
+            ToolRegistry,
+            GithubRepository,
+            Item,
+        ):
+            session.execute(delete(model))
         statement = delete(WorkspaceMembership)
         session.execute(statement)
         statement = delete(User)

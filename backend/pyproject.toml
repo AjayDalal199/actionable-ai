@@ -1,6 +1,6 @@
 [project]
 name = "app"
-version = "0.1.1"
+version = "0.2.0"
 description = "Actionable AI API"
 requires-python = ">=3.14,<4.0"
 dependencies = [
@@ -19,6 +19,12 @@ dependencies = [
     "sentry-sdk[fastapi]>=2.68.1,<3.0.0",
     "pyjwt<3.0.0,>=2.13.0",
     "pwdlib[argon2,bcrypt]>=0.3.1",
+    "pgvector>=0.4.2,<1.0.0",
+    "redis>=5.2,<8.0.0",
+    "pypdf>=5.4,<7",
+    "google-genai>=1.40,<3",
+    "langgraph>=1.2.18,<2",
+    "asyncer>=0.0.18,<1",
 ]
 
 [dependency-groups]

@@ -354,7 +354,7 @@ frontend/src/features/
   workspace/      members, rename — Phase 1
   knowledge/      Phase 3 UI
   tools/          Phase 4 UI
-  chat/           sandbox + internal chat — Phase 5/7
+  chat/           sandbox + internal chat — Phase 7, before the widget
   settings/       keep
   marketing/      keep
   items/          delete when Knowledge exists (not a blocker for architecture)
@@ -384,7 +384,7 @@ Public API should be boring: one script, attributes or `init({ workspace, token 
 | F1 | Dashboard structure | **Decided** | Option A — keep `routes` + `features` + `shared` + generated `api` |
 | F2 | Widget location | **Decided** | `packages/widget` (own bundle, Shadow DOM). Do not put it in `frontend/src` |
 | F3 | Widget UI library | Deferred to Phase 6 | Preact or vanilla. Never full React + shadcn |
-| F4 | Sandbox chat vs embed widget | Deferred to Phase 6–7 | Prefer embedding the widget in sandbox if JWT allows; else a thin stream helper |
+| F4 | Sandbox chat vs embed widget | **Decided 2026-10-30** | Sandbox and `/dashboard/chat` are dashboard UI on `channel: internal`. Do not embed the widget there. `packages/widget` starts after Phase 7.1 and 7.2. |
 | F5 | SSE client | **Decided** | `fetch` + `ReadableStream` (POST `/chat/stream`). Not `EventSource` |
 | F6 | Dashboard auth storage | **Decided** | `localStorage` for MVP; httpOnly cookie is V2 |
 | F7 | Design tokens | **Decided** | One ember/zinc token file for marketing + dashboard only |
@@ -399,6 +399,6 @@ Public API should be boring: one script, attributes or `init({ workspace, token 
 - Do not rewrite the folder tree as part of Workspace.
 - Do not add Next.js, Redux, or a second CSS framework.
 - Do not put Knowledge/Tools routes in until those APIs exist (empty nav is fine).
-- Do not start the widget package until chat streaming exists on the backend.
+- Do not start the widget package until internal sandbox chat works (Phase 7.1 and 7.2).
 
 The first frontend change that *is* architecture-aligned, when we get there: feature `workspace` + query for `/workspaces/me`, still using this folder layout.

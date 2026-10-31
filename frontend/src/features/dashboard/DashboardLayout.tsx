@@ -2,6 +2,7 @@ import { Outlet } from "@tanstack/react-router"
 import { LogOut } from "lucide-react"
 
 import { useAuth } from "@/features/auth/useAuth"
+import { useFirstDocumentSandbox } from "@/features/chat/useFirstDocumentSandbox"
 import { AppSidebar } from "@/features/dashboard/AppSidebar"
 import { Footer } from "@/shared/components/Footer"
 import { Button } from "@/shared/ui/button"
@@ -13,6 +14,7 @@ import {
 
 export function DashboardLayout() {
   const { logout } = useAuth()
+  useFirstDocumentSandbox()
 
   return (
     <SidebarProvider>

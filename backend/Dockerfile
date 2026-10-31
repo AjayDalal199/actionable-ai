@@ -4,16 +4,20 @@ WORKDIR /app
 
 COPY package.json bun.lock /app/
 COPY frontend/package.json /app/frontend/
+COPY packages/widget/package.json /app/packages/widget/
+COPY packages/react-email/package.json /app/packages/react-email/
 
-WORKDIR /app/frontend
+WORKDIR /app
 
 RUN bun install
 
 COPY ./frontend /app/frontend
+COPY ./packages/widget /app/packages/widget
 
 ARG VITE_API_URL=
 
-RUN bun run build
+RUN bun run --filter frontend build
+RUN bun run --filter widget build
 
 
 FROM python:3.14
@@ -52,6 +56,7 @@ COPY ./backend/pyproject.toml ./backend/alembic.ini /app/backend/
 COPY ./backend/app /app/backend/app
 
 COPY --from=frontend-build /app/backend/app/frontend /app/backend/app/frontend
+COPY --from=frontend-build /app/backend/app/widget /app/backend/app/widget
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers

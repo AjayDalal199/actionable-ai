@@ -57,6 +57,8 @@ keys = [
     "SENTRY_DSN",
     "WEB_CONCURRENCY",
     "LETSENCRYPT_EMAIL",
+    "GEMINI_API_KEY",
+    "CHAT_MODEL",
 ]
 for key in keys:
     print(f"{key}={shlex.quote(os.environ.get(key, ''))}")

@@ -1,4 +1,5 @@
 import {
+  AppWindow,
   BookOpen,
   Home,
   MessageSquare,
@@ -25,6 +26,7 @@ const baseItems: Item[] = [
   { icon: BookOpen, title: "Knowledge", path: "/dashboard/knowledge" },
   { icon: Wrench, title: "Tools", path: "/dashboard/tools" },
   { icon: MessageSquare, title: "Chat", path: "/dashboard/chat" },
+  { icon: AppWindow, title: "Widget", path: "/dashboard/widget" },
   { icon: Users, title: "Members", path: "/dashboard/members" },
 ]
 

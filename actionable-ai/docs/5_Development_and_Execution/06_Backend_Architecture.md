@@ -32,7 +32,7 @@ Split into real services (chat vs knowledge vs tools) only when a single process
 | ------------- | --------------------------------------------- | --------------------------------------------------------------- |
 | API           | FastAPI, Python ≥ 3.14                        | Sync route handlers (`def`, not `async def`) almost everywhere  |
 | ORM           | SQLModel                                      | Tables + request/response schemas in `app/models.py`            |
-| DB            | PostgreSQL 18 (Compose)                       | Alembic migrations. `create_all` is commented out               |
+| DB            | PostgreSQL 18 + pgvector (Compose)            | Image `pgvector/pgvector:pg18`. Alembic migrations. `create_all` is commented out |
 | Auth          | JWT (HS256), OAuth2 password form             | One token type: dashboard user id in `sub`                      |
 | Password      | pwdlib Argon2 (+ bcrypt verify)               |                                                                 |
 | Config        | `pydantic-settings` from root `.env`          |                                                                 |
@@ -42,7 +42,7 @@ Split into real services (chat vs knowledge vs tools) only when a single process
 | Serve UI      | `app.frontend("/", directory=FRONTEND_DIR)`   | Built SPA copied into `backend/app/frontend`                    |
 
 
-There is **no** pgvector, Redis, LangGraph, OpenAI client, object storage, or job queue in code yet. Compose services: Traefik, Postgres, Adminer, backend. Mailcatcher is in override.
+pgvector is enabled: extension `vector`, and `document_chunk.embedding` at 1536 dimensions. Redis is in Compose (`REDIS_URL`); the health check pings it. HITL state, rate limits, and a worker queue are not using it yet. Knowledge ingestion stores original files on a Docker named volume and embeds with the Gemini client inside a FastAPI `BackgroundTasks` job. There is still no LangGraph, object storage, or ARQ/TaskIQ queue. Compose services: Traefik, Postgres, Redis, Adminer, backend. Mailcatcher is in override.
 
 ---
 
@@ -346,7 +346,7 @@ Widget JWT (B4) is **designed now**, implemented when the widget exists (Phase 6
 | B5 | Ingestion runner | **Decided** | FastAPI `BackgroundTasks` first; ARQ (or TaskIQ) when Redis exists |
 | B6 | HITL store | **Decided** | Redis (not a Postgres row) for pause/resume |
 | B7 | LLM / graph | **Decided** | In-process LangGraph in `services/chat/` |
-| B8 | File bytes | **Decided** | Local volume in Compose for MVP; hide behind `services/knowledge/storage.py` so S3 can swap later |
+| B8 | File bytes | **Decided** | Boot volume on each VM (~80 GB, shared with OS, images, and Postgres). Docker named volume. No object storage for MVP. Hide behind `services/knowledge/storage.py` |
 
 
 ---

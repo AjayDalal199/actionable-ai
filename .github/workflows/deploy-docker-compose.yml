@@ -60,7 +60,9 @@ jobs:
       SENTRY_DSN: ${{ vars.SENTRY_DSN }}
       LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
       WEB_CONCURRENCY: ${{ vars.WEB_CONCURRENCY }}
+      CHAT_MODEL: ${{ vars.CHAT_MODEL }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
