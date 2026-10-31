@@ -2,10 +2,10 @@ import uuid
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import ConfigDict
 from sqlalchemy import Column, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel.main import SQLModelConfig
 
 from app.models.workspace import Workspace
 
@@ -49,7 +49,7 @@ class ToolRegistry(SQLModel, table=True):
 
 
 class ToolRegister(SQLModel):
-    model_config = ConfigDict(populate_by_name=True)  # type: ignore[assignment]
+    model_config = SQLModelConfig(populate_by_name=True)
 
     name: str
     kind: ToolKind | None = None
@@ -61,7 +61,7 @@ class ToolRegister(SQLModel):
 
 
 class ToolUpdate(SQLModel):
-    model_config = ConfigDict(populate_by_name=True)  # type: ignore[assignment]
+    model_config = SQLModelConfig(populate_by_name=True)
 
     http_method: HttpMethod | None = None
     url: str | None = None
