@@ -108,7 +108,7 @@ Variables (different values per Environment):
 - `DEPLOY_PATH` — `/home/deploy/actionable-ai`
 - `PROJECT_NAME` — `Actionable AI`
 - `FIRST_SUPERUSER` — e.g. `ops@dactionlabs.com`
-- Optional: `SMTP_HOST`, `SMTP_USER`, `EMAILS_FROM_EMAIL`, `SENTRY_DSN`, `LETSENCRYPT_EMAIL`, `WEB_CONCURRENCY` (keep **1**)
+- Optional: `SMTP_HOST`, `SMTP_USER`, `EMAILS_FROM_EMAIL`, `SENTRY_DSN`, `LETSENCRYPT_EMAIL`, `WEB_CONCURRENCY` (keep **1**), `CHAT_MODEL` (default `gemini-3.5-flash-lite`)
 
 Secrets (unique per environment — never copy staging into production):
 
@@ -118,6 +118,7 @@ Secrets (unique per environment — never copy staging into production):
 - `POSTGRES_PASSWORD`
 - `FIRST_SUPERUSER_PASSWORD`
 - Optional: `SMTP_PASSWORD`
+- `GEMINI_API_KEY` — embeddings and chat. Use a separate key per environment.
 
 ```bash
 python -c 'import secrets; print(secrets.token_urlsafe(32))'

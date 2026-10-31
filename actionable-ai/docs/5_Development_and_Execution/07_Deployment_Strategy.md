@@ -192,12 +192,13 @@ The repo is public: **no self-hosted runner on either VM**. Self-hosted runners 
 | `SECRET_KEY` | **yes** | Unique per env. Rotating it logs everyone out |
 | `FIRST_SUPERUSER_PASSWORD` | **yes** | Unique per env |
 | `SMTP_PASSWORD` | **yes** | If the provider requires it |
+| `GEMINI_API_KEY` | **yes** | Embeddings and chat. Staging can use a separate key with a spend cap |
+| `CHAT_MODEL` | no | Default `gemini-3.5-flash-lite` when unset |
 
 Add when those phases land (still unique per env):
 
 | Name | Phase | Notes |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | 3 | Gemini API key for embeddings now and chat later. Staging can use a separate key with a spend cap |
 | `REDIS_URL` | 2 | Internal Compose DNS, e.g. `redis://redis:6379/0` — not public |
 
 Workspace widget JWT secrets live **in the database per workspace**, not in env (backend B4). Env only holds *our* signing key for dashboard users.
